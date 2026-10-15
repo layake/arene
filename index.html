@@ -565,12 +565,22 @@ function lockAim(e){
   const hov=e===player&&!e.bot&&hoverEnemy();
   e.lockPt={wx:pt.wx,wy:pt.wy,hov,hx:hov?foe.x:0,hy:hov?foe.y:0,hb:hov?foe.sp.body:0};
 }
+// Aide à la visée : un curseur posé près de l'ennemi (panique, cible qui bouge) vise l'ennemi, avec une légère avance sur son déplacement.
+const ASSIST=26, LEAD=.12;
+function snapAim(e,tx,ty,ground){
+  const t=foeOf(e); if(!t||t===e||!alive(t)||t.tunnel)return [tx,ty];
+  const bx=t.x, by=t.y-t.sp.body; // centre du corps : le curseur se pose là où on voit l'ennemi, même si le sort vise le sol
+  if(Math.hypot(tx-bx,(ty-by)*1.1)>ASSIST+t.sp.body*.9)return [tx,ty];
+  const L=ground?0:LEAD;
+  return [(ground?t.x:bx)+clamp((t.vx||0)*L,-14,14), (ground?t.y:by)+clamp((t.vy||0)*L,-10,10)];
+}
 function aimVec(e,ground){
   const pt=aimPoint(e); if(!pt)return null;
   const ob=ground?0:e.sp.body, ox=e.x, oy=e.y-ob;
   let tx=pt.wx, ty=pt.wy;
   if(pt.hov){tx=pt.hx;ty=pt.hy-(ground?0:pt.hb)}
   else if(!locked(e)&&e===player&&!e.bot&&hoverEnemy()){tx=foe.x;ty=foe.y-(ground?0:foe.sp.body)}
+  else if(e.fighter&&!e.bot){const s=snapAim(e,tx,ty,ground);tx=s[0];ty=s[1]}
   const dx=tx-ox, dy=ty-oy, d=Math.hypot(dx,dy);
   if(d<1)return null;
   return [dx/d,dy/d,d];
@@ -581,6 +591,7 @@ const ISO=.55, gdist=(dx,dy)=>Math.hypot(dx,dy/ISO);
 function groundTarget(e){
   const pt=aimPoint(e)||{wx:e.x+FACE[e.dir][0]*80,wy:e.y+FACE[e.dir][1]*80};
   let tx=pt.wx, ty=pt.wy; if(pt.hov){tx=pt.hx;ty=pt.hy}else if(!locked(e)&&e===player&&!e.bot&&hoverEnemy()){tx=foe.x;ty=foe.y}
+  else if(e.fighter&&!e.bot){const s=snapAim(e,tx,ty,true);tx=s[0];ty=s[1]}
   return [tx-e.x,ty-e.y];
 }
 function zoneSpot(e,range){const [dx,dy]=groundTarget(e), k=Math.min(1,range/(gdist(dx,dy)||1)); return {x:clampX(e.x+dx*k),y:clampY(e.y+dy*k)}}
@@ -828,12 +839,12 @@ function updateOrbs(dt){
     while(left>0&&!gone){
       const st=Math.min(4,left); left-=st; o.x+=o.vx*st; o.y+=o.vy*st; o.trav+=st;
       const t=foeOf(o.o);
-      if(alive(t)&&!t.tunnel&&Math.hypot(t.x-o.x,(t.y-o.y)*1.3)<P.hit&&o.id==="hypno"){
+      if(alive(t)&&!t.tunnel&&Math.hypot(t.x-o.x,(t.y-o.y)*1.3)<P.hit+t.sp.body*.55&&o.id==="hypno"){
         if(t.shieldOn)blockHit(t,{x:o.x-o.vx*10,y:o.y-o.vy*10},10,o.o,false);
         else{sfxUI("sleep");pops.push({x:t.x,y:t.y-46,t:0,txt:"Endormi"});colorBurst(t.x,t.y-10,18,TYPE_PAL.psychic,20,80);
           if(t.ai){t.ai.wait=Math.max(t.ai.wait,SLEEP.t)}else{t.stun=Math.max(t.stun,SLEEP.t);t.sleep=true;t.dizzy=false;t.moveTarget=null;if(t===player)marker=null;t.rush=null;t.chan=null}}
         gone=true}
-      else if(alive(t)&&!t.tunnel&&Math.hypot(t.x-o.x,(t.y-o.y)*1.3)<P.hit){strike(o.o,t,SPL[o.id],{from:{x:o.x-o.vx*10,y:o.y-o.vy*10}});gone=true}
+      else if(alive(t)&&!t.tunnel&&Math.hypot(t.x-o.x,(t.y-o.y)*1.3)<P.hit+t.sp.body*.55){strike(o.o,t,SPL[o.id],{from:{x:o.x-o.vx*10,y:o.y-o.vy*10}});gone=true}
       else if(o.trav>=P.range||o.x<10||o.x>WORLD.w-10||o.y<20||o.y>WORLD.h-10)gone=true;
     }
     if(gone&&o.id==="tbolt"){fx.push({k:"pillar",x:o.x,y:o.y,sy:o.y+.5,top:130,w:5,t:0,life:.28,pal:["#c09010","#f8d030","#ffffff"]});rings.push({x:o.x,y:o.y,t:0,dur:.3,max:22,c:"#fff080"});colorBurst(o.x,o.y,22,TYPE_PAL.electric,60,200);shake=Math.max(shake,.12)}
@@ -1083,7 +1094,7 @@ function updateTunnel(e,dt){
          let nx=T.fx+ex/ed*.45, ny=T.fy+ey/ed*.45; const nl=Math.hypot(nx,ny); T.fx=nx/nl; T.fy=ny/nl}}
       e.x=clampX(e.x+T.fx*step); e.y=clampY(e.y+T.fy*step); T.trav+=step;
       T.trailAt+=step; if(T.trailAt>=5){T.trailAt=0;trail.push({x:e.x,y:e.y,t:0})}
-      const contact=alive(t)&&!t.tunnel&&Math.hypot(t.x-e.x,(t.y-e.y)*1.3)<15;
+      const contact=alive(t)&&!t.tunnel&&Math.hypot(t.x-e.x,(t.y-e.y)*1.3)<15+t.sp.body*.4;
       const blocked=(T.fx>0&&e.x>=WORLD.w-16)||(T.fx<0&&e.x<=16)||(T.fy>0&&e.y>=WORLD.h-10)||(T.fy<0&&e.y<=22);
       if(contact||blocked||T.trav>=TUNNEL.dist-.01)emerge(e);
     }
@@ -1129,7 +1140,7 @@ function updateRush(e,dt){
       if(!ghost&&Math.floor((R.trav-st)/5)!==Math.floor(R.trav/5))glows.push({x:e.x,y:e.y,t:0,life:.8});
       if(ghost&&Math.floor((R.trav-st)/5)!==Math.floor(R.trav/5)){for(let q=0;q<3;q++)spark(e.x+rand(-4,4),e.y-rand(4,18),rand(-6,6),rand(-20,0),.4,TYPE_PAL.ghost[q%3],0,4)}
       for(let k=0;k<2;k++){const n=rand(-5,5);spark(e.x+(-R.fy)*n,e.y-8+R.fx*n*.5,-R.fx*rand(30,90)+rand(-10,10),-R.fy*rand(30,90)*.7+rand(-10,10),rand(.2,.4),PAL[Math.floor(rand(0,4))],0,k?3:2)}
-      const t=foeOf(e), contact=alive(t)&&!t.tunnel&&Math.hypot(t.x-e.x,(t.y-e.y)*1.3)<C.hit;
+      const t=foeOf(e), contact=alive(t)&&!t.tunnel&&Math.hypot(t.x-e.x,(t.y-e.y)*1.3)<C.hit+t.sp.body*.4;
       const blocked=(R.fx>0&&e.x>=WORLD.w-16)||(R.fx<0&&e.x<=16)||(R.fy>0&&e.y>=WORLD.h-10)||(R.fy<0&&e.y<=22);
       if(contact&&strike(e,t,SPL[R.id],{from:e,push:C.push,stun:C.stun,contact:true})&&!ghost){
         rings.push({x:t.x,y:t.y,t:0,dur:.45,max:46,c:"#a77bff"}); rings.push({x:t.x,y:t.y,t:0,dur:.28,max:28,c:"#ffffff"}); rushBurst(t.x,t.y,44,80,220); burst(t.x,t.y,22); shake=.42; hitstop=.11;
