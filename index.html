@@ -1,3 +1,4 @@
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Carchacrok Arena</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Pixelify+Sans:wght@500;700&display=swap">
@@ -145,6 +146,12 @@ canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelate
 .online input{width:64px;text-align:center;text-transform:uppercase;letter-spacing:.15em;font:inherit;padding:6px;border-radius:6px;border:1px solid #3b4a7a;background:#0f1530;color:#fff}
 #netStatus{flex-basis:100%;text-align:center;min-height:1.2em;color:#ffd27a}
 #netInfo{position:absolute;right:8px;bottom:6px;font:500 11px "Pixelify Sans",monospace;color:#9fb4ff;opacity:.8;pointer-events:none}
+#netRow,#netLobby{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
+#netRow[hidden],#netLobby[hidden]{display:none}
+#netLobby b{font-weight:600;padding:5px 9px;border-radius:6px;background:#0f1530;border:1px solid #3b4a7a;color:#9fb4ff}
+#netLobby b.on{border-color:#5ad27a;color:#9dffb6}
+#netReady{background:#2a6a3c!important;border-color:#5ad27a!important}
+#menu.locked #cards,#menu.locked #equip{pointer-events:none;opacity:.55}
 footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </style>
 
@@ -167,7 +174,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 <div id="bar">
 <button id="atk" class="slot dragon" type="button" aria-disabled="false"><span class="k">A</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#1a0f3d" stroke-width="1.4" stroke-linejoin="round"><path d="M4 4 L9 3 L15 27 L12 28 Z" fill="#f3eaff"/><path d="M11 4 L16 3 L22 27 L19 28 Z" fill="#f3eaff"/><path d="M18 4 L23 3 L29 27 L26 28 Z" fill="#f3eaff"/></svg><span class="c">10</span><span class="n">Draco-Griffe</span><span class="cd"></span><span class="t"></span></button><button id="pls" class="slot ground" type="button" aria-disabled="false"><span class="k">Z</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#2a1608" stroke-width="1.4"><circle cx="17" cy="17" r="9" fill="#7a4a22"/><ellipse cx="13" cy="13" rx="3.2" ry="2" fill="#c08a50" stroke="none"/><circle cx="5.5" cy="21" r="2.2" fill="#7a4a22"/><circle cx="27.5" cy="9" r="1.8" fill="#7a4a22"/><circle cx="6" cy="10" r="1.4" fill="#7a4a22"/></svg><span class="c">20</span><span class="n">Tir de Boue</span><span class="cd"></span><span class="t"></span></button><button id="tun" class="slot ground" type="button" aria-disabled="false"><span class="k">E</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#2a1608" stroke-width="1.4" stroke-linejoin="round"><path d="M3 27 Q16 3 29 27 Z" fill="#b98a4e"/><path d="M9 20 Q13 12 17 10" fill="none" stroke="#e3bd82" stroke-width="2" stroke-linecap="round"/><ellipse cx="16" cy="25" rx="6.5" ry="2.8" fill="#2a1608"/></svg><span class="c">25</span><span class="n">Tunnel</span><span class="cd"></span><span class="t"></span></button><button id="rsh" class="slot dragon" type="button" aria-disabled="false"><span class="k">R</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#1a0f3d" stroke-width="1.4" stroke-linejoin="round"><path d="M3 12 H16 V5 L29 16 L16 27 V20 H3 Z" fill="#f3eaff"/><path d="M6 15 H18 V11" fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round"/></svg><span class="c">50</span><span class="n">Draco-Charge</span><span class="cd"></span><span class="t"></span></button><span class="sep"></span><button id="shd" class="slot shield" type="button" aria-pressed="false" aria-disabled="false"><span class="k">Esp</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#0b2a40" stroke-width="1.4" stroke-linejoin="round"><path d="M16 3 L28 7 V16 C28 23 22 27 16 30 C10 27 4 23 4 16 V7 Z" fill="#d6f2ff"/><path d="M16 7 L24 10 V16 C24 21 20 24 16 26 Z" fill="#5cc0f0" stroke="none"/></svg><span class="n">Bouclier</span><span class="cd"></span><span class="t"></span></button>
 </div>
-<div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Choisis ton Ace</h2><div id="cards"></div><div id="equip"></div><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>Tortipousse, mannequin</small></button><button type="button" data-mode="duel" aria-pressed="false">Duel<small>contre l'autre Ace</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><div class="online" role="group" aria-label="En ligne"><span>En ligne</span><button id="netCreate" type="button">Créer un salon</button><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button><div id="netStatus" aria-live="polite"></div></div><button id="go" type="button">Combattre</button></div></div>
+<div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Choisis ton Ace</h2><div id="cards"></div><div id="equip"></div><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>Tortipousse, mannequin</small></button><button type="button" data-mode="duel" aria-pressed="false">Duel<small>contre l'autre Ace</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><div class="online" role="group" aria-label="En ligne"><span>En ligne</span><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netLobby" hidden><b id="netMe"></b><b id="netOpp"></b><button id="netReady" type="button">Prêt</button></div><div id="netStatus" aria-live="polite"></div></div><button id="go" type="button">Combattre</button></div></div>
 </div>
 <footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé.</footer>
 
@@ -2045,9 +2052,10 @@ const SKIP=new Set(["sp","hover","lx","ly","vx","vy","x","y","tick","frame","hpS
 const OWN_SKIP=new Set(["moveTarget","wantShield","aimPt","run"]);
 const PRED=new Set(["cast","rush","chan","tunnel","counter","pp","cd","comboT","lock","lockPt","shieldOn","shieldE","dir","stun"]);
 const q=s=>document.querySelector(s);
+const lobbyEl=q("#netLobby"), rowEl=q("#netRow"), meEl=q("#netMe"), oppEl=q("#netOpp"), btnR=q("#netReady"), menuRoot=q("#menu");
 const st=q("#netStatus"), codeIn=q("#netCode"), btnC=q("#netCreate"), btnJ=q("#netJoin");
 const relayOnly=/[?&]relay=1/.test(location.search);
-let mode="ws", peer=null, connR=null, connF=null, ws=null, pc=null, dcR=null, dcF=null, pend=[], role="", myHello=null, oppHello=null, seq=0, lastSnapSeq=-1;
+let myReady=false, oppReady=false, inLobby=false, mode="ws", peer=null, connR=null, connF=null, ws=null, pc=null, dcR=null, dcF=null, pend=[], role="", myHello=null, oppHello=null, seq=0, lastSnapSeq=-1;
 let castSeq=0, castAt=0, ackSeq=0, snapAcc=0, mvAcc=0, lastMv="", lastSh=false, lastMvAt=0, pingAcc=0, pingMs=0, pingTs=0;
 let info=document.createElement("div"); info.id="netInfo"; info.hidden=true; (q("#stage")||document.body).appendChild(info);
 const say=t=>{if(st)st.textContent=t};
@@ -2067,7 +2075,7 @@ NET.leave=function(){
   try{if(pc)pc.close()}catch(_){} pc=dcR=dcF=null; pend=[];
   if(ws){try{ws.onclose=null;ws.close()}catch(_){} ws=null}
   if(peer){try{peer.destroy()}catch(_){} peer=connR=connF=null}
-  btnC.disabled=btnJ.disabled=false;
+  btnC.disabled=btnJ.disabled=false; myReady=oppReady=false; inLobby=false; oppHello=null; refreshLobby();
 };
 // ---- Sérialisation : les références vers les deux combattants deviennent {"$e":index} ----
 const rd=v=>Math.round(v*100)/100;
@@ -2159,10 +2167,30 @@ NET.tick=function(dt){
   }
   pingAcc+=dt; if(pingAcc>=PING_DT){pingAcc=0;pingTs=performance.now();send({t:"ping",ts:pingTs},true)}
 };
+function refreshLobby(){
+  lobbyEl.hidden=!inLobby; rowEl.hidden=inLobby; menuRoot.classList.toggle("locked",inLobby&&myReady);
+  if(!inLobby)return;
+  const nm=k=>SPECIES[k]?SPECIES[k].name:"?";
+  meEl.textContent="Toi : "+nm(pick)+(myReady?"  (prêt)":"");
+  meEl.className=myReady?"on":"";
+  oppEl.textContent="Adversaire : "+(oppReady&&oppHello?nm(oppHello.key)+"  (prêt)":"en train de choisir…");
+  oppEl.className=oppReady?"on":"";
+  btnR.textContent=myReady?"Pas prêt":"Prêt";
+}
+setInterval(()=>{if(inLobby&&!NET.started)refreshLobby()},400);
+function lobbyOn(){inLobby=true;myReady=oppReady=false;oppHello=null;say("Choisis ton Ace et tes sorts, puis clique sur Prêt.");refreshLobby()}
+function maybeStart(){ if(role==="host"&&myReady&&oppReady&&oppHello&&!NET.started)beginHost() }
+btnR.addEventListener("click",()=>{
+  if(!inLobby||NET.started)return;
+  if(!myReady&&!saveKit())return;
+  myReady=!myReady; myHello=mineHello();
+  relay({t:"ready",on:myReady,key:myHello.key,kit:myHello.kit});
+  refreshLobby(); maybeStart();
+});
 function onMsg(m){
   if(m.t==="ping")send({t:"pong",ts:m.ts},true);
   else if(m.t==="pong"){pingMs=Math.round(performance.now()-m.ts);info.hidden=false;info.textContent=(mode==="peer"||rtcOpen()?"P2P ":"Relais ")+pingMs+" ms"}
-  else if(m.t==="hello"&&role==="host"){oppHello=m;beginHost()}
+  else if(m.t==="ready"){ if(NET.started)return; oppReady=!!m.on; if(m.on)oppHello={key:m.key,kit:m.kit}; refreshLobby(); maybeStart() }
   else if(m.t==="start"&&role==="guest"){beginGuest(m)}
   else if(m.t==="snap"&&role==="guest"&&NET.started)applySnap(m);
   else if(m.t==="sfxc"&&role==="guest"&&NET.started){try{sfxCast(foe,m.id)}catch(_){}}
@@ -2181,7 +2209,7 @@ function begin(hostH,guestH,asHost){
   menuOpen=false; menuEl.hidden=true; last=performance.now(); info.hidden=false; say("");
 }
 function beginHost(){
-  const h=myHello, g=oppHello;
+  myHello=mineHello(); const h=myHello, g=oppHello;
   if(!h||!g||!SPECIES[g.key]||!SPECIES[g.key].playable||!validKit(g.key,g.kit)){say("Invité invalide");return}
   relay({t:"start",h:{key:h.key,kit:h.kit},g:{key:g.key,kit:g.kit}});
   begin(h,g,true);
@@ -2236,7 +2264,7 @@ function peerHost(){
     p.on("error",e=>{ if(e.type==="unavailable-id"){try{p.destroy()}catch(_){}go(n+1)} else peerFail("Courtier injoignable ("+e.type+")") });
     p.on("connection",c=>{
       const k=c.metadata&&c.metadata.c; attach(c);
-      if(k==="r"){connR=c; c.on("open",()=>say("Adversaire arrivé, connexion…"))} else connF=c;
+      if(k==="r"){connR=c; c.on("open",()=>lobbyOn())} else connF=c;
     });
   };
   go(0);
@@ -2248,7 +2276,7 @@ function peerJoin(code){
     const id="arene-"+code;
     connR=p.connect(id,{reliable:true,metadata:{c:"r"}}); connF=p.connect(id,{reliable:false,metadata:{c:"f"}});
     attach(connR); attach(connF);
-    connR.on("open",()=>{say("Salon rejoint, connexion…");send2hello()});
+    connR.on("open",()=>{lobbyOn()});
   });
 }
 async function useServer(){
@@ -2273,16 +2301,15 @@ function connect(onOpen){
   ws.onmessage=ev=>{
     let m; try{m=JSON.parse(ev.data)}catch(_){return}
     if(m.t==="created"){say("Salon "+m.code+" : donne ce code à ton adversaire…");codeIn.value=m.code}
-    else if(m.t==="peer"){say("Adversaire arrivé, connexion…");startRTC(true)}
-    else if(m.t==="joined"){say("Salon rejoint, connexion…");startRTC(false);send2hello()}
+    else if(m.t==="peer"){startRTC(true);lobbyOn()}
+    else if(m.t==="joined"){startRTC(false);lobbyOn()}
     else if(m.t==="sig")onSig(m.d);
     else if(m.t==="rel"){try{onMsg(JSON.parse(m.d))}catch(_){}}
     else if(m.t==="left"){const was=NET.started;NET.leave();say("Adversaire parti");if(was)openMenu();q("#netStatus").textContent="Adversaire parti"}
     else if(m.t==="err"){say(m.msg||"Erreur");btnC.disabled=btnJ.disabled=false}
   };
 }
-function mineHello(){const k=pick; return {t:"hello",key:k,kit:draftOf(k).slice()}}
-function send2hello(){relay(mineHello())}
+function mineHello(){const k=pick; return {key:k,kit:draftOf(k).slice()}}
 function saveKit(){const k=pick; if(draftOf(k).length!==4)return false; KITS[k]=draftOf(k).slice(); try{localStorage.setItem("aceKits",JSON.stringify(KITS));localStorage.setItem("aceKey",k)}catch(_){} return true}
 btnC.addEventListener("click",()=>{ if(!saveKit())return; role="host"; myHello=mineHello(); connectAny(true) });
 btnJ.addEventListener("click",()=>{
