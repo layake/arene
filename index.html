@@ -617,6 +617,7 @@ function startMatch(key,mode){musicSet("battle");
   entities=[player,foe]; fighters=entities.filter(e=>e.fighter);
   resetRound(); player.dir=2; foe.dir=6;
   if(typeof applyKit==="function")applyKit();
+  if(mode==="duel"&&foe.bot)botEquip(foe,player);
 }
 
 // ---- Animation ----
@@ -1376,9 +1377,9 @@ function updateWanderer(e,dt){
 // ===== IA du champion : mêmes règles que le joueur (PP, recharges, bouclier, étourdissement), elle appuie simplement sur les mêmes sorts =====
 const botBusy=e=>e.stun>0||e.tunnel||e.rush||e.chan||e.lock>0||e.anim==="attack";
 const DIFFS={
-  easy:{think:[.5,.9],shield:2,dodge:0,lead:.3,aggr:.55},
-  normal:{think:[.15,.35],shield:7,dodge:1,lead:1,aggr:1},
-  hard:{think:[.07,.14],shield:16,dodge:1,lead:1.15,aggr:1.5}
+  easy:{think:[.5,.9],shield:2,dodge:0,lead:.3,aggr:.55,kit:0},
+  normal:{think:[.15,.35],shield:7,dodge:1,lead:1,aggr:1,kit:1},
+  hard:{think:[.07,.14],shield:16,dodge:2,lead:1.15,aggr:1.5,kit:2}
 };
 let diff="normal";
 const DF=()=>DIFFS[diff]||DIFFS.normal;
@@ -1398,7 +1399,7 @@ function botThreat(e,t,d){
 }
 // Le bot n'utilise que les sorts de sa panoplie, avec les mêmes conditions que le joueur (PP, recharge).
 function botDecide(e,t,d){
-  const has=id=>e.kit.includes(id), ok=id=>has(id)&&cdOf(e,id)<=0&&e.pp>=SPL[id].cost, A=DF().aggr, rnd=p=>Math.random()<Math.min(.95,p*A);
+  const punish=t.stun>0||t.lock>0||(t.anim==="attack"&&!t.hit&&d<90)||(t.rush&&t.rush.ph==="rec"), has=id=>e.kit.includes(id), ok=id=>has(id)&&cdOf(e,id)<=0&&e.pp>=SPL[id].cost, A=DF().aggr*(punish&&DF().dodge>0?1.7:1), rnd=p=>Math.random()<Math.min(.95,p*A);
   const go=(id,chest,lead)=>{aimTo(e,t,chest,lead||0);cast(e,id);return true};
   const gd=gdist(t.x-e.x,t.y-e.y), threat=botThreat(e,t,d);
   // défense et bonus
@@ -1433,22 +1434,59 @@ function botDecide(e,t,d){
   if(ok("moon")&&d<200&&rnd(.65))return go("moon",false,.3);
   if(ok("mud")&&d>45&&d<175&&rnd(.45))return go("mud",false,.25);
 }
+// Esquive : on sort de la trajectoire d'un projectile ou d'une zone qui va exploser. Le délai de réaction dépend de la difficulté.
+function botEvade(e,t,d,dt,lvl){
+  const b=e.bot, react=dt*(lvl>=2?16:8);
+  if(Math.random()>react)return false;
+  for(const o of orbs){
+    if(o.o!==t)continue; const P=PROJ[o.id]; if(!P)continue;
+    const rx=e.x-o.x, ry=e.y-o.y, along=rx*o.vx+ry*o.vy; if(along<0||along>P.range)continue;
+    const perp=rx*o.vy-ry*o.vx, tm=along/P.speed;
+    if(Math.abs(perp)<P.hit+e.sp.body*.5+6&&tm<(lvl>=2?.7:.5)){
+      const sg=perp>=0?-1:1, px=-o.vy*sg, py=o.vx*sg;
+      e.moveTarget={x:clampX(e.x+px*50),y:clampY(e.y+py*40)}; return true;
+    }
+  }
+  for(const z of zones){
+    if(z.o!==t||z.done||z.k==="grav"||z.k==="trap"||z.k==="pois")continue;
+    const R=zoneR(z)+10, dz=gdist(z.x-e.x,z.y-e.y);
+    if(dz<R&&z.t>0){const ux=(e.x-z.x)/(dz||1), uy=(e.y-z.y)/(dz||1);e.moveTarget={x:clampX(e.x+ux*(R-dz+22)),y:clampY(e.y+uy*(R-dz+22)*.8)};return true}
+  }
+  return false;
+}
 function botSteer(e,t,d,dt){
-  const b=e.bot, dx=t.x-e.x, dy=t.y-e.y, ux=dx/d, uy=dy/d, px=-uy, py=ux;
+  const b=e.bot, dx=t.x-e.x, dy=t.y-e.y, ux=dx/d, uy=dy/d, px=-uy, py=ux, lvl=DF().dodge;
   b.strafeT-=dt; if(b.strafeT<=0){b.strafeT=rand(.9,1.8);b.strafe=Math.random()<.5?-1:1}
   // esquive : un adversaire qui canalise une visée longue, on sort de sa ligne
   const ch=(t.rush&&t.rush.ph==="chan"&&t.rush)||t.chan;
-  if(ch&&d<230&&DF().dodge){
+  if(ch&&d<230&&lvl){
     const sd=(e.x-t.x)*ch.fy-(e.y-t.y)*ch.fx, sg=sd>=0?1:-1;
     if(Math.abs(sd)<24){e.moveTarget={x:clampX(e.x+ch.fy*sg*55),y:clampY(e.y-ch.fx*sg*55)};return}
   }
+  if(lvl&&botEvade(e,t,d,dt,lvl))return;
+  const wall=e.x<45||e.x>WORLD.w-45||e.y<50||e.y>WORLD.h-35;
   if(e.sp.style==="melee"){
     if(d>ATTACK_RANGE-4&&!(e.moveTarget&&e.moveTarget.chase))e.moveTarget={x:t.x,y:t.y,chase:true};
   }else{
-    if(d<85)e.moveTarget={x:clampX(e.x-ux*70+px*b.strafe*25),y:clampY(e.y-uy*70+py*b.strafe*25)};
-    else if(d>155)e.moveTarget={x:clampX(t.x-ux*125),y:clampY(t.y-uy*125)};
+    const near=lvl>=2?100:85, far=lvl>=2?150:155;
+    if(d<near){
+      // on recule, mais acculé au mur on contourne par le côté
+      const tx=clampX(e.x-ux*70+px*b.strafe*25), ty=clampY(e.y-uy*70+py*b.strafe*25);
+      e.moveTarget=(wall&&Math.hypot(tx-e.x,ty-e.y)<40)?{x:clampX(e.x+px*b.strafe*60+ux*20),y:clampY(e.y+py*b.strafe*60+uy*20)}:{x:tx,y:ty};
+    }
+    else if(d>far)e.moveTarget={x:clampX(t.x-ux*125),y:clampY(t.y-uy*125)};
     else if(!e.moveTarget||Math.random()<dt*.8)e.moveTarget={x:clampX(e.x+px*b.strafe*40),y:clampY(e.y+py*b.strafe*40)};
   }
+}
+// Panoplie de l'IA : elle remplace un de ses sorts par un sort de sa liste qui touche en super efficace le type de l'adversaire.
+function botEquip(e,o){
+  const lvl=DF().kit; if(!lvl||!e||!o||!e.sp.pool)return;
+  const kit=e.sp.kit.slice();
+  const val=id=>{const s=SPL[id]; if(s.cat==="status"||s.self||!s.power)return 999; return s.power*typeMult(s.type,o.sp.types)*(e.sp.types.includes(s.type)?MULT.stab:1)};
+  let best=null,bv=0;
+  for(const id of e.sp.pool){if(kit.includes(id))continue; const s=SPL[id]; if(s.cat==="status"||!s.power)continue; const m=typeMult(s.type,o.sp.types); if(m>1.25&&val(id)>bv){best=id;bv=val(id)}}
+  if(best){let wi=-1,wv=1e9; kit.forEach((id,i)=>{const v=val(id); if(v<wv){wv=v;wi=i}}); if(wi>=0&&bv>wv)kit[wi]=best}
+  e.kit=kit;
 }
 function thinkBot(e,dt){
   const b=e.bot, t=foeOf(e);
