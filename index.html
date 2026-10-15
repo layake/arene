@@ -292,7 +292,7 @@ const rand=(a,b)=>a+Math.random()*(b-a);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
 // ===== Types, stats, spells =====
-// Efficacité adoucie : super efficace x1.1, peu efficace x0.95, immunité x0.85, STAB x1.05. Table Gen 6+ (avec Fée).
+// Efficacité : super efficace x1.3, peu efficace x0.8, immunité x0.7, STAB x1.05. Table Gen 6+ (avec Fée).
 const TYPE_CHART={
   normal:[[],["rock","steel"],["ghost"]],
   fire:[["grass","ice","bug","steel"],["fire","water","rock","dragon"],[]],
@@ -315,7 +315,7 @@ const TYPE_CHART={
 };
 const TYPE_FR={normal:"Normal",fire:"Feu",water:"Eau",electric:"Électrik",grass:"Plante",ice:"Glace",fighting:"Combat",poison:"Poison",ground:"Sol",flying:"Vol",psychic:"Psy",bug:"Insecte",rock:"Roche",ghost:"Spectre",dragon:"Dragon",dark:"Ténèbres",steel:"Acier",fairy:"Fée"};
 const TYPE_COL={normal:"#a8a878",fire:"#f08030",water:"#6890f0",electric:"#f8d030",grass:"#78c850",ice:"#98d8d8",fighting:"#c03028",poison:"#a040a0",ground:"#d1a35c",flying:"#a890f0",psychic:"#f85888",bug:"#a8b820",rock:"#b8a038",ghost:"#705898",dragon:"#7b3fe4",dark:"#705848",steel:"#b8b8d0",fairy:"#ee99ac"};
-const MULT={se:1.1,nve:.95,imm:.85,stab:1.05};
+const MULT={se:1.3,nve:.8,imm:.7,stab:1.05};
 function typeMult(atkType,defTypes){
   let m=1; const c=TYPE_CHART[atkType];
   for(const d of defTypes){ if(c[0].includes(d))m*=MULT.se; else if(c[1].includes(d))m*=MULT.nve; else if(c[2].includes(d))m*=MULT.imm }
@@ -375,7 +375,7 @@ const SPECIES={
   garchomp:{name:"Carchacrok",num:445,types:["dragon","ground"],base:{hp:108,atk:120,def:95,spa:80,spd:85,spe:102},sheets:G_SHEETS,anch:G_ANCH,shadow:[11,4],body:16,bar:40,hitFrame:2,atkRate:1.8,kit:["claw","mud","tun","rush"],style:"melee",pool:["claw","mud","tun","rush","quake","rslide","ihead","sdance"],playable:true},
   gardevoir:{name:"Gardevoir",num:282,types:["psychic","fairy"],base:{hp:85,atk:65,def:80,spa:125,spd:115,spe:80},sheets:V_SHEETS,anch:V_ANCH,shadow:[8,3],body:13,bar:30,hitFrame:3,atkRate:.9,kit:["moon","psy","grav","calm"],style:"range",pool:["moon","psy","grav","calm","gleam","conf","tele","fsight"],playable:true},
   aggron:{name:"Galeking",num:306,types:["steel","rock"],base:{hp:85,atk:110,def:180,spa:60,spd:60,spe:60},sheets:A_SHEETS,anch:A_ANCH,shadow:[12,4],body:22,bar:46,hitFrame:3,atkRate:1,kit:["ihead","rslide","quake","mburst"],style:"melee",pool:["ihead","rslide","quake","mburst","idef","trap","fcannon","sedge"],playable:true},
-  gengar:{name:"Ectoplasma",num:94,types:["ghost","poison"],base:{hp:66,atk:65,def:60,spa:130,spd:75,spe:110},sheets:E_SHEETS,anch:E_ANCH,shadow:[8,3],body:14,bar:32,hitFrame:4,atkRate:1.25,kit:["shball","sbomb","ssneak","nplot"],style:"range",pool:["scl","shball","sbomb","ssneak","hypno","hex","nplot","tbolt"],playable:true},
+  gengar:{name:"Ectoplasma",num:94,types:["ghost","poison"],base:{hp:66,atk:65,def:60,spa:130,spd:75,spe:110},sheets:E_SHEETS,anch:E_ANCH,shadow:[8,3],body:14,bar:32,hitFrame:4,atkRate:1.25,kit:["shball","sbomb","ssneak","nplot"],style:"range",pool:["scl","shball","sbomb","ssneak","hypno","hex","nplot","tbolt","fwave"],playable:true},
   turtwig:{name:"Tortipousse",num:387,types:["grass"],base:{hp:55,atk:68,def:64,spa:45,spd:55,spe:31},sheets:T_SHEETS,anch:T_ANCH,shadow:[7,3],body:12,bar:32,kit:[]}
 };
 // ---- Lucario et Amphinobi : sorts, stats et portraits ----
@@ -387,14 +387,14 @@ Object.assign(SPL,{
   wshuri:{name:"Sheauriken",type:"water",cat:"spec",power:10,cost:18,cd:2.5,ground:true},
   sucker:{name:"Coup Bas",type:"dark",cat:"phys",power:24,cost:20,cd:5,ground:true},
   wpulse:{name:"Vibraqua",type:"water",cat:"spec",power:18,cost:25,cd:6,ground:true},
-  decoy:{name:"Clonage",type:"normal",cat:"status",power:0,cost:25,cd:10,ground:true}
+  icebeam:{name:"Laser Glace",type:"ice",cat:"spec",power:20,cost:22,cd:4,ground:true},fwave:{name:"Onde Fée",type:"fairy",cat:"spec",power:20,cost:22,cd:4,ground:true},decoy:{name:"Clonage",type:"normal",cat:"status",power:0,cost:25,cd:10,ground:true}
 });
 BUFF.ccdown={dur:4,def:.75,spd:.75,col:"#c03028",pal:["#8a1c18","#c03028","#ff8a60","#ffe0c0","#ffffff"],label:"Défenses -"};
 PORTRAITS.lucario="data:image/png;base64,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";
 PORTRAITS.greninja="data:image/png;base64,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";
 Object.assign(SPECIES,{
-  lucario:{name:"Lucario",num:448,types:["fighting","steel"],base:{hp:70,atk:110,def:70,spa:115,spd:70,spe:90},sheets:L_SHEETS,anch:L_ANCH,shadow:[9,3],body:18,bar:42,hitFrame:3,atkRate:.9,kit:["fpalm","asph","ccombat","riposte"],style:"melee",pool:["fpalm","asph","ccombat","riposte"],playable:true},
-  greninja:{name:"Amphinobi",num:658,types:["water","dark"],base:{hp:76,atk:95,def:67,spa:103,spd:71,spe:122},sheets:M_SHEETS,anch:M_ANCH,shadow:[8,3],body:17,bar:40,hitFrame:2,atkRate:1.1,kit:["wshuri","sucker","wpulse","decoy"],style:"range",pool:["wshuri","sucker","wpulse","decoy"],playable:true}
+  lucario:{name:"Lucario",num:448,types:["fighting","steel"],base:{hp:70,atk:110,def:70,spa:115,spd:70,spe:90},sheets:L_SHEETS,anch:L_ANCH,shadow:[9,3],body:18,bar:42,hitFrame:3,atkRate:.9,kit:["fpalm","asph","ccombat","riposte"],style:"melee",pool:["fpalm","asph","ccombat","riposte","fwave"],playable:true},
+  greninja:{name:"Amphinobi",num:658,types:["water","dark"],base:{hp:76,atk:95,def:67,spa:103,spd:71,spe:122},sheets:M_SHEETS,anch:M_ANCH,shadow:[8,3],body:17,bar:40,hitFrame:2,atkRate:1.1,kit:["wshuri","sucker","wpulse","decoy"],style:"range",pool:["wshuri","sucker","wpulse","decoy","icebeam"],playable:true}
 });
 
 Object.values(SPECIES).forEach(sp=>{sp.stats=statsOf(sp.base);sp.maxHp=Math.round(sp.stats.hp/HP_SCALE);sp.spd=clamp(Math.pow(sp.stats.spe/122,.4),.8,1.1)});
@@ -405,7 +405,7 @@ const SFX_MAP={ // cast = départ du sort, hit = impact (sinon son selon l'effic
   quake:{cast:420,hit:750},rslide:{cast:653,hit:651},ihead:{cast:819,hit:344},sdance:{cast:744},
   conf:{cast:769},moon:{cast:810,hit:811},psy:{cast:769},gleam:{cast:851},grav:{cast:392},calm:{cast:840},
   tele:{cast:392},fsight:{cast:604},mburst:{cast:845,hit:336},idef:{cast:845},trap:{cast:827},fcannon:{cast:851},
-  sedge:{cast:819},scl:{cast:762,hit:856},shball:{cast:794},sbomb:{cast:856},ssneak:{cast:402},fpalm:{cast:762,hit:856},asph:{cast:851},ccombat:{cast:402,hit:762},riposte:{cast:845,hit:336},wshuri:{cast:794},sucker:{cast:402,hit:762},wpulse:{cast:856},decoy:{cast:392},
+  sedge:{cast:819},scl:{cast:762,hit:856},shball:{cast:794},sbomb:{cast:856},ssneak:{cast:402},fpalm:{cast:762,hit:856},icebeam:{cast:851},fwave:{cast:810,hit:811},asph:{cast:851},ccombat:{cast:402,hit:762},riposte:{cast:845,hit:336},wshuri:{cast:794},sucker:{cast:402,hit:762},wpulse:{cast:856},decoy:{cast:392},
   hypno:{cast:772},hex:{cast:692},nplot:{cast:362},tbolt:{cast:774,hit:685},tackle:{cast:344}
 };
 const SFX_UI={click:306,go:307,shield:355,block:344,sbreak:336,ko:416,sleep:772,buff:362,win:212};
@@ -719,6 +719,7 @@ function strike(att,tgt,spell,o){
   const dm=Math.round(calcDamage(att,tgt,spell)*(o.mult||1));
   applyDamage(tgt,att,o.from||att,dm,o);
   if(!o.dot)sfxHit(att,tgt,spell,dm);
+  if(!o.dot&&spell.type&&tgt.sp.types){const k=typeMult(spell.type,tgt.sp.types); if(k>1.05){pops.push({x:tgt.x,y:tgt.y-56,t:0,txt:k>1.5?"Très efficace !!":"Super efficace !",col:"#ff9a3c"});if(k>1.5)shake=Math.max(shake,.22)} else if(k<.95)pops.push({x:tgt.x,y:tgt.y-56,t:0,txt:k<.7?"Quasi inutile...":"Peu efficace...",col:"#9ab4d8"})}
   return true;
 }
 function applyDamage(t,att,from,dmg,o){
@@ -836,9 +837,10 @@ function updateMove(e,dt){
 const FIGHT=["#8a1c18","#c03028","#ff8a60","#ffe0c0","#ffffff"]; // énergie Combat
 const AURA=["#0a4a90","#2a8af0","#90d0ff","#e0f4ff","#ffffff"];  // aura de Lucario
 const WATERC=["#1a4aa0","#4a8af0","#90c8ff","#e0f4ff","#ffffff"]; // énergie Eau
-TYPE_PAL.water=WATERC; TYPE_PAL.fighting=FIGHT;
+const ICEC=["#4a98c0","#98d8d8","#d8f4f8","#ffffff","#78b8e0"];
+TYPE_PAL.water=WATERC; TYPE_PAL.fighting=FIGHT; TYPE_PAL.ice=ICEC;
 const ACE2={}, ZONE2={}, ORB2={}, ZONE2D={};
-Object.assign(PROJ,{asph:{speed:245,range:235,hit:12,home:1.7},wshuri:{speed:310,range:205,hit:9}});
+Object.assign(PROJ,{asph:{speed:245,range:235,hit:12,home:1.7},wshuri:{speed:310,range:205,hit:9},icebeam:{speed:300,range:215,hit:10},fwave:{speed:270,range:210,hit:11}});
 const WP={range:115,r:24,delay:.45,push:34,slowT:1.8};
 const RIPOSTE={dur:1.2,mult:1.6};
 const FLURRY={n:3,gap:.09,reach:20};
@@ -1261,7 +1263,7 @@ function cast(e,id){
   if(NET.guest&&e===player)NET.sendCast(id);
   SND.pe=e;SND.pend=id;
   if(SPL[id].melee)castMelee(e,id);
-  else if(id==="mud"||id==="moon"||id==="fcannon"||id==="psy"||id==="grav"||id==="rslide"||id==="quake"||id==="fsight"||id==="trap"||id==="sedge"||id==="shball"||id==="tbolt"||id==="hypno"||id==="sbomb"||id==="hex"||id==="asph"||id==="wshuri"||id==="wpulse")castAnim(e,id);
+  else if(id==="mud"||id==="moon"||id==="fcannon"||id==="psy"||id==="grav"||id==="rslide"||id==="quake"||id==="fsight"||id==="trap"||id==="sedge"||id==="shball"||id==="tbolt"||id==="hypno"||id==="sbomb"||id==="hex"||id==="asph"||id==="wshuri"||id==="wpulse"||id==="icebeam"||id==="fwave")castAnim(e,id);
   else if(id==="riposte")castRiposte(e);
   else if(id==="decoy")castDecoy(e);
   else if(SPL[id].buff)castBuff(e,id);
@@ -1802,6 +1804,7 @@ const PREV={
   tun:{k:"dash",len:()=>TUNNEL.dist,r:TUNNEL.radius},
   psy:{k:"zone",Z:PSY},sbomb:{k:"zone",Z:SB},hex:{k:"zone",Z:HX},scl:{k:"melee",r:16,d:[22,CONF.reach]},shball:{k:"shot",len:()=>PROJ.shball.range,hw:PROJ.shball.hit,from:14},tbolt:{k:"shot",len:()=>PROJ.tbolt.range,hw:PROJ.tbolt.hit,from:14},hypno:{k:"shot",len:()=>PROJ.hypno.range,hw:PROJ.hypno.hit,from:14},ssneak:{k:"shot",len:v=>rushLen(v,RUSHES.ssneak),hw:RUSHES.ssneak.hit,from:0},fsight:{k:"zone",Z:FS},trap:{k:"zone",Z:TRAP},tele:{k:"zone",Z:{range:TELE.range,r:10}},fcannon:{k:"shot",len:()=>PROJ.fcannon.range,hw:PROJ.fcannon.hit,from:14},sedge:{k:"shot",len:()=>EDGE.len,hw:EDGE.half,from:EDGE.from},grav:{k:"zone",Z:GRAV},rslide:{k:"slide"},quake:{k:"burst",r:QUAKE.r},
   fpalm:{k:"melee",r:16,d:[22,CONF.reach]},asph:{k:"shot",len:()=>PROJ.asph.range,hw:PROJ.asph.hit,from:14},ccombat:{k:"shot",len:v=>rushLen(v,RUSHES.ccombat),hw:RUSHES.ccombat.hit,from:0},riposte:{k:"burst",r:14},
+  icebeam:{k:"shot",len:()=>PROJ.icebeam.range,hw:PROJ.icebeam.hit,from:14},fwave:{k:"shot",len:()=>PROJ.fwave.range,hw:PROJ.fwave.hit,from:14},
   wshuri:{k:"shot",len:()=>PROJ.wshuri.range,hw:PROJ.wshuri.hit+8,from:12},sucker:{k:"shot",len:v=>rushLen(v,RUSHES.sucker),hw:RUSHES.sucker.hit,from:0},wpulse:{k:"zone",Z:WP},decoy:{k:"shot",len:v=>clamp(v[2],DECOY.min,DECOY.dist),hw:6,from:0}
 };
 function pxLine(x0,y0,x1,y1,col){
@@ -1918,7 +1921,7 @@ function draw(){
   ctx.setTransform(1,0,0,1,0,0); ctx.textAlign="center"; ctx.font="700 "+Math.round(PX*5)+"px 'Chakra Petch',monospace"; ctx.lineWidth=Math.round(PX*1.2); ctx.lineJoin="round";
   pops.forEach(q=>{
     const sx=(q.x-cam.x)*PX, sy=(q.y-q.t*16-cam.y)*PX; ctx.globalAlpha=clamp(1.6-q.t*1.6,0,1);
-    ctx.strokeStyle="#1a1405"; ctx.strokeText(q.txt,sx,sy); ctx.fillStyle="#ffd24a"; ctx.fillText(q.txt,sx,sy);
+    ctx.strokeStyle="#1a1405"; ctx.strokeText(q.txt,sx,sy); ctx.fillStyle=q.col||"#ffd24a"; ctx.fillText(q.txt,sx,sy);
   });
   ctx.globalAlpha=1;
 }
@@ -2147,7 +2150,7 @@ function frame(now){
   fx.forEach(c=>c.t+=dt); for(let i=fx.length-1;i>=0;i--)if(fx[i].t>(fx[i].life||.3))fx.splice(i,1);
   beams.forEach(b=>b.t+=dt); for(let i=beams.length-1;i>=0;i--)if(beams[i].t>beams[i].life)beams.splice(i,1);
   parts.forEach(q=>{q.t+=dt;q.x+=q.vx*dt;q.y+=q.vy*dt;q.vy+=(q.g===undefined?120:q.g)*dt}); for(let i=parts.length-1;i>=0;i--)if(parts[i].t>parts[i].life)parts.splice(i,1);
-  pops.forEach(q=>q.t+=dt); for(let i=pops.length-1;i>=0;i--)if(pops[i].t>.9)pops.splice(i,1);
+  pops.forEach(q=>q.t+=dt); for(let i=pops.length-1;i>=0;i--)if(pops[i].t>(pops[i].col?1.2:.9))pops.splice(i,1);
   shake=Math.max(0,shake-dt);
   if(marker){marker.t+=dt;if(!player.moveTarget&&marker.t>.35)marker=null}
   fighters.forEach(e=>{for(const k in e.cd)e.cd[k]=Math.max(0,e.cd[k]-dt); e.pp=Math.min(PP_MAX,e.pp+PP_REGEN*dt); e.comboT=Math.max(0,e.comboT-dt); for(const k in e.bf){e.bf[k]-=dt;if(e.bf[k]<=0)delete e.bf[k]} e.slow=Math.max(0,e.slow-dt); if(e.inv>0)e.inv-=dt; e.psn=Math.max(0,e.psn-dt); if(e.counter){e.counter.t-=dt;if(e.counter.t<=0){e.counter=null;e.lock=MBURST.rec}}});
@@ -2164,6 +2167,7 @@ buildMenu(); startMatch(pick,"train"); resize(); requestAnimationFrame(frame);
 
 // ===== Lucario (Combat/Acier) et Amphinobi (Eau/Ténèbres) : mécaniques et effets =====
 Object.assign(DESC,{
+  icebeam:"Rayon de glace rapide. Counter naturel de Carchacrok (Dragon/Sol).",fwave:"Onde féerique en ligne droite. Counter naturel de Carchacrok (Dragon).",
   fpalm:"Frappe de la paume devant soi : rapide, ralentit la cible 1,4 s.",
   asph:"Sphère d'aura rapide qui infléchit sa course vers la cible. Difficile à esquiver de face.",
   ccombat:"Fonce, puis 3 coups en rafale (armure pendant la rafale). Baisse tes défenses 4 s. Un bouclier arrête la rafale.",
@@ -2190,7 +2194,7 @@ ACE2.fpalm={hit(e){
   }
 }};
 // ---- Aurasphère / Sheauriken : projectiles ----
-ACE2.asph={hit(e,id){fireBolt(e,id)}};
+ACE2.asph=ACE2.icebeam=ACE2.fwave={hit(e,id){fireBolt(e,id)}};
 ACE2.wshuri={hit(e,id){
   const f=e.aim||FACE[e.dir];
   for(const a of [-.28,0,.28]){
@@ -2340,6 +2344,8 @@ function botAce(e,t,d,threat,go,ok,rnd){
   if(ok("fpalm")&&d<CONF.assist+4&&rnd(.8)){go("fpalm",true);return true}
   if(ok("wpulse")&&d<WP.range+8&&rnd(.5)){go("wpulse",false,WP.delay*.9);return true}
   if(ok("asph")&&d>45&&d<PROJ.asph.range-15&&rnd(.6)){go("asph",true,.2);return true}
+  if(ok("icebeam")&&d>40&&d<PROJ.icebeam.range-15&&rnd(.6)){go("icebeam",false,.25);return true}
+  if(ok("fwave")&&d>40&&d<PROJ.fwave.range-15&&rnd(.6)){go("fwave",false,.25);return true}
   if(ok("wshuri")&&d>35&&d<PROJ.wshuri.range-15&&rnd(.65)){go("wshuri",false,.25);return true}
   return false;
 }
@@ -2352,6 +2358,15 @@ function watchDecoy(e){
   const d=e.decoFrom; fx.push({k:"clone",x:d.x,y:d.y,sy:d.y-.5,t:0,life:DECOY.life,sp:e.sp,anim:d.anim,frame:d.frame,dir:d.dir});
   colorBurst(d.x,d.y,16,TYPE_PAL.dark,30,110); colorBurst(d.x,d.y,10,WATERC,30,100); rings.push({x:d.x,y:d.y,t:0,dur:.3,max:22,c:"#90c8ff"});
 }
+ORB2.icebeam=o=>{ // cristal de glace pointu avec traînée givrée
+  const x=Math.round(o.x), gy=Math.round(o.y), y=gy-14, nx=-o.vy, ny=o.vx;
+  ctx.fillStyle="rgba(0,0,0,.25)"; ctx.fillRect(x-3,gy,7,1);
+  for(let k=7;k>=1;k--){const tx=Math.round(x-o.vx*k*4), ty=Math.round(y-o.vy*k*4), w=Math.max(1,4-Math.floor(k*.5)); ctx.globalAlpha=1-k*.11; ctx.fillStyle=k%2?ICEC[1]:ICEC[2]; ctx.fillRect(tx-w+1,ty-w+1,w*2-1,w*2-1)}
+  ctx.globalAlpha=1;
+  pxLine(x-o.vx*8,y-o.vy*8,x+o.vx*9,y+o.vy*9,ICEC[0]); pxLine(x-o.vx*7+nx,y-o.vy*7+ny,x+o.vx*9,y+o.vy*9,ICEC[1]); pxLine(x-o.vx*7-nx,y-o.vy*7-ny,x+o.vx*9,y+o.vy*9,ICEC[1]);
+  dsc(x,y,3,ICEC[2]); ctx.fillStyle="#ffffff"; ctx.fillRect(x-1,y-1,2,2);
+  if(Math.sin(o.t*30)>0.3){ctx.fillStyle="#ffffff";ctx.fillRect(Math.round(x+nx*6),Math.round(y+ny*6),1,1);ctx.fillRect(Math.round(x-nx*6),Math.round(y-ny*6),1,1)}
+};
 
 // ---- Multijoueur en ligne : l'hôte fait autorité, l'invité joue en prédiction locale et se recale sur les instantanés ----
 // Le combat tourne chez les deux joueurs avec le même code. L'hôte reçoit les ordres de l'invité (déplacement, sort, bouclier)
