@@ -152,6 +152,32 @@ canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelate
 #netLobby b.on{border-color:#5ad27a;color:#9dffb6}
 #netReady{background:#2a6a3c!important;border-color:#5ad27a!important}
 #menu.locked #cards,#menu.locked #equip{pointer-events:none;opacity:.55}
+.tabs{display:flex;gap:6px;justify-content:center;margin:10px 0 0}
+.tabs button{font:600 15px "Pixelify Sans",var(--display);color:#c9d6ff;background:rgba(7,12,36,.55);border:2px solid #4a68c8;border-radius:6px;padding:6px 22px;min-height:40px;cursor:pointer}
+.tabs button[aria-pressed=true]{color:#ffe45e;border-color:#ffe45e}
+.tabs button:disabled{opacity:.4;cursor:default}
+#menu.tab-online .modes,#menu.tab-online .diffs,#menu.tab-online .foes,#menu.tab-online #go{display:none!important}
+#menu:not(.tab-online) #onl{display:none}
+#onl{flex-direction:column;gap:10px;margin:0 0 6px}
+#netRow span{color:#9fb4ff}
+.lbcode{font:500 14px "Pixelify Sans",var(--display);color:#c9d6ff;display:flex;gap:10px;align-items:center;justify-content:center}
+.lbcode b{font:700 30px "Pixelify Sans",var(--display);letter-spacing:.25em;color:#ffe45e;text-shadow:2px 2px 0 #101830}
+.lbduo{display:flex;gap:12px;align-items:stretch;justify-content:center;flex-wrap:wrap;width:100%}
+.lbvs{align-self:center;font:700 22px "Pixelify Sans",var(--display);color:#ffe45e}
+.lbslot{width:210px;background:rgba(7,12,36,.55);border:2px solid #4a68c8;border-radius:6px;padding:8px 10px;text-align:center;color:#fff;font-family:inherit}
+.lbslot.ok{border-color:#5ad27a;box-shadow:0 0 12px rgba(90,210,122,.45)}
+.lbslot h4{margin:0 0 4px;font:500 12px "Pixelify Sans",var(--display);color:#9fb4ff;text-transform:uppercase;letter-spacing:.1em}
+.lbslot img{display:block;margin:0 auto;width:72px;height:72px;image-rendering:pixelated}
+.lbslot .lbnm{font:700 18px "Pixelify Sans",var(--display)}
+.lbslot ul{list-style:none;margin:6px 0;padding:0;font-size:12px;display:grid;gap:3px;text-align:left}
+.lbslot li b{display:inline-block;width:9px;height:9px;margin-right:7px;border-radius:2px;border:1px solid #070c24}
+.lbslot em{font-style:normal;font-size:12px;color:#9fb4ff}
+.lbslot em.lbrdy{color:#9dffb6;font-weight:700}
+.lbslot .lbwait{padding:26px 6px;color:#9fb4ff;font-size:13px}
+.lbbtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.lbbtns button{min-height:42px;padding:6px 18px}
+.mbox>*{flex-shrink:0}
+#onl,.lbduo,.lbslot{flex-shrink:0}
 footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </style>
 
@@ -174,7 +200,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 <div id="bar">
 <button id="atk" class="slot dragon" type="button" aria-disabled="false"><span class="k">A</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#1a0f3d" stroke-width="1.4" stroke-linejoin="round"><path d="M4 4 L9 3 L15 27 L12 28 Z" fill="#f3eaff"/><path d="M11 4 L16 3 L22 27 L19 28 Z" fill="#f3eaff"/><path d="M18 4 L23 3 L29 27 L26 28 Z" fill="#f3eaff"/></svg><span class="c">10</span><span class="n">Draco-Griffe</span><span class="cd"></span><span class="t"></span></button><button id="pls" class="slot ground" type="button" aria-disabled="false"><span class="k">Z</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#2a1608" stroke-width="1.4"><circle cx="17" cy="17" r="9" fill="#7a4a22"/><ellipse cx="13" cy="13" rx="3.2" ry="2" fill="#c08a50" stroke="none"/><circle cx="5.5" cy="21" r="2.2" fill="#7a4a22"/><circle cx="27.5" cy="9" r="1.8" fill="#7a4a22"/><circle cx="6" cy="10" r="1.4" fill="#7a4a22"/></svg><span class="c">20</span><span class="n">Tir de Boue</span><span class="cd"></span><span class="t"></span></button><button id="tun" class="slot ground" type="button" aria-disabled="false"><span class="k">E</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#2a1608" stroke-width="1.4" stroke-linejoin="round"><path d="M3 27 Q16 3 29 27 Z" fill="#b98a4e"/><path d="M9 20 Q13 12 17 10" fill="none" stroke="#e3bd82" stroke-width="2" stroke-linecap="round"/><ellipse cx="16" cy="25" rx="6.5" ry="2.8" fill="#2a1608"/></svg><span class="c">25</span><span class="n">Tunnel</span><span class="cd"></span><span class="t"></span></button><button id="rsh" class="slot dragon" type="button" aria-disabled="false"><span class="k">R</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#1a0f3d" stroke-width="1.4" stroke-linejoin="round"><path d="M3 12 H16 V5 L29 16 L16 27 V20 H3 Z" fill="#f3eaff"/><path d="M6 15 H18 V11" fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round"/></svg><span class="c">50</span><span class="n">Draco-Charge</span><span class="cd"></span><span class="t"></span></button><span class="sep"></span><button id="shd" class="slot shield" type="button" aria-pressed="false" aria-disabled="false"><span class="k">Esp</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#0b2a40" stroke-width="1.4" stroke-linejoin="round"><path d="M16 3 L28 7 V16 C28 23 22 27 16 30 C10 27 4 23 4 16 V7 Z" fill="#d6f2ff"/><path d="M16 7 L24 10 V16 C24 21 20 24 16 26 Z" fill="#5cc0f0" stroke="none"/></svg><span class="n">Bouclier</span><span class="cd"></span><span class="t"></span></button>
 </div>
-<div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Choisis ton Ace</h2><div id="cards"></div><div id="equip"></div><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>Tortipousse, mannequin</small></button><button type="button" data-mode="duel" aria-pressed="false">Duel<small>contre l'autre Ace</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><div class="online" role="group" aria-label="En ligne"><span>En ligne</span><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netLobby" hidden><b id="netMe"></b><b id="netOpp"></b><button id="netReady" type="button">Prêt</button></div><div id="netStatus" aria-live="polite"></div></div><button id="go" type="button">Combattre</button></div></div>
+<div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Choisis ton Ace</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>Tortipousse, mannequin</small></button><button type="button" data-mode="duel" aria-pressed="false">Duel<small>contre l'autre Ace</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div>
 </div>
 <footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé.</footer>
 
@@ -1984,7 +2010,7 @@ function refreshMenu(){
   cardsEl.querySelectorAll(".ace").forEach(b=>{b.querySelector("ul").innerHTML=draftOf(b.dataset.key).map(id=>'<li><b style="background:'+TYPE_COL[SPL[id].type]+'"></b>'+SPL[id].name+'</li>').join("")});
   goBtn.disabled=draftOf(pick).length!==4;
 }
-function openMenu(){if(NET.on)NET.leave();musicSet("menu");setPause(false);menuOpen=true;menuEl.hidden=false;refreshMenu()}
+function openMenu(){if(NET.on){NET.toLobby();NET.tab("online")}musicSet("menu");setPause(false);menuOpen=true;menuEl.hidden=false;refreshMenu()}
 goBtn.addEventListener("click",()=>{
   if(draftOf(pick).length!==4)return;
   KITS[pick]=draftOf(pick).slice(); try{localStorage.setItem("aceKits",JSON.stringify(KITS))}catch(_){}
@@ -2052,10 +2078,10 @@ const SKIP=new Set(["sp","hover","lx","ly","vx","vy","x","y","tick","frame","hpS
 const OWN_SKIP=new Set(["moveTarget","wantShield","aimPt","run"]);
 const PRED=new Set(["cast","rush","chan","tunnel","counter","pp","cd","comboT","lock","lockPt","shieldOn","shieldE","dir","stun"]);
 const q=s=>document.querySelector(s);
-const lobbyEl=q("#netLobby"), rowEl=q("#netRow"), meEl=q("#netMe"), oppEl=q("#netOpp"), btnR=q("#netReady"), menuRoot=q("#menu");
+const lobbyEl=q("#netRoom"), rowEl=q("#netRow"), codeEl=q("#netRoomCode"), slotMe=q("#slotMe"), slotOpp=q("#slotOpp"), btnR=q("#netReady"), menuRoot=q("#menu"), menuH2=q("#menu h2"), menuBtn=q("#menuBtn");
 const st=q("#netStatus"), codeIn=q("#netCode"), btnC=q("#netCreate"), btnJ=q("#netJoin");
 const relayOnly=/[?&]relay=1/.test(location.search);
-let myReady=false, oppReady=false, inLobby=false, mode="ws", peer=null, connR=null, connF=null, ws=null, pc=null, dcR=null, dcF=null, pend=[], role="", myHello=null, oppHello=null, seq=0, lastSnapSeq=-1;
+let roomCode="", peerHere=false, oppPick=null, lastSig="", pickAt=0, myReady=false, oppReady=false, inLobby=false, mode="ws", peer=null, connR=null, connF=null, ws=null, pc=null, dcR=null, dcF=null, pend=[], role="", myHello=null, oppHello=null, seq=0, lastSnapSeq=-1;
 let castSeq=0, castAt=0, ackSeq=0, snapAcc=0, mvAcc=0, lastMv="", lastSh=false, lastMvAt=0, pingAcc=0, pingMs=0, pingTs=0;
 let info=document.createElement("div"); info.id="netInfo"; info.hidden=true; (q("#stage")||document.body).appendChild(info);
 const say=t=>{if(st)st.textContent=t};
@@ -2075,7 +2101,7 @@ NET.leave=function(){
   try{if(pc)pc.close()}catch(_){} pc=dcR=dcF=null; pend=[];
   if(ws){try{ws.onclose=null;ws.close()}catch(_){} ws=null}
   if(peer){try{peer.destroy()}catch(_){} peer=connR=connF=null}
-  btnC.disabled=btnJ.disabled=false; myReady=oppReady=false; inLobby=false; oppHello=null; refreshLobby();
+  btnC.disabled=btnJ.disabled=false; myReady=oppReady=false; inLobby=false; peerHere=false; oppHello=oppPick=null; roomCode=""; menuBtn.textContent="Changer d'Ace"; refreshLobby();
 };
 // ---- Sérialisation : les références vers les deux combattants deviennent {"$e":index} ----
 const rd=v=>Math.round(v*100)/100;
@@ -2167,18 +2193,46 @@ NET.tick=function(dt){
   }
   pingAcc+=dt; if(pingAcc>=PING_DT){pingAcc=0;pingTs=performance.now();send({t:"ping",ts:pingTs},true)}
 };
+const cache={me:"",opp:""};
+function slotHtml(key,kit,ready,label){
+  const sp=SPECIES[key];
+  if(!sp)return '<h4>'+label+'</h4><div class="lbwait">Choisit son Ace…</div>';
+  const li=(kit||[]).map(id=>SPL[id]?'<li><b style="background:'+TYPE_COL[SPL[id].type]+'"></b>'+SPL[id].name+'</li>':"").join("");
+  return '<h4>'+label+'</h4><img alt="" src="'+PORTRAITS[key]+'"><div class="lbnm">'+sp.name+'</div><ul>'+li+'</ul><em class="'+(ready?"lbrdy":"")+'">'+(ready?"Prêt":"Pas prêt")+'</em>';
+}
 function refreshLobby(){
   lobbyEl.hidden=!inLobby; rowEl.hidden=inLobby; menuRoot.classList.toggle("locked",inLobby&&myReady);
+  const so=q('#menu .tabs [data-tab="solo"]'); if(so)so.disabled=inLobby;
   if(!inLobby)return;
-  const nm=k=>SPECIES[k]?SPECIES[k].name:"?";
-  meEl.textContent="Toi : "+nm(pick)+(myReady?"  (prêt)":"");
-  meEl.className=myReady?"on":"";
-  oppEl.textContent="Adversaire : "+(oppReady&&oppHello?nm(oppHello.key)+"  (prêt)":"en train de choisir…");
-  oppEl.className=oppReady?"on":"";
-  btnR.textContent=myReady?"Pas prêt":"Prêt";
+  codeEl.textContent=roomCode;
+  const me=slotHtml(pick,draftOf(pick),myReady,"Toi");
+  const opp=peerHere?slotHtml(oppPick&&oppPick.key,oppPick&&oppPick.kit,oppReady,"Adversaire"):'<h4>Adversaire</h4><div class="lbwait">En attente…<br><small>Donne-lui le code '+roomCode+'</small></div>';
+  if(me!==cache.me){slotMe.innerHTML=me;cache.me=me} if(opp!==cache.opp){slotOpp.innerHTML=opp;cache.opp=opp}
+  slotMe.classList.toggle("ok",myReady); slotOpp.classList.toggle("ok",oppReady&&peerHere);
+  btnR.disabled=!peerHere; btnR.textContent=myReady?"Pas prêt":"Prêt";
 }
-setInterval(()=>{if(inLobby&&!NET.started)refreshLobby()},400);
-function lobbyOn(){inLobby=true;myReady=oppReady=false;oppHello=null;say("Choisis ton Ace et tes sorts, puis clique sur Prêt.");refreshLobby()}
+function setTab(t){
+  menuRoot.classList.toggle("tab-online",t==="online");
+  menuH2.textContent=t==="online"?"Multijoueur":"Choisis ton Ace";
+  document.querySelectorAll("#menu .tabs button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.tab===t)));
+}
+NET.tab=setTab;
+document.querySelectorAll("#menu .tabs button").forEach(b=>b.addEventListener("click",()=>{if(!b.disabled)setTab(b.dataset.tab)}));
+function sendPick(force){
+  if(!inLobby||!peerHere||NET.started)return;
+  const k=pick, kit=draftOf(k).slice(), sig=k+kit.join(","), now=performance.now();
+  if(!force&&sig===lastSig&&now-pickAt<2000)return;
+  lastSig=sig; pickAt=now; relay({t:"pick",key:k,kit});
+}
+setInterval(()=>{if(inLobby&&!NET.started){refreshLobby();sendPick(false)}},300);
+function openRoom(code){inLobby=true;roomCode=code;peerHere=false;myReady=oppReady=false;oppHello=oppPick=null;say("");refreshLobby()}
+function lobbyOn(){peerHere=true;myReady=oppReady=false;oppHello=oppPick=null;say("");refreshLobby();sendPick(true)}
+function peerGone(){
+  if(role!=="host"){const was=NET.started;NET.leave();say("Adversaire parti");if(was)openMenu();return}
+  const was=NET.started; NET.started=false; info.hidden=true; peerHere=false; myReady=oppReady=false; oppHello=oppPick=null;
+  try{if(pc)pc.close()}catch(_){} pc=dcR=dcF=null; pend=[]; if(mode==="peer")connR=connF=null;
+  say("Adversaire parti. Le salon reste ouvert."); refreshLobby(); if(was)openMenu();
+}
 function maybeStart(){ if(role==="host"&&myReady&&oppReady&&oppHello&&!NET.started)beginHost() }
 btnR.addEventListener("click",()=>{
   if(!inLobby||NET.started)return;
@@ -2187,10 +2241,27 @@ btnR.addEventListener("click",()=>{
   relay({t:"ready",on:myReady,key:myHello.key,kit:myHello.kit});
   refreshLobby(); maybeStart();
 });
+// Retour au salon sans quitter la connexion : l'autre joueur est prévenu et revient aussi.
+NET.toLobby=function(fromPeer){
+  if(!NET.started||!role)return;
+  if(!fromPeer)send({t:"back"},true);
+  NET.started=false; info.hidden=true; lastSnapSeq=-1;
+  myReady=oppReady=false; oppHello=null; inLobby=true; refreshLobby(); sendPick(true);
+  say(fromPeer?"Ton adversaire est revenu au salon. Choisis puis clique sur Prêt.":"Salon : choisis ton Ace et clique sur Prêt.");
+  if(fromPeer)openMenu();
+};
+q("#netCopy").addEventListener("click",()=>{try{navigator.clipboard.writeText(roomCode).then(()=>say("Code copié"),()=>{})}catch(_){}});
+q("#netQuit").addEventListener("click",()=>{NET.leave();say("Salon quitté")});
 function onMsg(m){
   if(m.t==="ping")send({t:"pong",ts:m.ts},true);
   else if(m.t==="pong"){pingMs=Math.round(performance.now()-m.ts);info.hidden=false;info.textContent=(mode==="peer"||rtcOpen()?"P2P ":"Relais ")+pingMs+" ms"}
-  else if(m.t==="ready"){ if(NET.started)return; oppReady=!!m.on; if(m.on)oppHello={key:m.key,kit:m.kit}; refreshLobby(); maybeStart() }
+  else if(m.t==="back"){NET.toLobby(true)}
+  else if(m.t==="pick"||m.t==="ready"){
+    if(NET.started||!SPECIES[m.key]||!SPECIES[m.key].playable||!validKit(m.key,m.kit))return;
+    oppPick={key:m.key,kit:m.kit};
+    if(m.t==="ready"){oppReady=!!m.on; if(m.on)oppHello=oppPick}
+    refreshLobby(); maybeStart();
+  }
   else if(m.t==="start"&&role==="guest"){beginGuest(m)}
   else if(m.t==="snap"&&role==="guest"&&NET.started)applySnap(m);
   else if(m.t==="sfxc"&&role==="guest"&&NET.started){try{sfxCast(foe,m.id)}catch(_){}}
@@ -2206,7 +2277,7 @@ function begin(hostH,guestH,asHost){
   playerKey=player.key; resetRound();
   if(typeof applyKit==="function")applyKit();
   NET.on=true;NET.host=asHost;NET.guest=!asHost;NET.started=true;
-  menuOpen=false; menuEl.hidden=true; last=performance.now(); info.hidden=false; say("");
+  menuOpen=false; menuEl.hidden=true; last=performance.now(); info.hidden=false; say(""); menuBtn.textContent="Retour au salon";
 }
 function beginHost(){
   myHello=mineHello(); const h=myHello, g=oppHello;
@@ -2250,7 +2321,7 @@ function loadPeerLib(){
 }
 const peerOpts=()=>{const u=new URLSearchParams(location.search); return u.get("peerhost")?{host:u.get("peerhost"),port:+u.get("peerport")||9000,path:"/",secure:false}:{}};
 const rcode=()=>{let c="";for(let i=0;i<4;i++)c+="ABCDEFGHJKLMNPQRSTUVWXYZ"[Math.floor(Math.random()*24)];return c};
-function onLeft(){const was=NET.started;NET.leave();say("Adversaire parti");if(was)openMenu();say("Adversaire parti")}
+function onLeft(){peerGone()}
 function attach(c){
   c.on("data",d=>{try{onMsg(d)}catch(_){}});
   c.on("close",()=>{if(c===connR)onLeft()});
@@ -2260,10 +2331,10 @@ function peerHost(){
   const go=n=>{
     if(n>5)return peerFail("Courtier injoignable");
     const code=rcode(); const p=new Peer("arene-"+code,peerOpts()); peer=p;
-    p.on("open",()=>{say("Salon "+code+" : donne ce code à ton adversaire…");codeIn.value=code});
+    p.on("open",()=>openRoom(code));
     p.on("error",e=>{ if(e.type==="unavailable-id"){try{p.destroy()}catch(_){}go(n+1)} else peerFail("Courtier injoignable ("+e.type+")") });
     p.on("connection",c=>{
-      const k=c.metadata&&c.metadata.c; attach(c);
+      const k=c.metadata&&c.metadata.c; if(peerHere&&k==="r"){c.close();return} attach(c);
       if(k==="r"){connR=c; c.on("open",()=>lobbyOn())} else connF=c;
     });
   };
@@ -2276,7 +2347,7 @@ function peerJoin(code){
     const id="arene-"+code;
     connR=p.connect(id,{reliable:true,metadata:{c:"r"}}); connF=p.connect(id,{reliable:false,metadata:{c:"f"}});
     attach(connR); attach(connF);
-    connR.on("open",()=>{lobbyOn()});
+    connR.on("open",()=>{openRoom(code);lobbyOn()});
   });
 }
 async function useServer(){
@@ -2300,12 +2371,12 @@ function connect(onOpen){
   ws.onclose=()=>{ if(NET.on||role){ const was=NET.started; NET.leave(); say("Connexion perdue"); openMenu() } };
   ws.onmessage=ev=>{
     let m; try{m=JSON.parse(ev.data)}catch(_){return}
-    if(m.t==="created"){say("Salon "+m.code+" : donne ce code à ton adversaire…");codeIn.value=m.code}
-    else if(m.t==="peer"){startRTC(true);lobbyOn()}
-    else if(m.t==="joined"){startRTC(false);lobbyOn()}
+    if(m.t==="created"){openRoom(m.code)}
+    else if(m.t==="peer"){try{if(pc)pc.close()}catch(_){} pc=dcR=dcF=null; pend=[]; startRTC(true);lobbyOn()}
+    else if(m.t==="joined"){openRoom(codeIn.value.trim().toUpperCase());startRTC(false);lobbyOn()}
     else if(m.t==="sig")onSig(m.d);
     else if(m.t==="rel"){try{onMsg(JSON.parse(m.d))}catch(_){}}
-    else if(m.t==="left"){const was=NET.started;NET.leave();say("Adversaire parti");if(was)openMenu();q("#netStatus").textContent="Adversaire parti"}
+    else if(m.t==="left"){peerGone()}
     else if(m.t==="err"){say(m.msg||"Erreur");btnC.disabled=btnJ.disabled=false}
   };
 }
