@@ -14,7 +14,7 @@ Chaque capacité appartient à une famille de sensation. Le moteur doit savoir l
 | Archétype | Sensation | Support moteur | Exemple |
 |---|---|---|---|
 | Mêlée | coup devant soi | `defMelee` (`moves.js`) | Plaquage, Mâchouille |
-| Jet continu | flux qui sort du Pokémon pendant ~1 s, suit la visée, touche à chaque tick | `defStream` (`streams.js`) | Lance-Flammes |
+| Jet continu | flux maintenu tant que la touche est enfoncée, immobile, suit le curseur, touche à chaque tick | `defStream` (`streams.js`) | Lance-Flammes |
 | Projectile unique | un tir net | `PROJ` + `fireBolt` | Ball'Ombre |
 | Rayon | trait instantané qui reste visible 0,4 s | `defRay` (`archetypes.js`) | Laser Glace |
 | Vague en éventail | un front qui s'étend devant soi et touche une fois | `defWave` (`archetypes.js`) | Canicule |
@@ -34,7 +34,7 @@ Zones d'impacts : le style `draco` fait tomber de vrais météores (Draco-Mété
 `defTether` : filament accroché à la cible, draine à chaque tick et soigne le lanceur (Giga-Sangsue). `defBurst` : plusieurs projectiles en ligne devant soi (Pointes de Glace).
 
 ### Jet continu (`defStream`)
-Options `spread` (cône, ex. Blizzard) ; le jet est bloqué par les obstacles ; on peut se déplacer et la visée suit le curseur. Pour tester, ajouter la capacité au `kit` (cast refuse les capacités hors kit).
+Options `spread` (cône, ex. Blizzard) ; le jet est bloqué par les obstacles ; canalisation maintenue : on s’arrête, la visée suit le curseur, lâcher la touche coupe (`max` 3 s). Pour tester, ajouter la capacité au `kit` (cast refuse les capacités hors kit).
 
 Le flux part de la bouche du Pokémon, suit la visée pendant `dur` secondes, touche toutes les `tick` secondes (`tickPower` par tick), peut brûler / ralentir. Il s'interrompt si le lanceur est étourdi. Styles : `fire` (blobs qui montent et s'étalent), `water` (blobs mous qui retombent en arc). Pour un nouveau rendu, ajouter un style dans `STREAM_STYLE`.
 

@@ -101,7 +101,7 @@ shdBtn.addEventListener("pointerdown",e=>{btnShield=true;shdBtn.setPointerCaptur
 // Comme dans LoL : on appuie sur la touche d'un sort pour voir sa portée, clic gauche pour lancer vers le curseur, clic droit ou Échap pour annuler.
 const CAST_MODES=[["click","Sorts : visée au clic"],["quick","Sorts : lancer instantané"],["hold","Sorts : relâcher pour lancer"]];
 let castMode="click"; try{const m=localStorage.getItem("castMode");if(CAST_MODES.some(c=>c[0]===m))castMode=m}catch(_){}
-function pressSpell(slot){ const id=player.kit[slot]; if(!id||player.ko>0)return; if(castMode==="quick"||SPL[id].self){aiming=null;cast(player,id)} else aiming=id }
+function pressSpell(slot){ const id=player.kit[slot]; if(!id||player.ko>0)return; if(typeof STREAM_DEFS!=="undefined"&&STREAM_DEFS.some(d=>d.id===id)){aiming=null;player.holdKey=true;player.holdSlot=slot;cast(player,id);return} if(castMode==="quick"||SPL[id].self){aiming=null;cast(player,id)} else aiming=id }
 function releaseSpell(){ const n=aiming; aiming=null; if(n)cast(player,n) }
 const slotOf=e=>e.code==="KeyQ"?0:({z:1,e:2,r:3})[e.key.toLowerCase()];
 addEventListener("keydown",e=>{const k=e.key.toLowerCase();
@@ -119,6 +119,7 @@ addEventListener("keydown",e=>{const k=e.key.toLowerCase();
   if(["arrowup","arrowdown","arrowleft","arrowright"].includes(k))e.preventDefault();
   keys.add(k)});
 addEventListener("keyup",e=>{if(e.key===" ")e.preventDefault();keys.delete(e.key.toLowerCase());
+  if(player.holdKey&&slotOf(e)===player.holdSlot)player.holdKey=false;
   if(castMode==="hold"&&aiming){const s=slotOf(e); if(s!==undefined&&aiming===player.kit[s])releaseSpell()}});
 document.querySelectorAll("#aimModes button").forEach(b=>b.addEventListener("click",()=>setAimMode(b.dataset.m)));setAimMode(AIM.mode);
 const modeBtn=document.getElementById("mode");
