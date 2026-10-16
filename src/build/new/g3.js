@@ -192,7 +192,7 @@ function buildEquip(){
   const grid=equipEl.querySelector(".eqg"), info=equipEl.querySelector("#eqInfo");
   sp.pool.forEach(id=>{
     const s=SPL[id], b=document.createElement("button"), n=dk.indexOf(id); b.type="button"; b.className="mv"; b.setAttribute("aria-pressed",String(n>=0));
-    b.innerHTML='<i style="background:'+TYPE_COL[s.type]+'"></i><span>'+s.name+'</span><small>'+s.cd+' s</small>'+(n>=0?'<b>'+SLOT_KEYS[n]+'</b>':'');
+    b.innerHTML='<i style="background:'+TYPE_COL[s.type]+'"></i><span>'+s.name+'</span><small>'+spCd(k,id)+(spCd(k,id)!==s.cd?'*':'')+' s</small>'+(n>=0?'<b>'+SLOT_KEYS[n]+'</b>':'');
     const show=()=>{info.innerHTML="<b>"+s.name+"</b> "+moveInfo(id)+"<br>"+DESC[id]};
     b.addEventListener("mouseenter",show); b.addEventListener("focus",show);
     b.addEventListener("click",()=>{

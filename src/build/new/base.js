@@ -7,3 +7,7 @@ const cam={x:0,y:0};
 const NET={on:false,host:false,guest:false,started:false,tick(){},send(){},sendCast(){},leave(){}};
 const rand=(a,b)=>a+Math.random()*(b-a);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+// recharge d'une capacité pour un Pokémon donné (équilibrage par Pokémon, voir balance.js)
+function spCd(key,id){const sp=SPECIES[key]; return (sp&&sp.cdMod&&sp.cdMod[id])||SPL[id].cd}
+function cdFor(e,id){return e&&e.key?spCd(e.key,id):SPL[id].cd}

@@ -51,7 +51,7 @@ function beginFlurry(e,R){
   rings.push({x:e.x,y:e.y,t:0,dur:.3,max:26,c:"#ff8a60"}); colorBurst(e.x,e.y-8,14,FIGHT,40,140);
 }
 function endFlurry(e,R){
-  R.ph="rec"; R.t=0; e.cd[R.id]=SPL[R.id].cd; e.run=false; setAnim(e,"idle"); e.rest=rand(.3,.8);
+  R.ph="rec"; R.t=0; e.cd[R.id]=cdFor(e,R.id); e.run=false; setAnim(e,"idle"); e.rest=rand(.3,.8);
   e.bf.ccdown=BUFF.ccdown.dur; pops.push({x:e.x,y:e.y-e.sp.body-26,t:0,txt:BUFF.ccdown.label});
 }
 function updateFlurry(e,dt){

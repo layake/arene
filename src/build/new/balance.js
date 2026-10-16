@@ -9,3 +9,7 @@ for(const k in BAL_STATS){const sp=SPECIES[k]; if(!sp)continue; sp.official=sp.o
 SPL.hjk.power=35;        // Braségali
 SPL.bravebird.power=32;  // Corvaillus
 SPL.nslash.power=22;     // Zoroark
+// Recharges propres à un Pokémon (sans toucher les autres utilisateurs de la capacité) : sp.cdMod
+SPECIES.staraptor.cdMod={wingatk:1.5};
+// Set de base : Gardevoir gagne une 3e attaque (Éclat Magique remplace Gravité)
+SPECIES.gardevoir.kit=["moon","psy","gleam","calm"];

@@ -450,7 +450,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Sélection d'équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>mannequin d'entraînement</small></button><button type="button" data-mode="duel" aria-pressed="false">Versus<small>contre un adversaire</small></button><button type="button" data-mode="rush" aria-pressed="false">Marathon<small>Tous les Pokémon d'affilée, au chrono</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="rounds" role="group" aria-label="Rounds"><span>Rounds</span><button type="button" data-r="1">1</button><button type="button" data-r="3" aria-pressed="true">3</button><button type="button" data-r="5">5</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
 </div>
-<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.67 · 16/10/2026</b></footer>
+<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.68 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -586,6 +586,10 @@ const cam={x:0,y:0};
 const NET={on:false,host:false,guest:false,started:false,tick(){},send(){},sendCast(){},leave(){}};
 const rand=(a,b)=>a+Math.random()*(b-a);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+// recharge d'une capacité pour un Pokémon donné (équilibrage par Pokémon, voir balance.js)
+function spCd(key,id){const sp=SPECIES[key]; return (sp&&sp.cdMod&&sp.cdMod[id])||SPL[id].cd}
+function cdFor(e,id){return e&&e.key?spCd(e.key,id):SPL[id].cd}
 
 // ===== Types, stats, spells =====
 // Efficacité : super efficace x1.3, peu efficace x0.8, immunité x0.7, STAB x1.05. Table Gen 6+ (avec Fée).
@@ -1232,14 +1236,14 @@ function castMelee(e,id){
   if(!(e.stun>0)&&!e.rush&&!e.chan&&(e.anim!=="attack"||e.hit)&&(!T||combo)&&(e.lock<=0||combo)&&cdOf(e,id)<=0&&!e.shieldOn){
     if(!spendPP(e,SPL[id].cost))return;
     if(T){e.tunnel=null;e.cd.tun=SPL.tun.cd}
-    lockAim(e); e.cast=id; e.comboClaw=combo; e.comboT=0; e.lock=0; e.cd[id]=SPL[id].cd; e.aim=aimAt(e,false); e.moveTarget=null; e.anim="idle"; e.altA=(e.sp.altAtk&&e.sp.altAtk[id])||null; setAnim(e,"attack");
+    lockAim(e); e.cast=id; e.comboClaw=combo; e.comboT=0; e.lock=0; e.cd[id]=cdFor(e,id); e.aim=aimAt(e,false); e.moveTarget=null; e.anim="idle"; e.altA=(e.sp.altAtk&&e.sp.altAtk[id])||null; setAnim(e,"attack");
   }
 }
 // Sorts lancés avec la pose d'attaque : le projectile ou la zone part sur la frame de contact.
 function castAnim(e,id){
   if(e.stun>0||e.tunnel||e.rush||e.chan||e.lock>0||cdOf(e,id)>0||e.shieldOn||(e.anim==="attack"&&!e.hit))return;
   if(!spendPP(e,SPL[id].cost))return;
-  e.cd[id]=SPL[id].cd; gcd(e,.5);
+  e.cd[id]=cdFor(e,id); gcd(e,.5);
   lockAim(e); e.aim=aimAt(e,true)||FACE[e.dir]; e.cast=id; e.comboClaw=false; e.moveTarget=null; e.anim="idle"; e.altA=(e.sp.altAtk&&e.sp.altAtk[id])||null; setAnim(e,"attack");
 }
 function animHit(e){
@@ -1311,7 +1315,7 @@ function castBuff(e,id){
   if(e.stun>0||e.tunnel||e.rush||e.chan||(e.anim==="attack"&&!e.hit)||cdOf(e,id)>0||e.shieldOn)return;
   const B=BUFF[SPL[id].buff];
   if(!spendPP(e,SPL[id].cost))return;
-  e.cd[id]=SPL[id].cd; gcd(e,.4); e.bf[SPL[id].buff]=B.dur;
+  e.cd[id]=cdFor(e,id); gcd(e,.4); e.bf[SPL[id].buff]=B.dur;
   rings.push({x:e.x,y:e.y,t:0,dur:.5,max:26,c:B.col}); colorBurst(e.x,e.y,22,B.pal,30,110);
   fx.push({k:"up",x:e.x,y:e.y,sy:e.y+.5,h:e.sp.body+8,t:0,life:.9,pal:B.pal});
   pops.push({x:e.x,y:e.y-e.sp.body-26,t:0,txt:B.label});
@@ -1597,7 +1601,7 @@ function updateRush(e,dt){
       if(hitOk&&plain){
         rings.push({x:t.x,y:t.y,t:0,dur:.45,max:46,c:"#a77bff"}); rings.push({x:t.x,y:t.y,t:0,dur:.28,max:28,c:"#ffffff"}); rushBurst(t.x,t.y,44,80,220); burst(t.x,t.y,22); shake=.42; hitstop=.11;
       }
-      if(contact||blocked||R.trav>=R.len-.01){if(C.recoil&&!hitOk&&alive(e)){const rd=Math.max(1,Math.round(e.maxHp*C.recoil));e.hp=Math.max(1,e.hp-rd);e.hpShow=3;e.flash=.1;pops.push({x:e.x,y:e.y-e.sp.body-20,t:0,txt:"-"+rd+" Contrecoup"});colorBurst(e.x,e.y-10,12,FLAMEC,30,100)} R.ph="rec";R.t=0;e.cd[R.id]=SPL[R.id].cd;e.run=false;setAnim(e,"idle");e.rest=rand(.3,.8);if(!plain)colorBurst(e.x,e.y,14,PAL,30,110);else burst(e.x,e.y,16)}
+      if(contact||blocked||R.trav>=R.len-.01){if(C.recoil&&!hitOk&&alive(e)){const rd=Math.max(1,Math.round(e.maxHp*C.recoil));e.hp=Math.max(1,e.hp-rd);e.hpShow=3;e.flash=.1;pops.push({x:e.x,y:e.y-e.sp.body-20,t:0,txt:"-"+rd+" Contrecoup"});colorBurst(e.x,e.y-10,12,FLAMEC,30,100)} R.ph="rec";R.t=0;e.cd[R.id]=cdFor(e,R.id);e.run=false;setAnim(e,"idle");e.rest=rand(.3,.8);if(!plain)colorBurst(e.x,e.y,14,PAL,30,110);else burst(e.x,e.y,16)}
     }
   }else if(R.t>=R.cfg.rec){e.rush=null}
 }
@@ -2759,7 +2763,7 @@ function buildEquip(){
   const grid=equipEl.querySelector(".eqg"), info=equipEl.querySelector("#eqInfo");
   sp.pool.forEach(id=>{
     const s=SPL[id], b=document.createElement("button"), n=dk.indexOf(id); b.type="button"; b.className="mv"; b.setAttribute("aria-pressed",String(n>=0));
-    b.innerHTML='<i style="background:'+TYPE_COL[s.type]+'"></i><span>'+s.name+'</span><small>'+s.cd+' s</small>'+(n>=0?'<b>'+SLOT_KEYS[n]+'</b>':'');
+    b.innerHTML='<i style="background:'+TYPE_COL[s.type]+'"></i><span>'+s.name+'</span><small>'+spCd(k,id)+(spCd(k,id)!==s.cd?'*':'')+' s</small>'+(n>=0?'<b>'+SLOT_KEYS[n]+'</b>':'');
     const show=()=>{info.innerHTML="<b>"+s.name+"</b> "+moveInfo(id)+"<br>"+DESC[id]};
     b.addEventListener("mouseenter",show); b.addEventListener("focus",show);
     b.addEventListener("click",()=>{
@@ -2937,7 +2941,7 @@ function beginFlurry(e,R){
   rings.push({x:e.x,y:e.y,t:0,dur:.3,max:26,c:"#ff8a60"}); colorBurst(e.x,e.y-8,14,FIGHT,40,140);
 }
 function endFlurry(e,R){
-  R.ph="rec"; R.t=0; e.cd[R.id]=SPL[R.id].cd; e.run=false; setAnim(e,"idle"); e.rest=rand(.3,.8);
+  R.ph="rec"; R.t=0; e.cd[R.id]=cdFor(e,R.id); e.run=false; setAnim(e,"idle"); e.rest=rand(.3,.8);
   e.bf.ccdown=BUFF.ccdown.dur; pops.push({x:e.x,y:e.y-e.sp.body-26,t:0,txt:BUFF.ccdown.label});
 }
 function updateFlurry(e,dt){
@@ -4345,6 +4349,10 @@ for(const k in BAL_STATS){const sp=SPECIES[k]; if(!sp)continue; sp.official=sp.o
 SPL.hjk.power=35;        // Braségali
 SPL.bravebird.power=32;  // Corvaillus
 SPL.nslash.power=22;     // Zoroark
+// Recharges propres à un Pokémon (sans toucher les autres utilisateurs de la capacité) : sp.cdMod
+SPECIES.staraptor.cdMod={wingatk:1.5};
+// Set de base : Gardevoir gagne une 3e attaque (Éclat Magique remplace Gravité)
+SPECIES.gardevoir.kit=["moon","psy","gleam","calm"];
 
 // ===== Passe sons : sorts des Aces récents et sorts de terrain (effets PMD) =====
 Object.assign(SFX_MAP,{

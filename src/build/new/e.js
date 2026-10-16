@@ -6,14 +6,14 @@ function castMelee(e,id){
   if(!(e.stun>0)&&!e.rush&&!e.chan&&(e.anim!=="attack"||e.hit)&&(!T||combo)&&(e.lock<=0||combo)&&cdOf(e,id)<=0&&!e.shieldOn){
     if(!spendPP(e,SPL[id].cost))return;
     if(T){e.tunnel=null;e.cd.tun=SPL.tun.cd}
-    lockAim(e); e.cast=id; e.comboClaw=combo; e.comboT=0; e.lock=0; e.cd[id]=SPL[id].cd; e.aim=aimAt(e,false); e.moveTarget=null; e.anim="idle"; e.altA=(e.sp.altAtk&&e.sp.altAtk[id])||null; setAnim(e,"attack");
+    lockAim(e); e.cast=id; e.comboClaw=combo; e.comboT=0; e.lock=0; e.cd[id]=cdFor(e,id); e.aim=aimAt(e,false); e.moveTarget=null; e.anim="idle"; e.altA=(e.sp.altAtk&&e.sp.altAtk[id])||null; setAnim(e,"attack");
   }
 }
 // Sorts lancés avec la pose d'attaque : le projectile ou la zone part sur la frame de contact.
 function castAnim(e,id){
   if(e.stun>0||e.tunnel||e.rush||e.chan||e.lock>0||cdOf(e,id)>0||e.shieldOn||(e.anim==="attack"&&!e.hit))return;
   if(!spendPP(e,SPL[id].cost))return;
-  e.cd[id]=SPL[id].cd; gcd(e,.5);
+  e.cd[id]=cdFor(e,id); gcd(e,.5);
   lockAim(e); e.aim=aimAt(e,true)||FACE[e.dir]; e.cast=id; e.comboClaw=false; e.moveTarget=null; e.anim="idle"; e.altA=(e.sp.altAtk&&e.sp.altAtk[id])||null; setAnim(e,"attack");
 }
 function animHit(e){
@@ -85,7 +85,7 @@ function castBuff(e,id){
   if(e.stun>0||e.tunnel||e.rush||e.chan||(e.anim==="attack"&&!e.hit)||cdOf(e,id)>0||e.shieldOn)return;
   const B=BUFF[SPL[id].buff];
   if(!spendPP(e,SPL[id].cost))return;
-  e.cd[id]=SPL[id].cd; gcd(e,.4); e.bf[SPL[id].buff]=B.dur;
+  e.cd[id]=cdFor(e,id); gcd(e,.4); e.bf[SPL[id].buff]=B.dur;
   rings.push({x:e.x,y:e.y,t:0,dur:.5,max:26,c:B.col}); colorBurst(e.x,e.y,22,B.pal,30,110);
   fx.push({k:"up",x:e.x,y:e.y,sy:e.y+.5,h:e.sp.body+8,t:0,life:.9,pal:B.pal});
   pops.push({x:e.x,y:e.y-e.sp.body-26,t:0,txt:B.label});
@@ -371,7 +371,7 @@ function updateRush(e,dt){
       if(hitOk&&plain){
         rings.push({x:t.x,y:t.y,t:0,dur:.45,max:46,c:"#a77bff"}); rings.push({x:t.x,y:t.y,t:0,dur:.28,max:28,c:"#ffffff"}); rushBurst(t.x,t.y,44,80,220); burst(t.x,t.y,22); shake=.42; hitstop=.11;
       }
-      if(contact||blocked||R.trav>=R.len-.01){if(C.recoil&&!hitOk&&alive(e)){const rd=Math.max(1,Math.round(e.maxHp*C.recoil));e.hp=Math.max(1,e.hp-rd);e.hpShow=3;e.flash=.1;pops.push({x:e.x,y:e.y-e.sp.body-20,t:0,txt:"-"+rd+" Contrecoup"});colorBurst(e.x,e.y-10,12,FLAMEC,30,100)} R.ph="rec";R.t=0;e.cd[R.id]=SPL[R.id].cd;e.run=false;setAnim(e,"idle");e.rest=rand(.3,.8);if(!plain)colorBurst(e.x,e.y,14,PAL,30,110);else burst(e.x,e.y,16)}
+      if(contact||blocked||R.trav>=R.len-.01){if(C.recoil&&!hitOk&&alive(e)){const rd=Math.max(1,Math.round(e.maxHp*C.recoil));e.hp=Math.max(1,e.hp-rd);e.hpShow=3;e.flash=.1;pops.push({x:e.x,y:e.y-e.sp.body-20,t:0,txt:"-"+rd+" Contrecoup"});colorBurst(e.x,e.y-10,12,FLAMEC,30,100)} R.ph="rec";R.t=0;e.cd[R.id]=cdFor(e,R.id);e.run=false;setAnim(e,"idle");e.rest=rand(.3,.8);if(!plain)colorBurst(e.x,e.y,14,PAL,30,110);else burst(e.x,e.y,16)}
     }
   }else if(R.t>=R.cfg.rec){e.rush=null}
 }
