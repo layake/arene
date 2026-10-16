@@ -392,6 +392,10 @@ body{padding:0!important;gap:0!important}
 .pmenu{flex-direction:row}.pmenu button{flex:1}
 .tfoot{bottom:34px!important}
 .tcredit{bottom:6px}
+
+#roundban.intro{color:#fff;text-shadow:0 5px 0 #3a4a9a,5px 5px 0 #101830,-4px 0 0 #101830,4px 0 0 #101830,0 -4px 0 #101830}
+#roundban.intro.go{color:#ffe45e;text-shadow:0 5px 0 #b8740a,5px 5px 0 #101830,-4px 0 0 #101830,4px 0 0 #101830,0 -4px 0 #101830}
+#endscr .ebtn{flex-wrap:wrap}
 footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </style>
 
@@ -410,13 +414,13 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
   <div class="card" id="hud-e"><div class="who"><b>Tortipousse</b><i id="hp-et">60</i></div><div class="meter" id="hp-e"><span></span></div></div>
 </div>
 <div id="log" hidden></div>
-<div id="pause" hidden role="dialog" aria-label="Pause"><div class="pbox"><h2>Pause</h2><p>Échap ou P pour reprendre</p><button id="resume" type="button">Reprendre</button><div class="vols"><h3>Volume</h3><label for="vMaster">Général<output id="vMasterV"></output></label><input id="vMaster" type="range" min="0" max="100" step="1"><label for="vMusic">Musique<output id="vMusicV"></output></label><input id="vMusic" type="range" min="0" max="100" step="1"><label for="vFight">Combat<output id="vFightV"></output></label><input id="vFight" type="range" min="0" max="100" step="1"><label for="vUi">Interface<output id="vUiV"></output></label><input id="vUi" type="range" min="0" max="100" step="1"></div><div class="vols aimsel"><h3>Visée (touche T)</h3><div id="aimModes"><button type="button" data-m="off">Libre</button><button type="button" data-m="assist">Aide</button><button type="button" data-m="lock">Verrou</button></div><p>Libre : tu vises toi-même. Aide : le sort vise l'ennemi si ton curseur est près de lui. Verrou : tous les sorts visent l'ennemi.</p></div><div class="pk"><b>Clic droit</b> se déplacer<br><b>A Z E R</b> sorts, <b>clic gauche</b> pour lancer<br><b>Espace</b> bouclier (maintenir)</div></div></div>
+<div id="pause" hidden role="dialog" aria-label="Pause"><div class="pbox"><h2>Pause</h2><p>Échap ou P pour reprendre</p><button id="resume" type="button">Reprendre</button><div class="vols"><h3>Volume</h3><label for="vMaster">Général<output id="vMasterV"></output></label><input id="vMaster" type="range" min="0" max="100" step="1"><label for="vMusic">Musique<output id="vMusicV"></output></label><input id="vMusic" type="range" min="0" max="100" step="1"><label for="vFight">Combat<output id="vFightV"></output></label><input id="vFight" type="range" min="0" max="100" step="1"><label for="vUi">Interface<output id="vUiV"></output></label><input id="vUi" type="range" min="0" max="100" step="1"></div><div class="vols aimsel"><h3>Visée (touche T)</h3><div id="aimModes"><button type="button" data-m="off">Manuelle</button><button type="button" data-m="assist">Assistée</button><button type="button" data-m="lock">Verrouillée</button></div><p>Manuelle : tu vises toi-même. Assistée : le sort cible l'ennemi si le curseur est proche. Verrouillée : tous les sorts ciblent l'ennemi.</p></div><div class="pk"><b>Clic droit</b> se déplacer<br><b>A Z E R</b> sorts, <b>clic gauche</b> pour lancer<br><b>Espace</b> bouclier (maintenir)</div></div></div>
 <div id="bar">
 <button id="atk" class="slot dragon" type="button" aria-disabled="false"><span class="k">A</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#1a0f3d" stroke-width="1.4" stroke-linejoin="round"><path d="M4 4 L9 3 L15 27 L12 28 Z" fill="#f3eaff"/><path d="M11 4 L16 3 L22 27 L19 28 Z" fill="#f3eaff"/><path d="M18 4 L23 3 L29 27 L26 28 Z" fill="#f3eaff"/></svg><span class="c">10</span><span class="n">Draco-Griffe</span><span class="cd"></span><span class="t"></span></button><button id="pls" class="slot ground" type="button" aria-disabled="false"><span class="k">Z</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#2a1608" stroke-width="1.4"><circle cx="17" cy="17" r="9" fill="#7a4a22"/><ellipse cx="13" cy="13" rx="3.2" ry="2" fill="#c08a50" stroke="none"/><circle cx="5.5" cy="21" r="2.2" fill="#7a4a22"/><circle cx="27.5" cy="9" r="1.8" fill="#7a4a22"/><circle cx="6" cy="10" r="1.4" fill="#7a4a22"/></svg><span class="c">20</span><span class="n">Tir de Boue</span><span class="cd"></span><span class="t"></span></button><button id="tun" class="slot ground" type="button" aria-disabled="false"><span class="k">E</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#2a1608" stroke-width="1.4" stroke-linejoin="round"><path d="M3 27 Q16 3 29 27 Z" fill="#b98a4e"/><path d="M9 20 Q13 12 17 10" fill="none" stroke="#e3bd82" stroke-width="2" stroke-linecap="round"/><ellipse cx="16" cy="25" rx="6.5" ry="2.8" fill="#2a1608"/></svg><span class="c">25</span><span class="n">Tunnel</span><span class="cd"></span><span class="t"></span></button><button id="rsh" class="slot dragon" type="button" aria-disabled="false"><span class="k">R</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#1a0f3d" stroke-width="1.4" stroke-linejoin="round"><path d="M3 12 H16 V5 L29 16 L16 27 V20 H3 Z" fill="#f3eaff"/><path d="M6 15 H18 V11" fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round"/></svg><span class="c">50</span><span class="n">Draco-Charge</span><span class="cd"></span><span class="t"></span></button><span class="sep"></span><button id="shd" class="slot shield" type="button" aria-pressed="false" aria-disabled="false"><span class="k">Esp</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#0b2a40" stroke-width="1.4" stroke-linejoin="round"><path d="M16 3 L28 7 V16 C28 23 22 27 16 30 C10 27 4 23 4 16 V7 Z" fill="#d6f2ff"/><path d="M16 7 L24 10 V16 C24 21 20 24 16 26 Z" fill="#5cc0f0" stroke="none"/></svg><span class="n">Bouclier</span><span class="cd"></span><span class="t"></span></button>
 </div>
-<div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Choisis ton équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>Tortipousse, mannequin</small></button><button type="button" data-mode="duel" aria-pressed="false">Duel<small>contre l'autre Ace</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="rounds" role="group" aria-label="Manches"><span>Manches</span><button type="button" data-r="1">1</button><button type="button" data-r="3" aria-pressed="true">3</button><button type="button" data-r="5">5</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
+<div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Sélection d'équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>mannequin d'entraînement</small></button><button type="button" data-mode="duel" aria-pressed="false">Versus<small>contre un adversaire</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="rounds" role="group" aria-label="Rounds"><span>Rounds</span><button type="button" data-r="1">1</button><button type="button" data-r="3" aria-pressed="true">3</button><button type="button" data-r="5">5</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
 </div>
-<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.23 · 16/10/2026</b></footer>
+<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.24 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -810,6 +814,7 @@ function makeDummy(x,y){
 const START_A=[WORLD.w/2-55,WORLD.h/2+10], START_B=[WORLD.w/2+55,WORLD.h/2+20];
 function resetRound(){
   if(typeof hideBanner==="function")hideBanner();
+  if(matchMode==="duel"&&typeof introPending!=="undefined")introPending=true;
   entities.forEach((e,i)=>{
     if(e.team)resetTeam(e);
     const s=i===0?START_A:START_B; e.x=s[0]; e.y=s[1]; e.hp=e.maxHp; e.hpShow=0; e.ko=0; e.kb=null; e.stun=0; e.dizzy=false; e.flash=0; e.lock=0; e.hit=false; e.run=false;
@@ -873,7 +878,7 @@ function lockAim(e){
 }
 // Aide à la visée : un curseur posé près de l'ennemi (panique, cible qui bouge) vise l'ennemi, avec une légère avance sur son déplacement.
 const ASSIST=26, LEAD=.12;
-const AIM={mode:"assist",modes:[["off","Libre"],["assist","Aide"],["lock","Verrou"]]};
+const AIM={mode:"assist",modes:[["off","Manuelle"],["assist","Assistée"],["lock","Verrouillée"]]};
 try{const m=localStorage.getItem("aimMode");if(AIM.modes.some(x=>x[0]===m))AIM.mode=m}catch(_){}
 function setAimMode(m){AIM.mode=m;try{localStorage.setItem("aimMode",m)}catch(_){} document.querySelectorAll("#aimModes button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.m===m)))}
 function snapAim(e,tx,ty,ground){
@@ -1027,8 +1032,8 @@ function knockOut(t,att){
   sfxUI("ko");
   t.ko=1.6; t.kb=null; t.counter=null; t.rush=null; t.chan=null; t.tunnel=null; t.shieldOn=false;
   const more=teamKO(t);
-  if(!more&&matchMode==="duel"){t.ko=2.6; if(typeof showBanner==="function")showBanner(t===player?"DÉFAITE":"VICTOIRE !",t===player?"lose":"win")}
   if(!more&&matchMode==="duel"&&!NET.guest){if(t===player)score.foe++;else score.me++}
+  if(!more&&matchMode==="duel"){t.ko=2.6; if(typeof showBanner==="function"){const over=typeof matchWon==="function"&&matchWon(); showBanner(over?(t===player?"DÉFAITE":"VICTOIRE"):(t===player?"ROUND PERDU":"ROUND GAGNÉ"),t===player?"lose":"win")}}
   showLog(t.sp.name+" est K.O. !",1600);
 }
 function updateKO(e,dt){
@@ -2288,8 +2293,8 @@ function applyKit(){
     btn.style.setProperty("--g1",shade(c,1.1)); btn.style.setProperty("--g2",shade(c,.5)); btn.title=sp.name+" ("+TYPE_FR[sp.type]+", "+catFr(sp.cat).toLowerCase()+")";
     SLOT_T.delete(btn);
   });
-  const kit=player.kit.map((id,i)=>"<b>"+SLOT_KEYS[i]+"</b> "+SPL[id].name+" ("+SPL[id].cost+")").join(" · ");
-  helpEl.innerHTML="<b>Clic droit</b> se déplacer (maintenir pour suivre)<br><b>Survoler l'ennemi</b> + clic droit : le poursuivre<br><b>Espace</b> bouclier (maintenir)<br><b>Tab</b> changer d'Ace (0,5 s, vulnérable)<br><b>F</b> Flash : blink vers le curseur, cast 0,5 s puis blink (recharge 12 s)<br>"+kit+"<br><b>Clic gauche</b> lance le sort visé · <b>Clic droit</b> ou <b>Échap</b> annule<br>Le mode de lancer (clic, rapide, maintenir) se change avec le bouton à côté.";
+  const kit=player.kit.map((id,i)=>"<b>"+SLOT_KEYS[i]+"</b> "+SPL[id].name+" ("+Math.round(SPL[id].cd*10)/10+" s)").join(" · ");
+  helpEl.innerHTML="<b>Clic droit</b> : se déplacer (maintenir pour suivre)<br><b>Clic droit sur l'ennemi</b> : le poursuivre<br><b>Espace</b> : bouclier (maintenir)<br><b>Tab</b> : changer d'Ace (0,5 s)<br><b>F</b> : Flash, téléportation vers le curseur (recharge 12 s)<br>"+kit+"<br><b>Clic gauche</b> : lancer le sort · <b>Clic droit</b> ou <b>Échap</b> : annuler<br>Le mode de lancer se règle dans le menu Pause.";
   scoreEl.textContent=""; scoreTxt="";
 }
 const SLOT_T=new WeakMap();
@@ -2329,7 +2334,7 @@ function hudTile(t,e,pts,show){
     const sig=e.team.map((s,i)=>s.key+(i===e.ti?"*":"")+(s.dead?"x":"")+Math.round((i===e.ti?e.hp:s.hp)/s.maxHp*20)).join("|");
     if(t.bn.dataset.v!==sig){t.bn.dataset.v=sig;t.bn.innerHTML=e.team.map((s,i)=>{const hp=i===e.ti?e.hp:s.hp;return '<i class="'+(i===e.ti?"on ":"")+(s.dead?"dead":"")+'" title="'+SPECIES[s.key].name+'"><img alt="" src="'+PORTRAITS[s.key]+'"><u style="width:'+Math.round(clamp(hp/s.maxHp,0,1)*100)+'%"></u></i>'}).join("")}
   }else if(t.bn.dataset.v){t.bn.dataset.v="";t.bn.innerHTML=""}
-  const p=show?String(pts):""; if(t.pips.dataset.v!==p){t.pips.dataset.v=p;t.pips.textContent=show?"★ "+pts+(pts>1?" victoires":" victoire"):""}
+  const p=show?String(pts):""; if(t.pips.dataset.v!==p){t.pips.dataset.v=p;t.pips.textContent=show?"Rounds "+pts:""}
 }
 function hudUpdate(){
   const duel=matchMode==="duel"; hudEl.style.display=(menuOpen||!player||!foe)?"none":"";
@@ -2353,7 +2358,7 @@ shdBtn.addEventListener("pointerdown",e=>{btnShield=true;shdBtn.setPointerCaptur
 ["pointerup","pointercancel","lostpointercapture"].forEach(t=>shdBtn.addEventListener(t,()=>{btnShield=false}));
 // ---- Clavier ----
 // Comme dans LoL : on appuie sur la touche d'un sort pour voir sa portée, clic gauche pour lancer vers le curseur, clic droit ou Échap pour annuler.
-const CAST_MODES=[["click","Lancer : clic"],["quick","Lancer : rapide"],["hold","Lancer : maintenir"]];
+const CAST_MODES=[["click","Sorts : visée au clic"],["quick","Sorts : lancer instantané"],["hold","Sorts : relâcher pour lancer"]];
 let castMode="click"; try{const m=localStorage.getItem("castMode");if(CAST_MODES.some(c=>c[0]===m))castMode=m}catch(_){}
 function pressSpell(slot){ const id=player.kit[slot]; if(!id||player.ko>0)return; if(castMode==="quick"||SPL[id].self){aiming=null;cast(player,id)} else aiming=id }
 function releaseSpell(){ const n=aiming; aiming=null; if(n)cast(player,n) }
@@ -2427,7 +2432,7 @@ function buildEquip(){
   const k=pick, sp=SPECIES[k], dk=draftOf(k);
   const stt=STAT_ROWS.map(([l,s])=>'<div class="dsr"><span>'+l+'</span><u><s style="width:'+Math.round(sp.base[s]/190*100)+'%"></s></u><em>'+sp.base[s]+'</em></div>').join("");
   const tys=sp.types.map(t=>'<i style="background:'+TYPE_COL[t]+'">'+TYPE_FR[t]+'</i>').join("");
-  equipEl.innerHTML='<div class="dhead"><img alt="" src="'+PORTRAITS[k]+'"><div><h3>'+sp.name+'</h3><div class="ty">'+tys+'</div></div></div><div class="dstats">'+stt+'</div><div class="eqh"><span>Sorts <em>'+dk.length+' / 4</em></span><button type="button" id="eqDef">Par défaut</button></div><div class="eqg"></div><p class="eqi" id="eqInfo">Choisis 4 sorts. Les plus puissants rechargent plus lentement.</p>';
+  equipEl.innerHTML='<div class="dhead"><img alt="" src="'+PORTRAITS[k]+'"><div><h3>'+sp.name+'</h3><div class="ty">'+tys+'</div></div></div><div class="dstats">'+stt+'</div><div class="eqh"><span>Sorts <em>'+dk.length+' / 4</em></span><button type="button" id="eqDef">Réinitialiser</button></div><div class="eqg"></div><p class="eqi" id="eqInfo">Sélectionne 4 sorts. Les plus puissants ont un temps de recharge plus long.</p>';
   const grid=equipEl.querySelector(".eqg"), info=equipEl.querySelector("#eqInfo");
   sp.pool.forEach(id=>{
     const s=SPL[id], b=document.createElement("button"), n=dk.indexOf(id); b.type="button"; b.className="mv"; b.setAttribute("aria-pressed",String(n>=0));
@@ -2473,7 +2478,7 @@ function buildMenu(){
 }
 function refreshMenu(){
   cardsEl.querySelectorAll(".ace").forEach(b=>{const i=picks.indexOf(b.dataset.key); b.setAttribute("aria-pressed",String(i>=0)); b.classList.toggle("focus",b.dataset.key===pick&&i>=0); b.querySelector(".tn").textContent=i>=0?String(i+1):""});
-  teamLineEl.innerHTML=[0,1,2].map(i=>{const k=picks[i]; return k?'<div class="tslot'+(k===pick?" on":"")+'" data-i="'+i+'"><b>'+(i+1)+'</b><img alt="" src="'+PORTRAITS[k]+'"><span>'+SPECIES[k].name+'</span><u data-rm="'+i+'" title="Retirer">×</u></div>':'<div class="tslot empty"><b>'+(i+1)+'</b><span>Choisis un Ace</span></div>'}).join("")+'<small>Ordre 1, 2, 3 · Tab change d\'Ace en combat</small>';
+  teamLineEl.innerHTML=[0,1,2].map(i=>{const k=picks[i]; return k?'<div class="tslot'+(k===pick?" on":"")+'" data-i="'+i+'"><b>'+(i+1)+'</b><img alt="" src="'+PORTRAITS[k]+'"><span>'+SPECIES[k].name+'</span><u data-rm="'+i+'" title="Retirer">×</u></div>':'<div class="tslot empty"><b>'+(i+1)+'</b><span>Choisir un Ace</span></div>'}).join("")+'<small>Ordre d\'entrée 1, 2, 3 · Tab : changer d\'Ace en combat</small>';
   document.querySelectorAll("#menu .modes button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===pickMode)));
   document.querySelectorAll("#menu .diffs button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.diff===diff)));
   document.querySelector("#menu .diffs").hidden=pickMode!=="duel";
@@ -2485,7 +2490,7 @@ function refreshMenu(){
   buildEquip();
   cardsEl.querySelectorAll(".ace").forEach(b=>{b.querySelector("ul").innerHTML=draftOf(b.dataset.key).map(id=>'<li><b style="background:'+TYPE_COL[SPL[id].type]+'"></b>'+SPL[id].name+'</li>').join("")});
   goBtn.disabled=!teamReady();
-  goBtn.textContent=teamReady()?"Combattre":(picks.length<(pickMode==="duel"?3:1)?"Choisis "+(pickMode==="duel"?3:1)+" Aces":"Complète les 4 sorts");
+  goBtn.textContent=teamReady()?"Combattre":(picks.length<(pickMode==="duel"?3:1)?"Sélectionne "+(pickMode==="duel"?3:1)+(pickMode==="duel"?" Aces":" Ace"):"Sélectionne 4 sorts");
 }
 const teamReady=()=>picks.length>=(pickMode==="duel"?3:1)&&picks.every(k=>draftOf(k).length===4);
 function openMenu(){if(NET.on){NET.toLobby();NET.tab("online")}musicSet("menu");setPause(false);menuOpen=true;menuEl.hidden=false;refreshMenu()}
@@ -3200,7 +3205,7 @@ const cache={me:"",opp:""};
 function slotHtml(team,ready,label){
   if(!team||!team.length)return '<h4>'+label+'</h4><div class="lbwait">Choisit son Ace…</div>';
   const rows=team.map((t,i)=>'<div class="lbm"><img alt="" src="'+PORTRAITS[t.key]+'"><span><b>'+(i+1)+'</b> '+SPECIES[t.key].name+'</span></div>').join("");
-  return '<h4>'+label+'</h4>'+rows+'<em class="'+(ready?"lbrdy":"")+'">'+(ready?"Prêt":"Pas prêt")+'</em>';
+  return '<h4>'+label+'</h4>'+rows+'<em class="'+(ready?"lbrdy":"")+'">'+(ready?"Prêt":"En attente")+'</em>';
 }
 function refreshLobby(){
   lobbyEl.hidden=!inLobby; rowEl.hidden=inLobby; menuRoot.classList.toggle("locked",inLobby&&myReady);
@@ -3211,11 +3216,11 @@ function refreshLobby(){
   const opp=peerHere?slotHtml(oppPick&&oppPick.team,oppReady,"Adversaire"):'<h4>Adversaire</h4><div class="lbwait">En attente…<br><small>Donne-lui le code '+roomCode+'</small></div>';
   if(me!==cache.me){slotMe.innerHTML=me;cache.me=me} if(opp!==cache.opp){slotOpp.innerHTML=opp;cache.opp=opp}
   slotMe.classList.toggle("ok",myReady); slotOpp.classList.toggle("ok",oppReady&&peerHere);
-  btnR.disabled=!peerHere; btnR.textContent=myReady?"Pas prêt":"Prêt";
+  btnR.disabled=!peerHere; btnR.textContent=myReady?"Annuler":"Prêt";
 }
 function setTab(t){
   menuRoot.classList.toggle("tab-online",t==="online");
-  menuH2.textContent=t==="online"?"Multijoueur":"Choisis ton équipe";
+  menuH2.textContent=t==="online"?"Multijoueur":"Sélection d'équipe";
   document.querySelectorAll("#menu .tabs button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.tab===t)));
 }
 NET.tab=setTab;
@@ -3230,10 +3235,10 @@ setInterval(()=>{if(inLobby&&!NET.started){refreshLobby();sendPick(false)}},300)
 function openRoom(code){inLobby=true;roomCode=code;peerHere=false;myReady=oppReady=false;oppHello=oppPick=null;say("");refreshLobby()}
 function lobbyOn(){peerHere=true;myReady=oppReady=false;oppHello=oppPick=null;say("");refreshLobby();sendPick(true)}
 function peerGone(){
-  if(role!=="host"){const was=NET.started;NET.leave();say("Adversaire parti");if(was)openMenu();return}
+  if(role!=="host"){const was=NET.started;NET.leave();say("L'adversaire a quitté le salon");if(was)openMenu();return}
   const was=NET.started; NET.started=false; info.hidden=true; peerHere=false; myReady=oppReady=false; oppHello=oppPick=null;
   try{if(pc)pc.close()}catch(_){} pc=dcR=dcF=null; pend=[]; if(mode==="peer")connR=connF=null;
-  say("Adversaire parti. Le salon reste ouvert."); refreshLobby(); if(was)openMenu();
+  say("L'adversaire a quitté le salon. Le salon reste ouvert."); refreshLobby(); if(was)openMenu();
 }
 function maybeStart(){ if(role==="host"&&myReady&&oppReady&&oppHello&&!NET.started)beginHost() }
 btnR.addEventListener("click",()=>{
@@ -3249,7 +3254,7 @@ NET.toLobby=function(fromPeer){
   if(!fromPeer)send({t:"back"},true);
   NET.started=false; info.hidden=true; lastSnapSeq=-1;
   myReady=oppReady=false; oppHello=null; inLobby=true; refreshLobby(); sendPick(true);
-  say(fromPeer?"Ton adversaire est revenu au salon. Choisis puis clique sur Prêt.":"Salon : choisis ton Ace et clique sur Prêt.");
+  say(fromPeer?"L'adversaire est de retour. Valide ton équipe avec Prêt.":"Sélectionne ton équipe puis valide avec Prêt.");
   if(fromPeer)openMenu();
 };
 q("#netCopy").addEventListener("click",()=>{try{navigator.clipboard.writeText(roomCode).then(()=>say("Code copié"),()=>{})}catch(_){}});
@@ -3285,7 +3290,7 @@ function begin(hostH,guestH,asHost){
 }
 function beginHost(){
   myHello=mineHello(); const h=myHello, g=oppHello;
-  if(!h||!g||!validTeam(g.team)){say("Invité invalide");return}
+  if(!h||!g||!validTeam(g.team)){say("Équipe de l'adversaire invalide");return}
   relay({t:"start",h:{team:h.team},g:{team:g.team}});
   begin(h,g,true);
 }
@@ -3295,7 +3300,7 @@ const validKit=(key,kit)=>Array.isArray(kit)&&kit.length===4&&kit.every(id=>SPEC
 // ---- Connexion : serveur de signalisation (WebSocket) puis liaison directe WebRTC ----
 function onChan(c){
   c.onmessage=e=>{try{onMsg(JSON.parse(e.data))}catch(_){}};
-  c.onopen=()=>{if(rtcOpen())say("Liaison directe établie")};
+  c.onopen=()=>{if(rtcOpen())say("Connecté")};
 }
 function startRTC(isHost){
   if(relayOnly||typeof RTCPeerConnection==="undefined")return;
@@ -3390,7 +3395,7 @@ function mineHello(){const t=teamPicks(); return {key:t[0].key,kit:t[0].kit,team
 function saveKit(){if(picks.length!==3||!picks.every(k=>draftOf(k).length===4))return false; picks.forEach(k=>{KITS[k]=draftOf(k).slice()}); try{localStorage.setItem("aceKits",JSON.stringify(KITS));localStorage.setItem("aceTeam",JSON.stringify(picks));localStorage.setItem("aceKey",pick)}catch(_){} return true}
 btnC.addEventListener("click",()=>{ if(!saveKit())return; role="host"; myHello=mineHello(); connectAny(true) });
 btnJ.addEventListener("click",()=>{
-  const c=(codeIn.value||"").trim().toUpperCase(); if(c.length!==4){say("Entre le code à 4 lettres");return}
+  const c=(codeIn.value||"").trim().toUpperCase(); if(c.length!==4){say("Saisis le code du salon (4 lettres)");return}
   if(!saveKit())return; role="guest"; connectAny(false,c);
 });
 // Tout message relayé avant le démarrage passe par le serveur ; ensuite le canal direct prend le relais.
@@ -3407,7 +3412,7 @@ const stageEl=document.getElementById("stage");
 })();
 // --- ecran titre ---
 var titleEl=document.createElement("div"); titleEl.id="title"; titleEl.hidden=true;
-titleEl.innerHTML='<canvas id="tcv"></canvas><div class="tbox"><div class="tpre">Combat en arène · 3 contre 3</div><h1><span>ARÈNE</span><b>DES ACES</b></h1><div class="tbtns"><button type="button" id="tPlay">Jouer</button><button type="button" id="tOnline">En ligne</button><button type="button" id="tHelp">Commandes</button></div></div><div class="tfoot">Entrée : jouer<span id="tVer"></span></div>';
+titleEl.innerHTML='<canvas id="tcv"></canvas><div class="tbox"><div class="tpre">Combat 3 contre 3</div><h1><span>ARÈNE</span><b>DES ACES</b></h1><div class="tbtns"><button type="button" id="tPlay">Jouer</button><button type="button" id="tOnline">En ligne</button><button type="button" id="tHelp">Commandes</button></div></div><div class="tfoot">Entrée : jouer<span id="tVer"></span></div>';
 stageEl.appendChild(titleEl);
 const tcv=titleEl.querySelector("#tcv"), tctx2=tcv.getContext("2d");
 const T_SKY=["#1b2368","#26338a","#3a4fb0","#5c6fd0","#8d8ae0","#d98fb0","#f0a478"];
@@ -3474,10 +3479,11 @@ function showResult(){
   if(endShown)return; endShown=true; hideBanner();
   const win=score.me>score.foe;
   endEl.className=win?"win":"lose";
-  endEl.innerHTML='<div class="ebox"><h2>'+(win?"VICTOIRE !":"DÉFAITE")+'</h2><div class="esc"><b>'+score.me+'</b><i>-</i><b>'+score.foe+'</b></div><small>Match au meilleur de '+bestOf+'</small><div class="ebtn">'+(NET.on?"":'<button type="button" id="eRe">Rejouer</button>')+'<button type="button" id="eMenu">Menu</button></div></div>';
+  endEl.innerHTML='<div class="ebox"><h2>'+(win?"VICTOIRE":"DÉFAITE")+'</h2><div class="esc"><b>'+score.me+'</b><i>-</i><b>'+score.foe+'</b></div><small>'+(bestOf===1?'Match en 1 round':'Premier à '+winsNeeded()+' rounds')+'</small><div class="ebtn">'+(NET.on?"":'<button type="button" id="eRe">Revanche</button>')+'<button type="button" id="eMenu">'+(NET.on?"Retour au salon":"Sélection d\'équipe")+'</button>'+(NET.on?"":'<button type="button" id="eHome">Menu principal</button>')+'</div></div>';
   endEl.hidden=false; try{sfxUI(win?"ko":"click")}catch(_){}
   const re=endEl.querySelector("#eRe"); if(re)re.onclick=()=>{hideResult(); startMatch(picks.slice(),matchMode)};
   endEl.querySelector("#eMenu").onclick=()=>{hideResult(); openMenu()};
+  const hm=endEl.querySelector("#eHome"); if(hm)hm.onclick=()=>{hideResult(); showTitle()};
 }
 // invite : detecte la fin de match via le score
 setInterval(()=>{if(NET.guest&&NET.started&&!endShown&&matchWon()&&!menuOpen&&(!player||player.ko<=0.0001||true)){if(!window._endT)window._endT=setTimeout(()=>{window._endT=0;if(matchWon()&&!menuOpen)showResult()},2400)}},250);
@@ -3487,15 +3493,23 @@ var _credit=document.querySelector("footer").innerHTML;
 var _pb=document.querySelector("#pause .pbox");
 (function(){
   const wrap=document.createElement("div"); wrap.className="pmenu";
-  wrap.innerHTML='<button type="button" id="pCast"></button><button type="button" id="pMenu">Quitter vers le menu</button>';
+  wrap.innerHTML='<button type="button" id="pCast"></button><button type="button" id="pMenu">Menu principal</button>';
   _pb.insertBefore(wrap,_pb.querySelector(".vols"));
   const cast=wrap.querySelector("#pCast"), lab=()=>{cast.textContent=document.getElementById("mode").textContent};
   cast.onclick=()=>{document.getElementById("mode").click();lab()}; lab();
-  wrap.querySelector("#pMenu").onclick=()=>{_helpEl.hidden=true;hideResult();openMenu()};
+  wrap.querySelector("#pMenu").onclick=()=>{_helpEl.hidden=true;hideResult();setPause(false);if(NET.on)NET.leave();showTitle()};
     const t=document.createElement("div"); t.className="credit tcredit"; t.innerHTML=_credit; titleEl.appendChild(t);
   const g=document.createElement("button"); g.id="gear"; g.type="button"; g.title="Pause (Échap)"; g.textContent="II"; g.onclick=()=>setPause(true); stageEl.appendChild(g);
   setInterval(()=>{g.hidden=menuOpen||!titleEl.hidden||endShown||vsT>0||paused},200);
 })();
+// --- intro de round : ROUND n / COMBAT ! ---
+var introPending=false, introT=[];
+function roundIntro(){
+  introT.forEach(clearTimeout); introT=[];
+  showBanner("ROUND "+(score.me+score.foe+1),"intro");
+  introT.push(setTimeout(()=>showBanner("COMBAT !","intro go"),1000), setTimeout(()=>{if(banEl.classList.contains("intro"))hideBanner()},1700));
+}
+setInterval(()=>{if(introPending&&vsT<=0&&!menuOpen&&!endShown){introPending=false; roundIntro()}},100);
 // affiche le titre au chargement
 showTitle();
 
