@@ -185,7 +185,8 @@ teamLineEl.addEventListener("click",e=>{const rm=e.target.closest("[data-rm]"), 
 function moveInfo(id){const s=SPL[id];return catFr(s.cat)+" · "+TYPE_FR[s.type]+(s.power?" · Puiss. "+s.power:"")+" · Recharge "+s.cd+" s"}
 function buildEquip(){
   const k=pick, sp=SPECIES[k], dk=draftOf(k);
-  const stt=STAT_ROWS.map(([l,s])=>'<div class="dsr"><span>'+l+'</span><u><s style="width:'+Math.round(sp.base[s]/190*100)+'%"></s></u><em>'+sp.base[s]+'</em></div>').join("");
+  const stt=STAT_ROWS.map(([l,s])=>{const o=sp.official&&sp.official[s]!==undefined&&sp.official[s]!==sp.base[s]; // jauge jaune = stat ajustée pour l'équilibrage
+    return '<div class="dsr'+(o?' adj':'')+'"'+(o?' title="Ajusté pour l\'équilibrage (officiel : '+sp.official[s]+')"':'')+'><span>'+l+'</span><u><s style="width:'+Math.round(sp.base[s]/190*100)+'%"></s></u><em>'+sp.base[s]+(o?'*':'')+'</em></div>'}).join("")+(sp.official?'<small class="adjnote">* ajusté pour l\'équilibrage</small>':'');
   const tys=sp.types.map(t=>'<i style="background:'+TYPE_COL[t]+'">'+TYPE_FR[t]+'</i>').join("");
   equipEl.innerHTML='<div class="dhead"><img alt="" src="'+PORTRAITS[k]+'"><div><h3>'+sp.name+'</h3><div class="ty">'+tys+'</div></div></div><div class="dstats">'+stt+'</div><div class="eqh"><span>Sorts <em>'+dk.length+' / 4</em></span><button type="button" id="eqDef">Réinitialiser</button></div><div class="eqg"></div><p class="eqi" id="eqInfo">Sélectionne 4 sorts. Les plus puissants ont un temps de recharge plus long.</p>';
   const grid=equipEl.querySelector(".eqg"), info=equipEl.querySelector("#eqInfo");

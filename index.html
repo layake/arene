@@ -425,6 +425,7 @@ body.paused #roundban{visibility:hidden!important}
 .mbox .ace h3{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mbox .ace .ty i{font-size:9px;padding:0 3px}
 @media(max-width:1000px){.mbox #cards{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.dsr.adj s{background:#ffd23c!important}.dsr.adj em{color:#ffd23c}.adjnote{display:block;color:#ffd23c;font-size:10px;margin-top:2px;opacity:.85}
 footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </style>
 
@@ -449,7 +450,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Sélection d'équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>mannequin d'entraînement</small></button><button type="button" data-mode="duel" aria-pressed="false">Versus<small>contre un adversaire</small></button><button type="button" data-mode="rush" aria-pressed="false">Marathon<small>Tous les Pokémon d'affilée, au chrono</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="rounds" role="group" aria-label="Rounds"><span>Rounds</span><button type="button" data-r="1">1</button><button type="button" data-r="3" aria-pressed="true">3</button><button type="button" data-r="5">5</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
 </div>
-<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.66 · 16/10/2026</b></footer>
+<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.67 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -2751,7 +2752,8 @@ teamLineEl.addEventListener("click",e=>{const rm=e.target.closest("[data-rm]"), 
 function moveInfo(id){const s=SPL[id];return catFr(s.cat)+" · "+TYPE_FR[s.type]+(s.power?" · Puiss. "+s.power:"")+" · Recharge "+s.cd+" s"}
 function buildEquip(){
   const k=pick, sp=SPECIES[k], dk=draftOf(k);
-  const stt=STAT_ROWS.map(([l,s])=>'<div class="dsr"><span>'+l+'</span><u><s style="width:'+Math.round(sp.base[s]/190*100)+'%"></s></u><em>'+sp.base[s]+'</em></div>').join("");
+  const stt=STAT_ROWS.map(([l,s])=>{const o=sp.official&&sp.official[s]!==undefined&&sp.official[s]!==sp.base[s]; // jauge jaune = stat ajustée pour l'équilibrage
+    return '<div class="dsr'+(o?' adj':'')+'"'+(o?' title="Ajusté pour l\'équilibrage (officiel : '+sp.official[s]+')"':'')+'><span>'+l+'</span><u><s style="width:'+Math.round(sp.base[s]/190*100)+'%"></s></u><em>'+sp.base[s]+(o?'*':'')+'</em></div>'}).join("")+(sp.official?'<small class="adjnote">* ajusté pour l\'équilibrage</small>':'');
   const tys=sp.types.map(t=>'<i style="background:'+TYPE_COL[t]+'">'+TYPE_FR[t]+'</i>').join("");
   equipEl.innerHTML='<div class="dhead"><img alt="" src="'+PORTRAITS[k]+'"><div><h3>'+sp.name+'</h3><div class="ty">'+tys+'</div></div></div><div class="dstats">'+stt+'</div><div class="eqh"><span>Sorts <em>'+dk.length+' / 4</em></span><button type="button" id="eqDef">Réinitialiser</button></div><div class="eqg"></div><p class="eqi" id="eqInfo">Sélectionne 4 sorts. Les plus puissants ont un temps de recharge plus long.</p>';
   const grid=equipEl.querySelector(".eqg"), info=equipEl.querySelector("#eqInfo");
@@ -4332,6 +4334,18 @@ Object.assign(SPECIES,{
 ["corviknight","chandelure","sylveon","pikachu"].forEach(k=>{const sp=SPECIES[k]; sp.stats=statsOf(sp.base); sp.maxHp=Math.round(sp.stats.hp/HP_SCALE); sp.spd=clamp(Math.pow(sp.stats.spe/122,.4),.8,1.1); Object.values(sp.sheets).forEach(s=>{s.img=new Image();s.img.src=s.src})});
 buildMenu();
 
+// ===== Équilibrage (passe du 16/10, simulations bot contre bot) =====
+// Stats de base : seul le Pokémon visé change. La valeur officielle est gardée dans sp.official et la fiche affiche une jauge jaune.
+const BAL_STATS={staraptor:{atk:100},pikachu:{hp:60,def:55},zoroark:{spa:135},gardevoir:{spa:140}};
+if(SPECIES.pikachu)SPECIES.pikachu.official={atk:55,spa:50}; // Orbe Lumière (voir aces_f_logic.js)
+for(const k in BAL_STATS){const sp=SPECIES[k]; if(!sp)continue; sp.official=sp.official||{};
+  for(const s in BAL_STATS[k]){if(sp.official[s]===undefined)sp.official[s]=sp.base[s]; sp.base[s]=BAL_STATS[k][s]}
+  sp.stats=statsOf(sp.base); sp.maxHp=Math.round(sp.stats.hp/HP_SCALE); sp.spd=clamp(Math.pow(sp.stats.spe/122,.4),.8,1.1)}
+// Capacités propres à un seul Pokémon
+SPL.hjk.power=35;        // Braségali
+SPL.bravebird.power=32;  // Corvaillus
+SPL.nslash.power=22;     // Zoroark
+
 // ===== Passe sons : sorts des Aces récents et sorts de terrain (effets PMD) =====
 Object.assign(SFX_MAP,{
   leafblade:{cast:707,hit:880},seedbomb:{cast:741,hit:831},megadrain:{cast:699,hit:725},qatk:{cast:402,hit:344},
@@ -5178,6 +5192,7 @@ const EN={
 "Sorts : lancer instantané":"Spells: instant cast","Sorts : relâcher pour lancer":"Spells: release to cast","Sorts : visée au clic":"Spells: click to aim",
 "Flash (F) : blink vers le curseur":"Flash (F): blink toward the cursor","Survoler l'ennemi + clic droit : le poursuivre":"Hover the enemy + right click: chase him",
 "libère la souris (bloquée en combat)":"frees the mouse (locked during fights)","Souris":"Mouse",": bloquée dans la fenêtre pendant le combat,":": locked in the window during fights,","la libère et met en pause":"frees it and pauses",
+"* ajusté pour l'équilibrage":"* adjusted for balance",
 "Jeu prévu pour ordinateur : souris + clavier":"Made for computer: mouse + keyboard",
 "Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code.":"Unofficial, non-commercial fan game, not affiliated with Nintendo, Game Freak, Creatures or The Pokémon Company. Pokémon and its characters © Nintendo / Creatures / Game Freak. Sprites: PMDCollab SpriteCollab (CC BY-NC 4.0), originals Chunsoft. Sound effects: Pokémon Mystery Dungeon © Chunsoft / The Pokémon Company; music generated by code.",
 "Sélectionne ton équipe puis valide avec Prêt.":"Pick your team, then confirm with Ready.","Sélectionne 4 sorts. Les plus puissants ont un temps de recharge plus long.":"Select 4 moves. The most powerful ones have a longer cooldown.","4 sorts maximum : retire-en un d'abord.":"4 moves maximum: remove one first.","Pas assez de PP !":"Not enough PP!",

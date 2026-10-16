@@ -342,3 +342,4 @@ body.paused #roundban{visibility:hidden!important}
 .mbox .ace h3{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mbox .ace .ty i{font-size:9px;padding:0 3px}
 @media(max-width:1000px){.mbox #cards{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.dsr.adj s{background:#ffd23c!important}.dsr.adj em{color:#ffd23c}.adjnote{display:block;color:#ffd23c;font-size:10px;margin-top:2px;opacity:.85}
