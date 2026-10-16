@@ -371,7 +371,7 @@ function typeMult(atkType,defTypes){
   return m;
 }
 // Stats au niveau 50, IV 31, EV 0, nature neutre (formule officielle). PV réduits pour garder des combats courts.
-const LV=50, IV=31, HP_SCALE=1.8, DMG_EXP=.5;
+const LV=50, IV=31, HP_SCALE=0.9, DMG_EXP=.5;
 const calcStat=(b,hp)=>Math.floor((2*b+IV)*LV/100)+(hp?LV+10:5);
 const statsOf=b=>({hp:calcStat(b.hp,true),atk:calcStat(b.atk),def:calcStat(b.def),spa:calcStat(b.spa),spd:calcStat(b.spd),spe:calcStat(b.spe)});
 // Catalogue de sorts : type, catégorie (phys = Atq/Déf, spec = Atq.Spé/Déf.Spé), puissance, coût en PP, recharge.
