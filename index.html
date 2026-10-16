@@ -237,7 +237,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Choisis ton Ace</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>Tortipousse, mannequin</small></button><button type="button" data-mode="duel" aria-pressed="false">Duel<small>contre l'autre Ace</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div>
 </div>
-<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.11 · 16/10/2026</b></footer>
+<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.12 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -1410,9 +1410,9 @@ function updateWanderer(e,dt){
 // ===== IA du champion : mêmes règles que le joueur (PP, recharges, bouclier, étourdissement), elle appuie simplement sur les mêmes sorts =====
 const botBusy=e=>e.stun>0||e.tunnel||e.rush||e.chan||e.lock>0||e.anim==="attack";
 const DIFFS={
-  easy:{think:[.5,.9],shield:2,dodge:0,lead:.3,aggr:.55,kit:0},
-  normal:{think:[.15,.35],shield:7,dodge:1,lead:1,aggr:1,kit:1},
-  hard:{think:[.07,.14],shield:16,dodge:2,lead:1.15,aggr:1.5,kit:2}
+  easy:{think:[.9,1.5],shield:0,dodge:0,lead:0,aggr:.35,kit:0},
+  normal:{think:[.35,.7],shield:3,dodge:0,lead:.5,aggr:.7,kit:1},
+  hard:{think:[.15,.35],shield:7,dodge:1,lead:1,aggr:1.1,kit:2}
 };
 let diff="normal";
 const DF=()=>DIFFS[diff]||DIFFS.normal;
