@@ -213,6 +213,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelate
 #fhud .ht.ko{filter:grayscale(1);opacity:.7}
 @media(max-width:560px){#fhud{padding:3px;gap:4px}#fhud .ht{max-width:49%;padding:3px;gap:4px}#fhud .hp-pt{width:34px;height:34px}#fhud .hn b{font-size:11px}#fhud .hty{display:none}#fhud .hbar{height:12px}}
 #fhud .pips{font-size:11px;color:#ffd23c}
+#fhud .pbar{display:none!important}.slot .c{display:none}
 footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </style>
 
@@ -237,7 +238,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Choisis ton Ace</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>Tortipousse, mannequin</small></button><button type="button" data-mode="duel" aria-pressed="false">Duel<small>contre l'autre Ace</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div>
 </div>
-<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.12 · 16/10/2026</b></footer>
+<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.13 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -467,6 +468,8 @@ Object.assign(SPECIES,{
   mamoswine:{name:"Mammochon",num:473,types:["ice","ground"],base:{hp:115,atk:130,def:90,spa:70,spd:60,spe:80},sheets:W_SHEETS,anch:W_ANCH,shadow:[13,4],body:20,bar:44,hitFrame:2,atkRate:1.3,kit:["icepunch","avalanche","stomp","iwall"],style:"melee",pool:["icepunch","avalanche","stomp","iwall","quake"],playable:true}
 });
 
+// Plus de PP : le cout des gros sorts est converti en recharge supplementaire
+Object.values(SPL).forEach(s=>{if(s.cost>20)s.cd=Math.round((s.cd+(s.cost-20)*.15)*10)/10;s.pp0=s.cost;s.cost=0});
 Object.values(SPECIES).forEach(sp=>{sp.stats=statsOf(sp.base);sp.maxHp=Math.round(sp.stats.hp/HP_SCALE);sp.spd=clamp(Math.pow(sp.stats.spe/122,.4),.8,1.1)});
 
 // ---- Sons : effets de Pokémon Donjon Mystère (usage privé). WebAudio, 3 jauges (général, combat, interface). ----
@@ -1901,7 +1904,7 @@ function drawEntity(e){
     ctx.fillStyle="#14171c"; ctx.fillRect(bx,by,18,4);
     ctx.fillStyle="#3a4048"; ctx.fillRect(bx+1,by+1,16,2);
     ctx.fillStyle=e.hp/e.maxHp>.5?"#6fd35a":e.hp/e.maxHp>.25?"#f0c040":"#e0503c"; ctx.fillRect(bx+1,by+1,w,2);
-    if(e===player){ // barre de PP : plus étroite, juste dessous
+    if(false){ // barre de PP (retiree) : plus étroite, juste dessous
       ctx.fillStyle="#14171c"; ctx.fillRect(bx+2,by+3,14,3);
       ctx.fillStyle="#2a3050"; ctx.fillRect(bx+3,by+4,12,1);
       ctx.fillStyle="#7b8cff"; ctx.fillRect(bx+3,by+4,Math.round(12*clamp(e.pp/PP_MAX,0,1)),1);
@@ -2090,7 +2093,7 @@ function applyKit(){
     SLOT_T.delete(btn);
   });
   const kit=player.kit.map((id,i)=>"<b>"+SLOT_KEYS[i]+"</b> "+SPL[id].name+" ("+SPL[id].cost+")").join(" · ");
-  helpEl.innerHTML="<b>Clic droit</b> se déplacer (maintenir pour suivre)<br><b>Survoler l'ennemi</b> + clic droit : le poursuivre<br><b>Espace</b> bouclier (maintenir)<br><b>F</b> Flash : blink vers le curseur, intouchable 0,25 s (recharge 12 s)<br>"+kit+"<br><b>PP</b> : chaque sort en coûte, ils se régénèrent (8 par s)<br><b>Clic gauche</b> lance le sort visé · <b>Clic droit</b> ou <b>Échap</b> annule<br>Le mode de lancer (clic, rapide, maintenir) se change avec le bouton à côté.";
+  helpEl.innerHTML="<b>Clic droit</b> se déplacer (maintenir pour suivre)<br><b>Survoler l'ennemi</b> + clic droit : le poursuivre<br><b>Espace</b> bouclier (maintenir)<br><b>F</b> Flash : blink vers le curseur, intouchable 0,25 s (recharge 12 s)<br>"+kit+"<br><b>Clic gauche</b> lance le sort visé · <b>Clic droit</b> ou <b>Échap</b> annule<br>Le mode de lancer (clic, rapide, maintenir) se change avec le bouton à côté.";
   scoreEl.textContent=""; scoreTxt="";
 }
 const SLOT_T=new WeakMap();
@@ -2207,14 +2210,14 @@ const catFr=c=>c==="phys"?"Physique":c==="spec"?"Spécial":"Statut";
 const draft={}; // panoplie en cours de choix, par Ace
 const draftOf=k=>draft[k]||(draft[k]=kitOf(k).slice());
 const equipEl=document.getElementById("equip");
-function moveInfo(id){const s=SPL[id];return catFr(s.cat)+" · "+TYPE_FR[s.type]+(s.power?" · Puiss. "+s.power:"")+" · PP "+s.cost+" · Recharge "+s.cd+" s"}
+function moveInfo(id){const s=SPL[id];return catFr(s.cat)+" · "+TYPE_FR[s.type]+(s.power?" · Puiss. "+s.power:"")+" · Recharge "+s.cd+" s"}
 function buildEquip(){
   const k=pick, sp=SPECIES[k], dk=draftOf(k);
   equipEl.innerHTML='<div class="eqh"><span>Sorts de '+sp.name+' <em>'+dk.length+' / 4</em></span><button type="button" id="eqDef">Par défaut</button></div><div class="eqg"></div><p class="eqi" id="eqInfo">Choisis 4 sorts. Les plus puissants coûtent plus de PP et rechargent plus lentement.</p>';
   const grid=equipEl.querySelector(".eqg"), info=equipEl.querySelector("#eqInfo");
   sp.pool.forEach(id=>{
     const s=SPL[id], b=document.createElement("button"), n=dk.indexOf(id); b.type="button"; b.className="mv"; b.setAttribute("aria-pressed",String(n>=0));
-    b.innerHTML='<i style="background:'+TYPE_COL[s.type]+'"></i><span>'+s.name+'</span><small>'+s.cost+' PP</small>'+(n>=0?'<b>'+SLOT_KEYS[n]+'</b>':'');
+    b.innerHTML='<i style="background:'+TYPE_COL[s.type]+'"></i><span>'+s.name+'</span><small>'+s.cd+' s</small>'+(n>=0?'<b>'+SLOT_KEYS[n]+'</b>':'');
     const show=()=>{info.innerHTML="<b>"+s.name+"</b> "+moveInfo(id)+"<br>"+DESC[id]};
     b.addEventListener("mouseenter",show); b.addEventListener("focus",show);
     b.addEventListener("click",()=>{
