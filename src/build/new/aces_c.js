@@ -18,14 +18,12 @@ const GZ={
   // ---- champs : zone persistante ----
   sandstorm:{kind:"field",range:130,r:44,delay:.4,life:4.5,tick:.5,dot:.4,slow:.6,style:"sand"},
   psyterrain:{kind:"field",range:120,r:46,delay:.4,life:5,tick:.5,dot:.25,slow:.7,healOwner:.03,style:"psyfield"},
-  blizzard:{kind:"field",range:110,r:56,delay:.5,life:4,tick:.5,dot:.45,slow:.8,style:"snow"},
   leech:{kind:"field",range:130,r:32,delay:.4,life:6,tick:.6,dot:.5,slow:.3,drain:.9,style:"leech"},
   // ---- pièges : se déclenchent quand l'ennemi marche dessus ----
   spikes:{kind:"mine",range:120,r:24,life:20,stun:.55,slow:2.4,style:"spikes",push:20},
   curse:{kind:"mine",range:120,r:25,life:20,psn:3.5,slow:1.5,style:"curse",push:0},
   amine:{kind:"mine",range:120,r:28,life:20,stun:.35,slow:0,style:"aura",push:150},
   tspikes:{kind:"mine",range:120,r:25,life:20,psn:4,slow:2.2,style:"toxic",push:10},
-  icespike:{kind:"mine",range:120,r:24,life:20,stun:.8,slow:2,style:"ice",push:0},
   // ---- murs ----
   lscreen:{kind:"wall",range:75,n:5,cr:9,life:4.5,block:"foe",style:"screen"},
   rwall:{kind:"wall",range:70,n:3,cr:14,life:5,block:"all",style:"rocks"},

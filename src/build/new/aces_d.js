@@ -56,16 +56,7 @@ ORBEND.hydrocanon=o=>{
   colorBurst(o.x,o.y-8,34,WATERC,60,220); shake=Math.max(shake,.16);
   for(let i=0;i<14;i++){const a=rand(0,Math.PI*2);spark(o.x,o.y-6,Math.cos(a)*rand(30,110),-rand(90,200),rand(.4,.8),i%2?WATERC[2]:"#ffffff",420,i%3?2:3)}
 };
-ORB2.hydrocanon=o=>{
-  const x=Math.round(o.x), gy=Math.round(o.y), y=gy-16+Math.round(Math.sin(o.t*10)*2);
-  ctx.fillStyle="rgba(0,0,0,.28)"; ctx.fillRect(x-5,gy,11,1); ctx.fillRect(x-3,gy+1,7,1);
-  for(let k=10;k>=1;k--){ctx.globalAlpha=1-k*.08; ctx.fillStyle=k%2?WATERC[1]:WATERC[2]; const w=Math.max(2,9-Math.floor(k*.7)); ctx.fillRect(Math.round(x-o.vx*k*5)-w+1,Math.round(y-o.vy*k*5)-w+1+(k%3-1),w*2-1,w*2-1)}
-  ctx.globalAlpha=1; pixelRing(x,y,14,"rgba(144,200,255,.5)");
-  dsc(x,y,10,WATERC[0]); dsc(x,y,9,WATERC[1]); dsc(x,y,7,WATERC[2]); dsc(x,y,4,WATERC[3]);
-  for(let i=0;i<5;i++){const a=-o.t*11+i*1.26; ctx.fillStyle=i%2?"#ffffff":WATERC[3]; ctx.fillRect(Math.round(x+Math.cos(a)*12),Math.round(y+Math.sin(a)*9),2,2)}
-};
 PREV.wsteel={k:"melee",r:16,d:[22,CONF.reach]}; PREV.blazekick={k:"melee",r:16,d:[22,CONF.reach]};
-PREV.hydrocanon={k:"shot",len:()=>PROJ.hydrocanon.range,hw:PROJ.hydrocanon.hit,from:14};
 PREV.aquajet={k:"shot",len:v=>rushLen(v,RUSHES.aquajet),hw:RUSHES.aquajet.hit,from:0};
 PREV.hjk={k:"shot",len:v=>rushLen(v,RUSHES.hjk),hw:RUSHES.hjk.hit,from:0};
 // ---- sorts de terrain supplémentaires ----
@@ -83,7 +74,7 @@ const _tickBf=typeof tickBuffFx==="function"?tickBuffFx:null;
 function botAce5(e,t,d,threat,go,ok,rnd){
   if(ok("bboost")&&!e.bf.bboost&&d>70&&rnd(.5)){go("bboost");return true}
   if(ok("hjk")&&d>45&&d<RUSHES.hjk.dist-12&&(punishable(t)||rnd(.35))){go("hjk",false,.1);return true}
-  if(ok("hydrocanon")&&d>60&&d<PROJ.hydrocanon.range-30&&rnd(.45)){go("hydrocanon",false,.4);return true}
+  if(ok("hydrocanon")&&d>60&&d<160&&rnd(.45)){go("hydrocanon",false,.4);return true}
   if(ok("aquajet")&&d>45&&d<RUSHES.aquajet.dist-10&&rnd(.35)){go("aquajet",false,.1);return true}
   return false;
 }

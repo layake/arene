@@ -418,7 +418,7 @@ function cast(e,id){
   if(SPL[id].melee)castMelee(e,id);
   else if(id==="mud"||id==="moon"||id==="fcannon"||id==="psy"||id==="grav"||id==="rslide"||id==="quake"||id==="fsight"||id==="trap"||id==="sedge"||id==="shball"||id==="tbolt"||id==="hypno"||id==="sbomb"||id==="hex"||id==="asph"||id==="wshuri"||id==="wpulse"||id==="icebeam"||id==="fwave"||id==="flame"||id==="heat"||id==="avalanche"||id==="stomp"||id==="seedbomb"||id==="megadrain"||id==="psystrike"||id==="hydrocanon")castAnim(e,id);
   else if(id==="recover")castRecover(e);
-  else if(typeof GZ!=="undefined"&&GZ[id])castAnim(e,id);
+  else if((typeof GZ!=="undefined"&&GZ[id])||STREAM_DEFS.some(d=>d.id===id)||BURST_DEFS.some(d=>d.id===id))castAnim(e,id);
   else if(id==="riposte")castRiposte(e);
   else if(id==="decoy")castDecoy(e);
   else if(SPL[id].buff)castBuff(e,id);

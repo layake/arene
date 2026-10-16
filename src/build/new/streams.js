@@ -29,7 +29,7 @@ function drawStream(c){
   }
   ctx.globalAlpha=1;
 }
-{const _d0=drawFx; drawFx=function(c){return c.k==="strm"?drawStream(c):_d0(c)}}
+FX_DRAW.strm=drawStream;
 function startStream(e,d){
   e.strm={d,t:0,nt:0,burned:false,on:true,nz:.4,hold:e===player&&!e.bot};
   fx.push({k:"strm",e,d,s:e.strm,x:e.x,y:e.y,sy:e.y+.5,t:0,life:d.dur});
@@ -65,7 +65,7 @@ function updateStreams(dt){
     }
   });
 }
-{const _u0=updateOrbs; updateOrbs=function(dt){_u0(dt);updateStreams(dt)}}
+FX_UPDATERS.push(updateStreams);
 // Déclare une capacité en jet continu. keep:true = ne remplace que le comportement/FX d'une capacité existante.
 function defStream(d){
   STREAM_DEFS.push(d);

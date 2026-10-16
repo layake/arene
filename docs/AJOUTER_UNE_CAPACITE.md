@@ -89,3 +89,12 @@ defStream({ keep:true, id:"flame", style:"fire", pal:FLAMEC, dur:1, tick:.125, t
 1. `bash getmon.sh <numéro PMDCollab> <dossier> <préfixe>` (sprites + portrait).
 2. Déclarer l'espèce dans `SPECIES` (voir `gen_e.py`) : stats, `kit` de 4 (1re = attaque de base), `pool`, `body`, `bar`, `shadow`, `hitFrame`.
 3. Nom EN dans `i18n.js`, fichier de données dans `build.py`.
+
+## Nouvel archétype : branchement
+Un archétype enregistre son dessin avec `FX_DRAW.monType=maFonctionDeDessin` (appelée pour chaque effet `fx` dont `k==="monType"`) et sa mise à jour par image avec `FX_UPDATERS.push(maFonctionUpdate)` (appelée avec `dt`). Ne pas empiler de nouveaux wrappers sur `drawFx` ou `updateOrbs`.
+
+## Bots
+Un bot n'utilise une capacité en ligne droite (projectile, rayon, jet, lien, volée, vague) que si aucun obstacle ne coupe la ligne : sinon il se décale (`botBlocked`, `botAvoid` dans `f.js`). Ses conditions de portée dans `botAce*` doivent suivre la portée réelle de l'archétype (`reach`, `range`).
+
+## Tests
+`python3 tests/run.py` vérifie les données (description, traduction, son), lance chaque capacité de chaque Aces et contrôle qu'elle a un effet visible, puis teste jets maintenus, cooldowns du banc, Marathon et contournement des obstacles.

@@ -72,7 +72,10 @@ function botThreat(e,t,d){
 // Le bot n'utilise que les sorts de sa panoplie, avec les mêmes conditions que le joueur (PP, recharge).
 function botDecide(e,t,d){
   const punish=t.stun>0||t.lock>0||(t.anim==="attack"&&!t.hit&&d<90)||(t.rush&&t.rush.ph==="rec"), has=id=>e.kit.includes(id), ok=id=>has(id)&&cdOf(e,id)<=0&&e.pp>=SPL[id].cost, A=DF().aggr*(punish&&DF().dodge>0?1.7:1), rnd=p=>Math.random()<Math.min(.95,p*A);
-  const go=(id,chest,lead)=>{aimTo(e,t,chest,lead||0);cast(e,id);return true};
+  const go=(id,chest,lead)=>{
+    // un tir en ligne droite derrière un obstacle serait perdu : on se décale pour trouver un angle dégagé
+    if(botLineId(id)&&botBlocked(e,t)){e.moveTarget={x:t.x,y:t.y};return true}
+    aimTo(e,t,chest,lead||0);cast(e,id);return true};
   const gd=gdist(t.x-e.x,t.y-e.y), threat=botThreat(e,t,d);
   // défense et bonus
   if(threat&&d<80&&ok("mburst")&&rnd(.5))return go("mburst");
@@ -173,6 +176,11 @@ function thinkBot(e,dt){
   b.think-=dt;
   if(!botBusy(e)&&b.think<=0){b.think=rand(DF().think[0],DF().think[1]);botDecide(e,t,d)}
   if(!botBusy(e)){botSteer(e,t,d,dt);botAvoid(e)}
+}
+const botLineId=id=>!!(PROJ[id]||[RAY_DEFS,STREAM_DEFS,TETHER_DEFS,BURST_DEFS,WAVE_DEFS].some(L=>L.some(d=>d.id===id)));
+function botBlocked(e,t){ // un obstacle vivant coupe-t-il la ligne entre les deux combattants ?
+  const ax=e.x,ay=e.y/ISO,vx=t.x-ax,vy=t.y/ISO-ay,L2=vx*vx+vy*vy||1;
+  return OBST.some(c=>{if(c.dead)return false;const u=((c.x-ax)*vx+(c.y/ISO-ay)*vy)/L2; return u>0&&u<1&&Math.hypot(ax+vx*u-c.x,ay+vy*u-c.y/ISO)<c.r*.9+4});
 }
 // Contournement : si la ligne droite vers la destination traverse un obstacle, on vise un point de détour sur le côté.
 function botAvoid(e){

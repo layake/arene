@@ -79,8 +79,8 @@ function defWave(d){
   PREV[d.id]={k:"shot",len:()=>d.reach,hw:Math.round(d.reach*Math.sin(d.cone/2)*.8),from:10};
   ACE2[d.id]={hit(e){startWave(e,d)}};
 }
-{const _d1=drawFx; drawFx=function(c){return c.k==="ray"?drawRay(c):c.k==="hwave"?drawWave2(c):_d1(c)}}
-{const _u1=updateOrbs; updateOrbs=function(dt){_u1(dt);updateWaves(dt)}}
+FX_DRAW.ray=drawRay; FX_DRAW.hwave=drawWave2;
+FX_UPDATERS.push(updateWaves);
 // ---------- capacités ----------
 defRay({id:"icebeam",style:"ice",pal:["#2a78a8","#4a98c0","#98d8d8","#ffffff","#d8f4f8"],reach:215,half:9,push:20,noise:[.4,.4,3800,1400,1.6],
   onHit:(e,t)=>{t.slow=Math.max(t.slow||0,1.6)},
@@ -146,8 +146,8 @@ function defTether(d){
   PREV[d.id]={k:"shot",len:()=>d.reach,hw:Math.round(d.reach*Math.sin(d.cone/2)*.7),from:10};
   ACE2[d.id]={hit(e){startTether(e,d)}};
 }
-{const _d2=drawFx; drawFx=function(c){return c.k==="tether"?drawTether(c):_d2(c)}}
-{const _u2=updateOrbs; updateOrbs=function(dt){_u2(dt);updateTethers(dt)}}
+FX_DRAW.tether=drawTether;
+FX_UPDATERS.push(updateTethers);
 defTether({id:"megadrain",pal:["#1a6a2a","#3aa83a","#8ae068","#e8ffd0"],dur:2,tick:.25,tickPower:3,reach:115,leash:150,cone:1.2,heal:.5,
   desc:"Un filament s'accroche à la cible et l'aspire pendant 2 s : tu peux te déplacer, il se rompt si elle s'éloigne trop. Te soigne.",
   en:"A vine latches onto the target and drains it for 2 s: you can move, it breaks if the target gets too far. Heals you."});
@@ -173,7 +173,7 @@ function updateBursts(dt){
     if(S.n>=d.count)e.bst=null;
   });
 }
-{const _u3=updateOrbs; updateOrbs=function(dt){_u3(dt);updateBursts(dt)}}
+FX_UPDATERS.push(updateBursts);
 SPL.icespike.power=7; SPL.icespike.cd=8; SPL.icespike.cost=0;
 defBurst({id:"icespike",count:5,interval:.09,spread:.34,speed:330,range:190,hit:8,sfx:790,
   orb:o=>{const x=o.x,y=o.y-14,P=ICEC; for(let k=0;k<11;k++){const w=Math.max(1,Math.min(4,1+Math.round(k*.35))); ctx.fillStyle=k<2?"#ffffff":k<7?P[2]:P[1]; ctx.fillRect(Math.round(x-o.vx*k*1.7)-(w>>1),Math.round(y-o.vy*k*1.5)-(w>>1),w,w)} ctx.fillStyle="#ffffff"; ctx.fillRect(Math.round(x+o.vx*4)-1,Math.round(y+o.vy*3.5)-1,2,2)},

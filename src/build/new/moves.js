@@ -36,7 +36,11 @@ function drawMfx(c){
   const f=c.f, T=c.t, k={c,P:c.pal,f,n:[-f[1],f[0]],x:c.x,y:c.y,T,u:clamp(T/.3,0,1)}, fade=T>.22?Math.max(0,(.34-T)/.12):1;
   ctx.globalAlpha=fade; (MELEE_FX[c.s]||MELEE_FX.slash)(k); ctx.globalAlpha=1;
 }
-{const _drawFx0=drawFx; drawFx=function(c){return c.k==="mfx"?drawMfx(c):_drawFx0(c)}}
+// Registres : chaque archétype déclare son dessin (par c.k) et sa mise à jour par image, au lieu d'empiler des wrappers.
+var FX_DRAW={}, FX_UPDATERS=[];
+{const _drawFx0=drawFx; drawFx=function(c){const f=FX_DRAW[c.k]; return f?f(c):_drawFx0(c)}}
+{const _updOrbs0=updateOrbs; updateOrbs=function(dt){_updOrbs0(dt); for(const f of FX_UPDATERS)f(dt)}}
+FX_DRAW.mfx=drawMfx;
 
 // Déclare une capacité de mêlée. Champs :
 //  id, name, type, power, cd, cost(=0), fx(style de MELEE_FX), pal(optionnel, sinon palette du type),

@@ -52,13 +52,6 @@ ORB2.seedbomb=o=>{
   for(let k=4;k>=1;k--){ctx.globalAlpha=1-k*.18; ctx.fillStyle=k%2?GRASSC[1]:GRASSC[2]; const w=Math.max(1,3-Math.floor(k/2)); ctx.fillRect(Math.round(x-o.vx*k*4)-w+1,Math.round(y-o.vy*k*4)-w+1,w*2-1,w*2-1)}
   ctx.globalAlpha=1; dsc(x,y,5,"#3a2a10"); dsc(x,y,4,"#8a6a30"); dsc(x,y,2,"#c8a050"); ctx.fillStyle="#8ae068"; ctx.fillRect(x-1,y-6,3,2);
 };
-ORB2.megadrain=o=>{
-  const x=Math.round(o.x), gy=Math.round(o.y), y=gy-14+Math.round(Math.sin(o.t*16)*1.5);
-  ctx.fillStyle="rgba(0,0,0,.28)"; ctx.fillRect(x-3,gy,7,1);
-  for(let k=7;k>=1;k--){ctx.globalAlpha=1-k*.12; ctx.fillStyle=k%2?GRASSC[1]:GRASSC[2]; const w=Math.max(1,4-Math.floor(k*.5)); ctx.fillRect(Math.round(x-o.vx*k*4)-w+1,Math.round(y-o.vy*k*4)-w+1,w*2-1,w*2-1)}
-  ctx.globalAlpha=1; dsc(x,y,6,GRASSC[1]); dsc(x,y,5,GRASSC[2]); dsc(x,y,3,GRASSC[3]);
-  for(let i=0;i<3;i++){const a=-o.t*9+i*2.09; ctx.fillStyle=i?GRASSC[3]:"#ffffff"; ctx.fillRect(Math.round(x+Math.cos(a)*9),Math.round(y+Math.sin(a)*7),2,2)}
-};
 ORB2.psystrike=o=>{
   const x=Math.round(o.x), gy=Math.round(o.y), y=gy-16+Math.round(Math.sin(o.t*12)*2), pul=Math.sin(o.t*24)>0?1:0;
   ctx.fillStyle="rgba(0,0,0,.28)"; ctx.fillRect(x-5,gy,11,1); ctx.fillRect(x-3,gy+1,7,1);
@@ -81,7 +74,6 @@ function castRecover(e){
 // Aperçus de visée
 PREV.leafblade={k:"melee",r:16,d:[22,CONF.reach]};
 PREV.seedbomb={k:"shot",len:()=>PROJ.seedbomb.range,hw:PROJ.seedbomb.hit,from:14};
-PREV.megadrain={k:"shot",len:()=>PROJ.megadrain.range,hw:PROJ.megadrain.hit,from:14};
 PREV.psystrike={k:"shot",len:()=>PROJ.psystrike.range,hw:PROJ.psystrike.hit,from:14};
 PREV.qatk={k:"shot",len:v=>rushLen(v,RUSHES.qatk),hw:RUSHES.qatk.hit,from:0};
 // IA
@@ -89,7 +81,7 @@ function botAce3(e,t,d,threat,go,ok,rnd){
   if(ok("recover")&&e.hp<e.maxHp*.5&&rnd(.6)){go("recover");return true}
   if(ok("psystrike")&&d>50&&d<PROJ.psystrike.range-25&&rnd(.5)){go("psystrike",false,.3);return true}
   if(ok("qatk")&&d>40&&d<RUSHES.qatk.dist-8&&(punishable(t)||rnd(.4))){go("qatk",false,.1);return true}
-  if(ok("megadrain")&&d>40&&d<PROJ.megadrain.range-15&&(e.hp<e.maxHp*.7||rnd(.5))){go("megadrain",false,.25);return true}
+  if(ok("megadrain")&&d>40&&d<105&&(e.hp<e.maxHp*.7||rnd(.5))){go("megadrain",false,.25);return true}
   if(ok("seedbomb")&&d>40&&d<PROJ.seedbomb.range-15&&rnd(.6)){go("seedbomb",false,.25);return true}
   return false;
 }

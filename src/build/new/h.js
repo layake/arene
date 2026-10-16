@@ -191,12 +191,3 @@ function watchDecoy(e){
   const d=e.decoFrom; fx.push({k:"clone",x:d.x,y:d.y,sy:d.y-.5,t:0,life:DECOY.life,sp:e.sp,anim:d.anim,frame:d.frame,dir:d.dir});
   colorBurst(d.x,d.y,16,TYPE_PAL.dark,30,110); colorBurst(d.x,d.y,10,WATERC,30,100); rings.push({x:d.x,y:d.y,t:0,dur:.3,max:22,c:"#90c8ff"});
 }
-ORB2.icebeam=o=>{ // cristal de glace pointu avec traînée givrée
-  const x=Math.round(o.x), gy=Math.round(o.y), y=gy-14, nx=-o.vy, ny=o.vx;
-  ctx.fillStyle="rgba(0,0,0,.25)"; ctx.fillRect(x-3,gy,7,1);
-  for(let k=7;k>=1;k--){const tx=Math.round(x-o.vx*k*4), ty=Math.round(y-o.vy*k*4), w=Math.max(1,4-Math.floor(k*.5)); ctx.globalAlpha=1-k*.11; ctx.fillStyle=k%2?ICEC[1]:ICEC[2]; ctx.fillRect(tx-w+1,ty-w+1,w*2-1,w*2-1)}
-  ctx.globalAlpha=1;
-  pxLine(x-o.vx*8,y-o.vy*8,x+o.vx*9,y+o.vy*9,ICEC[0]); pxLine(x-o.vx*7+nx,y-o.vy*7+ny,x+o.vx*9,y+o.vy*9,ICEC[1]); pxLine(x-o.vx*7-nx,y-o.vy*7-ny,x+o.vx*9,y+o.vy*9,ICEC[1]);
-  dsc(x,y,3,ICEC[2]); ctx.fillStyle="#ffffff"; ctx.fillRect(x-1,y-1,2,2);
-  if(Math.sin(o.t*30)>0.3){ctx.fillStyle="#ffffff";ctx.fillRect(Math.round(x+nx*6),Math.round(y+ny*6),1,1);ctx.fillRect(Math.round(x-nx*6),Math.round(y-ny*6),1,1)}
-};

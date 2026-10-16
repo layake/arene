@@ -438,7 +438,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Sélection d'équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>mannequin d'entraînement</small></button><button type="button" data-mode="duel" aria-pressed="false">Versus<small>contre un adversaire</small></button><button type="button" data-mode="rush" aria-pressed="false">Marathon<small>16 adversaires d'affilée, au chrono</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="rounds" role="group" aria-label="Rounds"><span>Rounds</span><button type="button" data-r="1">1</button><button type="button" data-r="3" aria-pressed="true">3</button><button type="button" data-r="5">5</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
 </div>
-<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.49 · 16/10/2026</b></footer>
+<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.50 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -1629,7 +1629,7 @@ function cast(e,id){
   if(SPL[id].melee)castMelee(e,id);
   else if(id==="mud"||id==="moon"||id==="fcannon"||id==="psy"||id==="grav"||id==="rslide"||id==="quake"||id==="fsight"||id==="trap"||id==="sedge"||id==="shball"||id==="tbolt"||id==="hypno"||id==="sbomb"||id==="hex"||id==="asph"||id==="wshuri"||id==="wpulse"||id==="icebeam"||id==="fwave"||id==="flame"||id==="heat"||id==="avalanche"||id==="stomp"||id==="seedbomb"||id==="megadrain"||id==="psystrike"||id==="hydrocanon")castAnim(e,id);
   else if(id==="recover")castRecover(e);
-  else if(typeof GZ!=="undefined"&&GZ[id])castAnim(e,id);
+  else if((typeof GZ!=="undefined"&&GZ[id])||STREAM_DEFS.some(d=>d.id===id)||BURST_DEFS.some(d=>d.id===id))castAnim(e,id);
   else if(id==="riposte")castRiposte(e);
   else if(id==="decoy")castDecoy(e);
   else if(SPL[id].buff)castBuff(e,id);
@@ -1715,7 +1715,10 @@ function botThreat(e,t,d){
 // Le bot n'utilise que les sorts de sa panoplie, avec les mêmes conditions que le joueur (PP, recharge).
 function botDecide(e,t,d){
   const punish=t.stun>0||t.lock>0||(t.anim==="attack"&&!t.hit&&d<90)||(t.rush&&t.rush.ph==="rec"), has=id=>e.kit.includes(id), ok=id=>has(id)&&cdOf(e,id)<=0&&e.pp>=SPL[id].cost, A=DF().aggr*(punish&&DF().dodge>0?1.7:1), rnd=p=>Math.random()<Math.min(.95,p*A);
-  const go=(id,chest,lead)=>{aimTo(e,t,chest,lead||0);cast(e,id);return true};
+  const go=(id,chest,lead)=>{
+    // un tir en ligne droite derrière un obstacle serait perdu : on se décale pour trouver un angle dégagé
+    if(botLineId(id)&&botBlocked(e,t)){e.moveTarget={x:t.x,y:t.y};return true}
+    aimTo(e,t,chest,lead||0);cast(e,id);return true};
   const gd=gdist(t.x-e.x,t.y-e.y), threat=botThreat(e,t,d);
   // défense et bonus
   if(threat&&d<80&&ok("mburst")&&rnd(.5))return go("mburst");
@@ -1816,6 +1819,11 @@ function thinkBot(e,dt){
   b.think-=dt;
   if(!botBusy(e)&&b.think<=0){b.think=rand(DF().think[0],DF().think[1]);botDecide(e,t,d)}
   if(!botBusy(e)){botSteer(e,t,d,dt);botAvoid(e)}
+}
+const botLineId=id=>!!(PROJ[id]||[RAY_DEFS,STREAM_DEFS,TETHER_DEFS,BURST_DEFS,WAVE_DEFS].some(L=>L.some(d=>d.id===id)));
+function botBlocked(e,t){ // un obstacle vivant coupe-t-il la ligne entre les deux combattants ?
+  const ax=e.x,ay=e.y/ISO,vx=t.x-ax,vy=t.y/ISO-ay,L2=vx*vx+vy*vy||1;
+  return OBST.some(c=>{if(c.dead)return false;const u=((c.x-ax)*vx+(c.y/ISO-ay)*vy)/L2; return u>0&&u<1&&Math.hypot(ax+vx*u-c.x,ay+vy*u-c.y/ISO)<c.r*.9+4});
 }
 // Contournement : si la ligne droite vers la destination traverse un obstacle, on vise un point de détour sur le côté.
 function botAvoid(e){
@@ -2578,7 +2586,7 @@ function applyKit(){
     SLOT_T.delete(btn);
   });
   const kit=player.kit.map((id,i)=>"<b>"+SLOT_KEYS[i]+"</b> "+SPL[id].name+" ("+Math.round(SPL[id].cd*10)/10+" s)").join(" · ");
-  helpEl.innerHTML="<b>Clic droit</b> : se déplacer (maintenir pour suivre)<br><b>Clic droit sur l'ennemi</b> : le poursuivre<br><b>Espace</b> : bouclier (maintenir)<br><b>Tab</b> : changer d'Ace (0,5 s)<br><b>F</b> : Flash, téléportation vers le curseur (recharge 12 s)<br>"+kit+"<br><b>Clic gauche</b> : lancer le sort · <b>Clic droit</b> ou <b>Échap</b> : annuler<br>Le mode de lancer se règle dans le menu Pause.";
+  helpEl.innerHTML="<b>Clic droit</b> : se déplacer (maintenir pour suivre)<br><b>Clic droit sur l'ennemi</b> : le poursuivre<br><b>Espace</b> : bouclier (maintenir)<br><b>Tab</b> : changer d'Ace (0,5 s)<br><b>F</b> : Flash, téléportation vers le curseur (recharge 12 s)<br>"+kit+"<br><b>Clic gauche</b> : lancer le sort · <b>Clic droit</b> ou <b>Échap</b> : annuler<br><b>Jets (Lance-Flammes, Hydrocanon, Blizzard)</b> : maintenir la touche, on reste immobile, relâcher coupe<br>Le mode de lancer se règle dans le menu Pause.";
   scoreEl.textContent=""; scoreTxt="";
 }
 const SLOT_T=new WeakMap();
@@ -3039,15 +3047,6 @@ function watchDecoy(e){
   const d=e.decoFrom; fx.push({k:"clone",x:d.x,y:d.y,sy:d.y-.5,t:0,life:DECOY.life,sp:e.sp,anim:d.anim,frame:d.frame,dir:d.dir});
   colorBurst(d.x,d.y,16,TYPE_PAL.dark,30,110); colorBurst(d.x,d.y,10,WATERC,30,100); rings.push({x:d.x,y:d.y,t:0,dur:.3,max:22,c:"#90c8ff"});
 }
-ORB2.icebeam=o=>{ // cristal de glace pointu avec traînée givrée
-  const x=Math.round(o.x), gy=Math.round(o.y), y=gy-14, nx=-o.vy, ny=o.vx;
-  ctx.fillStyle="rgba(0,0,0,.25)"; ctx.fillRect(x-3,gy,7,1);
-  for(let k=7;k>=1;k--){const tx=Math.round(x-o.vx*k*4), ty=Math.round(y-o.vy*k*4), w=Math.max(1,4-Math.floor(k*.5)); ctx.globalAlpha=1-k*.11; ctx.fillStyle=k%2?ICEC[1]:ICEC[2]; ctx.fillRect(tx-w+1,ty-w+1,w*2-1,w*2-1)}
-  ctx.globalAlpha=1;
-  pxLine(x-o.vx*8,y-o.vy*8,x+o.vx*9,y+o.vy*9,ICEC[0]); pxLine(x-o.vx*7+nx,y-o.vy*7+ny,x+o.vx*9,y+o.vy*9,ICEC[1]); pxLine(x-o.vx*7-nx,y-o.vy*7-ny,x+o.vx*9,y+o.vy*9,ICEC[1]);
-  dsc(x,y,3,ICEC[2]); ctx.fillStyle="#ffffff"; ctx.fillRect(x-1,y-1,2,2);
-  if(Math.sin(o.t*30)>0.3){ctx.fillStyle="#ffffff";ctx.fillRect(Math.round(x+nx*6),Math.round(y+ny*6),1,1);ctx.fillRect(Math.round(x-nx*6),Math.round(y-ny*6),1,1)}
-};
 
 // ===== Dracaufeu et Mammochon : mécaniques et effets =====
 Object.assign(DESC,{
@@ -3322,13 +3321,6 @@ ORB2.seedbomb=o=>{
   for(let k=4;k>=1;k--){ctx.globalAlpha=1-k*.18; ctx.fillStyle=k%2?GRASSC[1]:GRASSC[2]; const w=Math.max(1,3-Math.floor(k/2)); ctx.fillRect(Math.round(x-o.vx*k*4)-w+1,Math.round(y-o.vy*k*4)-w+1,w*2-1,w*2-1)}
   ctx.globalAlpha=1; dsc(x,y,5,"#3a2a10"); dsc(x,y,4,"#8a6a30"); dsc(x,y,2,"#c8a050"); ctx.fillStyle="#8ae068"; ctx.fillRect(x-1,y-6,3,2);
 };
-ORB2.megadrain=o=>{
-  const x=Math.round(o.x), gy=Math.round(o.y), y=gy-14+Math.round(Math.sin(o.t*16)*1.5);
-  ctx.fillStyle="rgba(0,0,0,.28)"; ctx.fillRect(x-3,gy,7,1);
-  for(let k=7;k>=1;k--){ctx.globalAlpha=1-k*.12; ctx.fillStyle=k%2?GRASSC[1]:GRASSC[2]; const w=Math.max(1,4-Math.floor(k*.5)); ctx.fillRect(Math.round(x-o.vx*k*4)-w+1,Math.round(y-o.vy*k*4)-w+1,w*2-1,w*2-1)}
-  ctx.globalAlpha=1; dsc(x,y,6,GRASSC[1]); dsc(x,y,5,GRASSC[2]); dsc(x,y,3,GRASSC[3]);
-  for(let i=0;i<3;i++){const a=-o.t*9+i*2.09; ctx.fillStyle=i?GRASSC[3]:"#ffffff"; ctx.fillRect(Math.round(x+Math.cos(a)*9),Math.round(y+Math.sin(a)*7),2,2)}
-};
 ORB2.psystrike=o=>{
   const x=Math.round(o.x), gy=Math.round(o.y), y=gy-16+Math.round(Math.sin(o.t*12)*2), pul=Math.sin(o.t*24)>0?1:0;
   ctx.fillStyle="rgba(0,0,0,.28)"; ctx.fillRect(x-5,gy,11,1); ctx.fillRect(x-3,gy+1,7,1);
@@ -3351,7 +3343,6 @@ function castRecover(e){
 // Aperçus de visée
 PREV.leafblade={k:"melee",r:16,d:[22,CONF.reach]};
 PREV.seedbomb={k:"shot",len:()=>PROJ.seedbomb.range,hw:PROJ.seedbomb.hit,from:14};
-PREV.megadrain={k:"shot",len:()=>PROJ.megadrain.range,hw:PROJ.megadrain.hit,from:14};
 PREV.psystrike={k:"shot",len:()=>PROJ.psystrike.range,hw:PROJ.psystrike.hit,from:14};
 PREV.qatk={k:"shot",len:v=>rushLen(v,RUSHES.qatk),hw:RUSHES.qatk.hit,from:0};
 // IA
@@ -3359,7 +3350,7 @@ function botAce3(e,t,d,threat,go,ok,rnd){
   if(ok("recover")&&e.hp<e.maxHp*.5&&rnd(.6)){go("recover");return true}
   if(ok("psystrike")&&d>50&&d<PROJ.psystrike.range-25&&rnd(.5)){go("psystrike",false,.3);return true}
   if(ok("qatk")&&d>40&&d<RUSHES.qatk.dist-8&&(punishable(t)||rnd(.4))){go("qatk",false,.1);return true}
-  if(ok("megadrain")&&d>40&&d<PROJ.megadrain.range-15&&(e.hp<e.maxHp*.7||rnd(.5))){go("megadrain",false,.25);return true}
+  if(ok("megadrain")&&d>40&&d<105&&(e.hp<e.maxHp*.7||rnd(.5))){go("megadrain",false,.25);return true}
   if(ok("seedbomb")&&d>40&&d<PROJ.seedbomb.range-15&&rnd(.6)){go("seedbomb",false,.25);return true}
   return false;
 }
@@ -3391,14 +3382,12 @@ const GZ={
   // ---- champs : zone persistante ----
   sandstorm:{kind:"field",range:130,r:44,delay:.4,life:4.5,tick:.5,dot:.4,slow:.6,style:"sand"},
   psyterrain:{kind:"field",range:120,r:46,delay:.4,life:5,tick:.5,dot:.25,slow:.7,healOwner:.03,style:"psyfield"},
-  blizzard:{kind:"field",range:110,r:56,delay:.5,life:4,tick:.5,dot:.45,slow:.8,style:"snow"},
   leech:{kind:"field",range:130,r:32,delay:.4,life:6,tick:.6,dot:.5,slow:.3,drain:.9,style:"leech"},
   // ---- pièges : se déclenchent quand l'ennemi marche dessus ----
   spikes:{kind:"mine",range:120,r:24,life:20,stun:.55,slow:2.4,style:"spikes",push:20},
   curse:{kind:"mine",range:120,r:25,life:20,psn:3.5,slow:1.5,style:"curse",push:0},
   amine:{kind:"mine",range:120,r:28,life:20,stun:.35,slow:0,style:"aura",push:150},
   tspikes:{kind:"mine",range:120,r:25,life:20,psn:4,slow:2.2,style:"toxic",push:10},
-  icespike:{kind:"mine",range:120,r:24,life:20,stun:.8,slow:2,style:"ice",push:0},
   // ---- murs ----
   lscreen:{kind:"wall",range:75,n:5,cr:9,life:4.5,block:"foe",style:"screen"},
   rwall:{kind:"wall",range:70,n:3,cr:14,life:5,block:"all",style:"rocks"},
@@ -3747,16 +3736,7 @@ ORBEND.hydrocanon=o=>{
   colorBurst(o.x,o.y-8,34,WATERC,60,220); shake=Math.max(shake,.16);
   for(let i=0;i<14;i++){const a=rand(0,Math.PI*2);spark(o.x,o.y-6,Math.cos(a)*rand(30,110),-rand(90,200),rand(.4,.8),i%2?WATERC[2]:"#ffffff",420,i%3?2:3)}
 };
-ORB2.hydrocanon=o=>{
-  const x=Math.round(o.x), gy=Math.round(o.y), y=gy-16+Math.round(Math.sin(o.t*10)*2);
-  ctx.fillStyle="rgba(0,0,0,.28)"; ctx.fillRect(x-5,gy,11,1); ctx.fillRect(x-3,gy+1,7,1);
-  for(let k=10;k>=1;k--){ctx.globalAlpha=1-k*.08; ctx.fillStyle=k%2?WATERC[1]:WATERC[2]; const w=Math.max(2,9-Math.floor(k*.7)); ctx.fillRect(Math.round(x-o.vx*k*5)-w+1,Math.round(y-o.vy*k*5)-w+1+(k%3-1),w*2-1,w*2-1)}
-  ctx.globalAlpha=1; pixelRing(x,y,14,"rgba(144,200,255,.5)");
-  dsc(x,y,10,WATERC[0]); dsc(x,y,9,WATERC[1]); dsc(x,y,7,WATERC[2]); dsc(x,y,4,WATERC[3]);
-  for(let i=0;i<5;i++){const a=-o.t*11+i*1.26; ctx.fillStyle=i%2?"#ffffff":WATERC[3]; ctx.fillRect(Math.round(x+Math.cos(a)*12),Math.round(y+Math.sin(a)*9),2,2)}
-};
 PREV.wsteel={k:"melee",r:16,d:[22,CONF.reach]}; PREV.blazekick={k:"melee",r:16,d:[22,CONF.reach]};
-PREV.hydrocanon={k:"shot",len:()=>PROJ.hydrocanon.range,hw:PROJ.hydrocanon.hit,from:14};
 PREV.aquajet={k:"shot",len:v=>rushLen(v,RUSHES.aquajet),hw:RUSHES.aquajet.hit,from:0};
 PREV.hjk={k:"shot",len:v=>rushLen(v,RUSHES.hjk),hw:RUSHES.hjk.hit,from:0};
 // ---- sorts de terrain supplémentaires ----
@@ -3774,7 +3754,7 @@ const _tickBf=typeof tickBuffFx==="function"?tickBuffFx:null;
 function botAce5(e,t,d,threat,go,ok,rnd){
   if(ok("bboost")&&!e.bf.bboost&&d>70&&rnd(.5)){go("bboost");return true}
   if(ok("hjk")&&d>45&&d<RUSHES.hjk.dist-12&&(punishable(t)||rnd(.35))){go("hjk",false,.1);return true}
-  if(ok("hydrocanon")&&d>60&&d<PROJ.hydrocanon.range-30&&rnd(.45)){go("hydrocanon",false,.4);return true}
+  if(ok("hydrocanon")&&d>60&&d<160&&rnd(.45)){go("hydrocanon",false,.4);return true}
   if(ok("aquajet")&&d>45&&d<RUSHES.aquajet.dist-10&&rnd(.35)){go("aquajet",false,.1);return true}
   return false;
 }
@@ -3831,7 +3811,11 @@ function drawMfx(c){
   const f=c.f, T=c.t, k={c,P:c.pal,f,n:[-f[1],f[0]],x:c.x,y:c.y,T,u:clamp(T/.3,0,1)}, fade=T>.22?Math.max(0,(.34-T)/.12):1;
   ctx.globalAlpha=fade; (MELEE_FX[c.s]||MELEE_FX.slash)(k); ctx.globalAlpha=1;
 }
-{const _drawFx0=drawFx; drawFx=function(c){return c.k==="mfx"?drawMfx(c):_drawFx0(c)}}
+// Registres : chaque archétype déclare son dessin (par c.k) et sa mise à jour par image, au lieu d'empiler des wrappers.
+var FX_DRAW={}, FX_UPDATERS=[];
+{const _drawFx0=drawFx; drawFx=function(c){const f=FX_DRAW[c.k]; return f?f(c):_drawFx0(c)}}
+{const _updOrbs0=updateOrbs; updateOrbs=function(dt){_updOrbs0(dt); for(const f of FX_UPDATERS)f(dt)}}
+FX_DRAW.mfx=drawMfx;
 
 // Déclare une capacité de mêlée. Champs :
 //  id, name, type, power, cd, cost(=0), fx(style de MELEE_FX), pal(optionnel, sinon palette du type),
@@ -3909,7 +3893,7 @@ function drawStream(c){
   }
   ctx.globalAlpha=1;
 }
-{const _d0=drawFx; drawFx=function(c){return c.k==="strm"?drawStream(c):_d0(c)}}
+FX_DRAW.strm=drawStream;
 function startStream(e,d){
   e.strm={d,t:0,nt:0,burned:false,on:true,nz:.4,hold:e===player&&!e.bot};
   fx.push({k:"strm",e,d,s:e.strm,x:e.x,y:e.y,sy:e.y+.5,t:0,life:d.dur});
@@ -3945,7 +3929,7 @@ function updateStreams(dt){
     }
   });
 }
-{const _u0=updateOrbs; updateOrbs=function(dt){_u0(dt);updateStreams(dt)}}
+FX_UPDATERS.push(updateStreams);
 // Déclare une capacité en jet continu. keep:true = ne remplace que le comportement/FX d'une capacité existante.
 function defStream(d){
   STREAM_DEFS.push(d);
@@ -4047,8 +4031,8 @@ function defWave(d){
   PREV[d.id]={k:"shot",len:()=>d.reach,hw:Math.round(d.reach*Math.sin(d.cone/2)*.8),from:10};
   ACE2[d.id]={hit(e){startWave(e,d)}};
 }
-{const _d1=drawFx; drawFx=function(c){return c.k==="ray"?drawRay(c):c.k==="hwave"?drawWave2(c):_d1(c)}}
-{const _u1=updateOrbs; updateOrbs=function(dt){_u1(dt);updateWaves(dt)}}
+FX_DRAW.ray=drawRay; FX_DRAW.hwave=drawWave2;
+FX_UPDATERS.push(updateWaves);
 // ---------- capacités ----------
 defRay({id:"icebeam",style:"ice",pal:["#2a78a8","#4a98c0","#98d8d8","#ffffff","#d8f4f8"],reach:215,half:9,push:20,noise:[.4,.4,3800,1400,1.6],
   onHit:(e,t)=>{t.slow=Math.max(t.slow||0,1.6)},
@@ -4114,8 +4098,8 @@ function defTether(d){
   PREV[d.id]={k:"shot",len:()=>d.reach,hw:Math.round(d.reach*Math.sin(d.cone/2)*.7),from:10};
   ACE2[d.id]={hit(e){startTether(e,d)}};
 }
-{const _d2=drawFx; drawFx=function(c){return c.k==="tether"?drawTether(c):_d2(c)}}
-{const _u2=updateOrbs; updateOrbs=function(dt){_u2(dt);updateTethers(dt)}}
+FX_DRAW.tether=drawTether;
+FX_UPDATERS.push(updateTethers);
 defTether({id:"megadrain",pal:["#1a6a2a","#3aa83a","#8ae068","#e8ffd0"],dur:2,tick:.25,tickPower:3,reach:115,leash:150,cone:1.2,heal:.5,
   desc:"Un filament s'accroche à la cible et l'aspire pendant 2 s : tu peux te déplacer, il se rompt si elle s'éloigne trop. Te soigne.",
   en:"A vine latches onto the target and drains it for 2 s: you can move, it breaks if the target gets too far. Heals you."});
@@ -4141,7 +4125,7 @@ function updateBursts(dt){
     if(S.n>=d.count)e.bst=null;
   });
 }
-{const _u3=updateOrbs; updateOrbs=function(dt){_u3(dt);updateBursts(dt)}}
+FX_UPDATERS.push(updateBursts);
 SPL.icespike.power=7; SPL.icespike.cd=8; SPL.icespike.cost=0;
 defBurst({id:"icespike",count:5,interval:.09,spread:.34,speed:330,range:190,hit:8,sfx:790,
   orb:o=>{const x=o.x,y=o.y-14,P=ICEC; for(let k=0;k<11;k++){const w=Math.max(1,Math.min(4,1+Math.round(k*.35))); ctx.fillStyle=k<2?"#ffffff":k<7?P[2]:P[1]; ctx.fillRect(Math.round(x-o.vx*k*1.7)-(w>>1),Math.round(y-o.vy*k*1.5)-(w>>1),w,w)} ctx.fillStyle="#ffffff"; ctx.fillRect(Math.round(x+o.vx*4)-1,Math.round(y+o.vy*3.5)-1,2,2)},
@@ -4783,13 +4767,13 @@ function rushTick(dt){
   const on=matchMode==="rush"&&MARA&&!menuOpen&&player;
   rushHud.hidden=!on; if(!on)return;
   if(!MARA.done&&foe.ko<=0&&player.ko<=0)MARA.t+=dt;
-  const n=MARA.order.length, txt="Combat <b>"+Math.min(MARA.i+1,n)+"/"+n+"</b> · "+rushFmt(MARA.t);
+  const n=MARA.order.length, txt=(LANG==="en"?"Fight <b>":"Combat <b>")+Math.min(MARA.i+1,n)+"/"+n+"</b> · "+rushFmt(MARA.t);
   if(txt!==rushTxt){rushTxt=txt; rushHud.innerHTML=txt}
 }
 function rushKO(t){ // un des deux camps n'a plus personne
   sfxUI("ko"); t.ko=t===foe?1.5:2.6;
-  if(t===foe&&typeof showBanner==="function")showBanner("VAINCU "+(MARA.i+1)+"/"+MARA.order.length,"win");
-  else if(typeof showBanner==="function")showBanner("FIN DE RUN","lose");
+  if(t===foe&&typeof showBanner==="function")showBanner((LANG==="en"?"DEFEATED ":"VAINCU ")+(MARA.i+1)+"/"+MARA.order.length,"win");
+  else if(typeof showBanner==="function")showBanner(LANG==="en"?"RUN OVER":"FIN DE RUN","lose");
   showLog(t.sp.name+" est K.O. !",1600);
 }
 function rushNext(){
@@ -4805,7 +4789,7 @@ function rushEnd(win){
   if(rec)try{localStorage.setItem("aceRushBest",JSON.stringify({n,t}))}catch(_){}
   const best=rec?{n,t}:b;
   endEl.className=win?"win":"lose";
-  endEl.innerHTML='<div class="ebox"><h2>'+(win?"MARATHON TERMINÉ":"FIN DE RUN")+'</h2><div class="esc"><b>'+n+'</b><i>/</i><b>'+MARA.order.length+'</b></div><small>Adversaires vaincus · temps '+rushFmt(t)+'</small>'+(rec?'<small style="color:#ffe45e">NOUVEAU RECORD !</small>':(best?'<small>Record : '+best.n+'/'+MARA.order.length+' en '+rushFmt(best.t)+'</small>':""))+'<div class="ebtn"><button type="button" id="eRe">Rejouer</button><button type="button" id="eMenu">Sélection d\'équipe</button></div></div>';
+  endEl.innerHTML='<div class="ebox"><h2>'+(LANG==="en"?(win?"MARATHON COMPLETE":"RUN OVER"):(win?"MARATHON TERMINÉ":"FIN DE RUN"))+'</h2><div class="esc"><b>'+n+'</b><i>/</i><b>'+MARA.order.length+'</b></div><small>'+(LANG==='en'?'Opponents defeated · time ':'Adversaires vaincus · temps ')+rushFmt(t)+'</small>'+(rec?'<small style="color:#ffe45e">'+(LANG==='en'?'NEW RECORD!':'NOUVEAU RECORD !')+'</small>':(best?'<small>'+(LANG==='en'?'Best: ':'Record : ')+best.n+'/'+MARA.order.length+' en '+rushFmt(best.t)+'</small>':""))+'<div class="ebtn"><button type="button" id="eRe">'+(LANG==='en'?'Play again':'Rejouer')+'</button><button type="button" id="eMenu">'+(LANG==='en'?'Team select':'Sélection d\'équipe')+'</button></div></div>';
   endEl.hidden=false; try{sfxUI(win?"ko":"click")}catch(_){}
   endEl.querySelector("#eRe").onclick=()=>{hideResult(); startMatch(picks.slice(),"rush")};
   endEl.querySelector("#eMenu").onclick=()=>{hideResult(); openMenu()};
@@ -4873,7 +4857,8 @@ const PAT=[
  [/^Donne-lui le code (\w+)$/,"Give him the code $1"],[/^Arène avec (.+)$/,"Arena with $1"],[/^Visée : (.+)$/,"Aim: $1"],[/^: (.+)$/,": $1"],[/^(.+) \((.+), (physique|spécial|statut)\)$/,"$1 ($2, $3)"],
  [/^(Physique|Spécial|Statut) · (.+?)(?: · Puiss\. (\d+))? · Recharge (.+) s$/,"$1 · $2 · Power $3 · Cooldown $4 s"]
 ];
-if(typeof I18N_EXTRA!=="undefined")Object.assign(EN,I18N_EXTRA);
+Object.assign(typeof I18N_EXTRA!=="undefined"?I18N_EXTRA:(I18N_EXTRA={}),{"Griffures spectrales devant soi. Rapide.":"Spectral claws in front of you. Fast.","Trois rochers tombent en ligne devant soi.":"Three rocks fall in a line ahead.","Bonus d'Attaque pendant 8 s.":"Attack boost for 8 s.","Zone qui aspire l'adversaire pendant 2,4 s.":"Zone that pulls the opponent in for 2.4 s.","Graine explosive en ligne droite.":"Explosive seed in a straight line."});
+Object.assign(EN,I18N_EXTRA,{"Marathon":"Marathon","16 adversaires d'affilée, au chrono":"16 opponents in a row, against the clock","Rejouer":"Play again","Jets (Lance-Flammes, Hydrocanon, Blizzard)":"Streams (Flamethrower, Hydro Cannon, Blizzard)"," : maintenir la touche, on reste immobile, relâcher coupe":": hold the key, you stand still, release to stop",": maintenir la touche, on reste immobile, relâcher coupe":": hold the key, you stand still, release to stop","Sélection d'équipe":"Team select"});
 Object.assign(EN,{"Ronflex":"Snorlax","Tyranocif":"Tyranitar","Zoroark":"Zoroark","Étouraptor":"Staraptor"});
 Object.assign(EN,{"TOI":"YOU","ADVERSAIRE":"OPPONENT","Toi":"You","BOT FACILE":"BOT EASY","BOT NORMAL":"BOT NORMAL","BOT DIFFICILE":"BOT HARD","Hôte":"Host","physique":"physical","spécial":"special","statut":"status","Puiss.":"Power","Clic droit sur l'ennemi":"Right click on the enemy","le poursuivre":"chase him","se déplacer (maintenir pour suivre)":"move (hold to follow)","changer d'Ace (0,5 s)":"switch Ace (0.5 s)","Flash, téléportation vers le curseur (recharge 12 s)":"Flash, teleport to the cursor (12 s cooldown)","lancer le sort ·":"cast the spell ·","Le mode de lancer se règle dans le menu Pause.":"The cast mode is set in the Pause menu.","Tab":"Tab","annuler":"cancel","Changer d'Ace (Tab)":"Switch Ace (Tab)"});
 let _names=null; const names=()=>_names||(_names=[].concat(Object.values(SPL).map(s=>s.name),Object.values(SPECIES).map(s=>s.name)).filter(n=>EN[n]&&EN[n]!==n).sort((a,b)=>b.length-a.length));
