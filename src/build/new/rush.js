@@ -1,7 +1,7 @@
-/* ===== Mode Marathon : les 16 Aces à la suite, équipe de 1 à 3 sans soin entre les duels, classement victoires puis temps ===== */
+/* ===== Mode Marathon : tous les Aces à la suite, équipe de 1 à 3 sans soin entre les duels, classement victoires puis temps ===== */
 var MARA=null;
 const rushBst=k=>Object.values(SPECIES[k].base).reduce((a,b)=>a+b,0);
-const rushStage=i=>i<4?"easy":i<10?"normal":"hard"; // difficulté des bots : croissante
+const rushStage=i=>{const n=(MARA&&MARA.order&&MARA.order.length)||16; return i<n*.25?"easy":i<n*.6?"normal":"hard"}; // difficulté des bots : croissante, quel que soit le nombre de Pokémon
 function rushStart(){
   MARA={order:Object.keys(SPECIES).filter(k=>SPECIES[k].playable).sort((a,b)=>rushBst(a)-rushBst(b)),i:0,t:0,done:false};
 }

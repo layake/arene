@@ -6,7 +6,7 @@ Jouer : https://arena.lensslo.com (ou https://layake.github.io/arene/)
 ## Modes
 - **Entraînement** : mannequin.
 - **Versus** : contre un bot (facile, normal, difficile), en 1, 3 ou 5 rounds, équipes de 3.
-- **Marathon** : les 16 Aces à la suite avec ton équipe (1 à 3), sans soin entre les duels, bots de plus en plus durs. Classement : adversaires vaincus, puis temps. Record sauvegardé dans le navigateur.
+- **Marathon** : tous les Aces à la suite avec ton équipe (1 à 3), sans soin entre les duels, bots de plus en plus durs. Classement : adversaires vaincus, puis temps. Record sauvegardé dans le navigateur.
 - **En ligne** : salon à code, hôte et invité.
 
 ## Commandes

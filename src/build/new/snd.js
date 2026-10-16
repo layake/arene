@@ -54,7 +54,7 @@ function sfxCast(e,id){
   if(pw>0){ synNoise(.10+pw/260,.22+pw/300,1800,220,.9,"bandpass"); } // souffle du lancer, plus long pour les gros sorts
   if(SFX_BEAM[id]){ synNoise(.22,.55,3200,500,2.5,"bandpass"); synThump(.4,160,60,.4) }
   if(SFX_QUAKE[id]){ synNoise(.5,1.1,260,60,.8,"lowpass"); synThump(.9,70,28,.9); sfx(750,"fight",.8,.8) }
-  if(id==="rush"||id==="tun"||id==="ssneak"||id==="ccombat"||id==="sucker"||id==="fly"||id==="qatk"||id==="aquajet"||id==="hjk"){ synNoise(.25,.4,2200,300,1,"bandpass"); synThump(.4,120,50,.3) }
+  if(id==="tun"||(typeof RUSHES!=="undefined"&&RUSHES[id])){ synNoise(.25,.4,2200,300,1,"bandpass"); synThump(.4,120,50,.3) }
 }
 function sfxHit(att,tgt,spell,dmg){
   const id=sfxSpellId(spell), m=SFX_MAP[id]||{}, k=typeMult(spell.type,tgt.sp.types);

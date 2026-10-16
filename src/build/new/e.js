@@ -367,6 +367,7 @@ function updateRush(e,dt){
       const hitOk=contact&&strike(e,t,SPL[R.id],{from:e,push:C.push,stun:C.stun,contact:true,mult:pun?C.punish:1});
       if(hitOk&&pun){pops.push({x:t.x,y:t.y-56,t:0,txt:"x"+String(C.punish).replace(".",",")+" !"});fx.push({k:"star",x:t.x,y:t.y-t.sp.body,sy:t.y+.7,t:0,life:.4,r:14});shake=Math.max(shake,.25)}
       if(hitOk&&C.fly)rushHitFx(e,t,C);
+      if(hitOk&&C.recoilHit&&alive(e)){const rd=Math.max(1,Math.round(e.maxHp*C.recoilHit));e.hp=Math.max(1,e.hp-rd);e.hpShow=3;e.flash=.1;pops.push({x:e.x,y:e.y-e.sp.body-20,t:0,txt:"-"+rd+" Contrecoup"})} // recul même quand le coup touche (Rapace, Électacle)
       if(hitOk&&plain){
         rings.push({x:t.x,y:t.y,t:0,dur:.45,max:46,c:"#a77bff"}); rings.push({x:t.x,y:t.y,t:0,dur:.28,max:28,c:"#ffffff"}); rushBurst(t.x,t.y,44,80,220); burst(t.x,t.y,22); shake=.42; hitstop=.11;
       }
@@ -416,7 +417,7 @@ function cast(e,id){
   if(NET.guest&&e===player)NET.sendCast(id);
   SND.pe=e;SND.pend=id;
   if(SPL[id].melee)castMelee(e,id);
-  else if(id==="mud"||id==="moon"||id==="fcannon"||id==="psy"||id==="grav"||id==="rslide"||id==="quake"||id==="fsight"||id==="trap"||id==="sedge"||id==="shball"||id==="tbolt"||id==="hypno"||id==="sbomb"||id==="hex"||id==="asph"||id==="wshuri"||id==="wpulse"||id==="icebeam"||id==="fwave"||id==="flame"||id==="heat"||id==="avalanche"||id==="stomp"||id==="seedbomb"||id==="megadrain"||id==="psystrike"||id==="hydrocanon")castAnim(e,id);
+  else if(id==="mud"||id==="moon"||id==="fcannon"||id==="psy"||id==="grav"||id==="rslide"||id==="quake"||id==="fsight"||id==="trap"||id==="sedge"||id==="shball"||id==="tbolt"||id==="hypno"||id==="sbomb"||id==="hex"||id==="asph"||id==="wshuri"||id==="wpulse"||id==="icebeam"||id==="fwave"||id==="flame"||id==="heat"||id==="avalanche"||id==="stomp"||id==="seedbomb"||id==="megadrain"||id==="psystrike"||id==="hydrocanon"||(typeof ANIM_IDS!=="undefined"&&ANIM_IDS.has(id)))castAnim(e,id);
   else if(id==="recover")castRecover(e);
   else if((typeof GZ!=="undefined"&&GZ[id])||STREAM_DEFS.some(d=>d.id===id)||BURST_DEFS.some(d=>d.id===id))castAnim(e,id);
   else if(id==="riposte")castRiposte(e);
@@ -425,7 +426,7 @@ function cast(e,id){
   else if(id==="tele")castTele(e);
   else if(id==="mburst")castBurst(e);
   else if(id==="tun")startTunnel(e);
-  else if(id==="rush"||id==="ssneak"||id==="ccombat"||id==="sucker"||id==="fly"||id==="qatk"||id==="aquajet"||id==="hjk")startRush(e,id);
+  else if(RUSHES[id])startRush(e,id);
   else if(id==="gleam")startGleam(e);
   SND.pend=null;
 }

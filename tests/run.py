@@ -28,7 +28,7 @@ with sync_playwright() as p:
             n0=len(errs); got=False
             for attempt in range(3):
                 pg.evaluate("""(mv)=>{const e=entities[0],t=entities[1];("""+FREEZE+""")();e.kit=[mv].concat(e.kit.filter(x=>x!==mv)).slice(0,4);e.lock=0;e.anim='idle';e.counter=null;e.bf={};e.shieldOn=false;e.rush=null;e.chan=null;e.tunnel=null;e.strm=null;e.gcd=0;window.__sx=e.x;window.__h0=Math.round(e.maxHp/2);e.hp=window.__h0;
-                  const near=SPL[mv].melee||MELEE_DEFS.some(d=>d.id===mv), short=STREAM_DEFS.some(d=>d.id===mv);if(near||short){t.x=e.x+(near?26:60);t.y=e.y;mouse={wx:t.x,wy:t.y}}cast(e,mv)}""",mv)
+                  const near=SPL[mv].melee||MELEE_DEFS.some(d=>d.id===mv)||TETHER_DEFS.some(d=>d.id===mv&&d.reach<100), short=STREAM_DEFS.some(d=>d.id===mv);if(near||short){t.x=e.x+(near?26:60);t.y=e.y;mouse={wx:t.x,wy:t.y}}cast(e,mv)}""",mv)
                 pg.wait_for_timeout(1100)
                 eff=pg.evaluate("()=>{const e=entities[0],t=entities[1];return {hp:t.hp<t.maxHp||t.slow>0||t.burn>0||t.psn>0,self:Object.keys(e.bf||{}).length>0||e.hp>window.__h0+1||!!e.counter||!!e.shieldOn||!!e.decoy,world:zones.length+orbs.length+fx.length+holes.length+beams.length>0,moved:Math.abs(e.x-window.__sx)>2||e.rush||e.tunnel||e.chan}}")
                 if any(eff.values()): got=True; break
@@ -39,11 +39,13 @@ with sync_playwright() as p:
     # 3. jets : maintenir, immobile, relâcher coupe
     pg.evaluate(START,[['empoleon','garchomp','gengar'],None]); pg.wait_for_timeout(2700)
     pg.evaluate(FREEZE); pg.evaluate("()=>{const e=entities[0];e.kit=['hydrocanon'].concat(e.kit.slice(1))}")
-    pg.keyboard.down('q'); pg.wait_for_timeout(300)
+    pg.evaluate("()=>{keys.clear();aiming=null;paused=false;player.bot=null;player.lock=0;pressSpell(0)}") # appel direct
+    try: pg.wait_for_function("()=>!!entities[0].strm",timeout=3000) # le jet part à l'image d'impact de l'animation
+    except Exception: pass
     pg.evaluate("()=>{const e=entities[0];window.__x=e.x;e.moveTarget={x:e.x-80,y:e.y}}"); pg.wait_for_timeout(1500)
     r=pg.evaluate("()=>{const e=entities[0];return [!!e.strm,Math.abs(e.x-window.__x)<1,entities[1].hp<entities[1].maxHp]}")
     check("jet maintenu : actif, immobile, touche",all(r),r)
-    pg.keyboard.up('q'); pg.wait_for_timeout(500)
+    pg.evaluate("()=>{player.holdKey=false}"); pg.wait_for_timeout(500)
     check("jet relâché : coupé",pg.evaluate("()=>!entities[0].strm"))
     # 4. cooldowns du banc
     pg.evaluate("()=>{const e=entities[0];e.stun=0;e.lock=0;e.swapCd=0;e.cd.hydrocanon=5;cast(e,'swap')}"); pg.wait_for_timeout(1500)

@@ -335,3 +335,10 @@ body.paused #roundban{visibility:hidden!important}
 .mbox .bar{position:sticky;bottom:-12px;z-index:3;background:#0f1b55;margin:0 -22px -12px;padding:8px 22px 12px;box-shadow:0 -8px 14px rgba(5,9,30,.55)}
 #touchNote{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:5;background:#0b1340;border:2px solid #ffe45e;color:#ffe45e;padding:6px 12px;font:600 13px "Pixelify Sans",var(--display);text-align:center;max-width:90%}
 .ht{transition:box-shadow .2s,opacity .2s}.ht.hdim{opacity:.3}
+/* 20 Pokémon : grille 5 colonnes plus compacte */
+.mbox #cards{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.mbox .ace{padding:5px 4px 6px}
+.mbox .ace img{width:48px;height:48px}
+.mbox .ace h3{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mbox .ace .ty i{font-size:9px;padding:0 3px}
+@media(max-width:1000px){.mbox #cards{grid-template-columns:repeat(5,minmax(0,1fr))}}
