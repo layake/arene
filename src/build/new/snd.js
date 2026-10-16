@@ -80,9 +80,11 @@ document.addEventListener("keydown",sndInit,{once:true});
 document.addEventListener("click",e=>{const b=e.target.closest("#menu button, #pause button, .tools button");if(b)sfxUI(b.id==="go"?"go":"click")});
 initVolumeUI();
 
+// Pas silencieux pour ceux qui volent ou lévitent (type Vol, Ectoplasma, Lugulabre)
+const NO_STEPS=e=>!!(e.sp&&(e.sp.types.includes("flying")||e.key==="gengar"||e.key==="chandelure"));
 // Pas : bruit de terre étouffé + petit choc, plus grave et plus fort pour les gros Aces, alterne les pieds.
 function sfxStep(e){
-  if(!SND.ctx||menuOpen||paused)return; e.stepN=(e.stepN||0)+1;
+  if(!SND.ctx||menuOpen||paused||NO_STEPS(e))return; e.stepN=(e.stepN||0)+1;
   const heavy=Math.min(1.4,(e.sp.body||14)/16), k=(e===player?.30:.18)*(.8+heavy*.4), alt=e.stepN%2?1:.88;
   synNoise(k*1.6,.07+heavy*.03,900*alt,250,.7,"lowpass");
   synThump(k*1.3,(120-heavy*30)*alt,45,.09+heavy*.04);
