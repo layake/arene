@@ -411,7 +411,7 @@ function fireBeam(e){
 function cast(e,id){
   if(e.counter||e.ko>0||vsT>0)return;
   if(id==="swap"){if(NET.guest&&e===player){NET.sendCast(id);return}startSwap(e);return}
-  if(id==="flash"){if(NET.guest&&e===player){NET.sendCast(id); if(!swapReady(e))castFlash(e); return} castFlashOrSwap(e);return}
+  if(id==="flash"){if(NET.guest&&e===player)NET.sendCast(id);castFlash(e);return}
   if(!e.kit.includes(id))return;
   if(NET.guest&&e===player)NET.sendCast(id);
   SND.pe=e;SND.pend=id;
