@@ -198,7 +198,8 @@ function onMsg(m){
   else if(m.t==="pong"){pingMs=Math.round(performance.now()-m.ts);info.hidden=false;info.textContent=(mode==="peer"||rtcOpen()?"P2P ":"Relais ")+pingMs+" ms"}
   else if(m.t==="back"){NET.toLobby(true)}
   else if(m.t==="pick"||m.t==="ready"){
-    if(NET.started||!validTeam(m.team))return;
+    if(NET.started)return;
+    if(!validTeam(m.team)){if(NET.rk&&NET.rankedEvent)NET.rankedEvent("badteam");return}
     oppPick={team:m.team,key:m.team[0].key,kit:m.team[0].kit};
     if(m.t==="ready"){oppReady=!!m.on; if(m.on)oppHello=oppPick}
     refreshLobby(); maybeStart();
@@ -224,7 +225,7 @@ function begin(hostH,guestH,asHost){
 }
 function beginHost(){
   myHello=mineHello(); const h=myHello, g=oppHello;
-  if(!h||!g||!validTeam(g.team)){say("Équipe de l'adversaire invalide");return}
+  if(!h||!g||!validTeam(g.team)){say("Équipe de l'adversaire invalide");if(NET.rk&&NET.rankedEvent)NET.rankedEvent("badteam");return}
   const arena=NET.rk?"colisee":ARENA_PICK; setArena(arena); relay({t:"start",h:{team:h.team},g:{team:g.team},a:arena});
   begin(h,g,true);
 }
@@ -337,6 +338,11 @@ btnJ.addEventListener("click",()=>{
 });
 // Combat classé : la liaison passe toujours par PeerJS avec le code donné par le serveur de classement.
 NET.saveKit=saveKit;
+NET.teamOk=()=>{try{return validTeam(teamPicks())}catch(_){return false}};
+NET.rankedKick=()=>{ // combat classé : on renvoie "prêt" tant que le match n'a pas démarré (message perdu, hôte lent)
+  if(!NET.rk||NET.started||!peerHere||!inLobby)return;
+  myReady=true; myHello=mineHello(); relay({t:"ready",on:true,team:myHello.team}); maybeStart();
+};
 NET.rankedStart=function(info){
   NET.leave(); NET.rk={matchId:info.matchId,code:info.code,role:info.role}; role=info.role; myHello=mineHello(); mode="peer";
   btnC.disabled=btnJ.disabled=true; say("Connexion à l'adversaire…");

@@ -34,7 +34,7 @@ function rkRender(){
   const g=id=>document.getElementById(id);
   if(g("rkReg"))g("rkReg").onclick=rkRegister;
   if(g("rkName"))g("rkName").onkeydown=e=>{e.stopPropagation();if(e.key==="Enter")rkRegister()};
-  if(g("rkGo"))g("rkGo").onclick=()=>RK.state==="queue"?rkCancel():rkSearch();
+  if(g("rkGo"))g("rkGo").onclick=()=>RK.state==="queue"?rkCancel():rkSearch(false);
   if(g("rkTop"))g("rkTop").onclick=()=>{RK.board=!RK.board;rkRender();if(RK.board)rkBoard()};
 }
 async function rkRegister(){
@@ -48,9 +48,9 @@ async function rkBoard(){
     t.innerHTML=lb.length?lb.map(r=>'<tr><td>'+r.rank+'</td><td>'+r.name.replace(/[<>&]/g,"")+'</td><td>'+r.elo+'</td></tr>').join(""):'<tr><td>'+(LANG==="en"?"No ranked games yet":"Aucune partie classée pour l'instant")+'</td></tr>';
   }catch(_){rkMsg(LANG==="en"?"Ranking server unreachable":"Serveur de classement injoignable",true)}
 }
-function rkSearch(){
-  if(!RK.prof)return;
-  if(!NET.saveKit()){rkMsg(LANG==="en"?"Pick 3 Aces with 4 moves each first":"Choisis d'abord 3 Aces avec 4 sorts chacun",true);return}
+function rkSearch(auto){
+  if(!RK.prof)return; if(!auto)RK.retries=0;
+  if(!NET.saveKit()||!NET.teamOk()){RK.retries=99;rkMsg(LANG==="en"?"Invalid team: pick 3 different Aces with 4 valid moves each":"Équipe invalide : choisis 3 Aces différents avec 4 sorts valides chacun",true);return}
   RK.state="queue"; RK.since=performance.now(); RK.fresh=true; rkRender(); rkPoll();
 }
 async function rkPoll(){
@@ -59,7 +59,11 @@ async function rkPoll(){
     const r=await rkCall("/api/queue",{id:RK.prof.id,token:RK.prof.token,fresh:!!RK.fresh}); RK.fresh=false;
     if(RK.state!=="queue")return;
     if(r.status==="matched"){
-      RK.state="found"; RK.match={matchId:r.matchId,reported:false,started:false,oppName:r.opp.name}; async function rkMe(){if(!RK.prof)return; try{const m=await rkCall("/api/me",{id:RK.prof.id,token:RK.prof.token}); if(m&&m.elo){RK.prof.elo=m.elo;rkSave();if(RK.state==="idle")rkRender()}}catch(_){}}
+      RK.state="found"; RK.match={matchId:r.matchId,reported:false,started:false,oppName:r.opp.name,t0:performance.now()}; // chien de garde : tant que le combat n'a pas démarré, on renvoie "prêt" ; au bout de 40 s on abandonne proprement
+setInterval(()=>{const M=RK.match; if(RK.state!=="found"||!M||M.finished||NET.started)return;
+  if(NET.rankedKick)NET.rankedKick();
+  if(performance.now()-M.t0>40000)rkAbort(LANG==="en"?"The fight could not start (opponent unreachable). No rating change.":"Le combat n'a pas pu démarrer (adversaire injoignable). Aucun changement d'Elo.",true)},2000);
+async function rkMe(){if(!RK.prof)return; try{const m=await rkCall("/api/me",{id:RK.prof.id,token:RK.prof.token}); if(m&&m.elo){RK.prof.elo=m.elo;rkSave();if(RK.state==="idle")rkRender()}}catch(_){}}
 rkRender(); rkMe();
 rkCall("/api/health",null,true).then(h=>{const v=document.getElementById("rkVer");RK.sv=h.version;if(v)v.textContent="Serveur "+h.version}).catch(()=>{});
       rkMsg((LANG==="en"?"Opponent found: ":"Adversaire trouvé : ")+r.opp.name+" ("+r.opp.elo+")");
@@ -84,9 +88,18 @@ function rkReport(result,beacon){
   if(beacon)return rkBeacon("/api/report",b);
   return rkCall("/api/report",b).catch(()=>{M.reported=false});
 }
+function rkAbort(msg,retry){ // le combat n'a pas pu démarrer : on nettoie, on prévient, on relance la recherche (3 fois max)
+  const M=RK.match; RK.match=null; RK.state="idle";
+  try{NET.leave()}catch(_){}
+  if(RK.prof)rkCall("/api/queue/leave",{id:RK.prof.id,token:RK.prof.token}).catch(()=>{});
+  rkRender(); rkMsg(msg,true);
+  if(retry&&(RK.retries=(RK.retries||0)+1)<=3)setTimeout(()=>{if(RK.state==="idle"&&!RK.match){rkMsg((LANG==="en"?"New search… ":"Nouvelle recherche… ")+RK.retries+"/3");rkSearch(true)}},1800);
+}
 function rkEvent(ev,arg){
   const M=RK.match; if(!M)return;
-  if(ev==="fail"&&!M.started){RK.state="idle";RK.match=null;NET.rankedEvent=null;rkRender();rkMsg(LANG==="en"?"Could not connect to the opponent. No rating change.":"Connexion impossible avec l'adversaire. Aucun changement d'Elo.",true);return}
+  if(ev==="fail"&&!M.started&&!M.finished)return rkAbort(LANG==="en"?"Could not connect to the opponent. No rating change.":"Connexion impossible avec l'adversaire. Aucun changement d'Elo.",true);
+  if(ev==="badteam"&&!M.finished&&!NET.started)return rkAbort(LANG==="en"?"The opponent's team is invalid (or outdated version). No rating change.":"L'équipe de l'adversaire est invalide (ou version du jeu différente). Aucun changement d'Elo.",true);
+  if(ev==="peergone"&&!arg&&!M.finished)return rkAbort(LANG==="en"?"Opponent left before the fight. No rating change.":"L'adversaire est parti avant le combat. Aucun changement d'Elo.",true);
   if(ev==="peergone"&&arg&&!M.reported&&!M.finished){rkReport("win",true)}   // l'adversaire est parti en plein combat
   if(ev==="leave"&&arg&&!M.reported&&!M.finished){rkReport("loss",true)}      // je quitte en plein combat : défaite
   if(ev==="leave"){setTimeout(rkMe,3000);RK.state="idle"; if(!M.finished)RK.match=null; rkRender()}
@@ -115,6 +128,10 @@ function rkFinished(win,endEl){ // appelée à la fin d'un combat classé
 const rankedFinished=rkFinished;
 // la fiche se met à jour quand on revient dans l'onglet en ligne ; masquée dans un salon
 setInterval(()=>{rkBox.hidden=!!(rkRow&&rkRow.hidden)},300);
+// chien de garde : tant que le combat n'a pas démarré, on renvoie "prêt" ; au bout de 40 s on abandonne proprement
+setInterval(()=>{const M=RK.match; if(RK.state!=="found"||!M||M.finished||NET.started)return;
+  if(NET.rankedKick)NET.rankedKick();
+  if(performance.now()-M.t0>40000)rkAbort(LANG==="en"?"The fight could not start (opponent unreachable). No rating change.":"Le combat n'a pas pu démarrer (adversaire injoignable). Aucun changement d'Elo.",true)},2000);
 async function rkMe(){if(!RK.prof)return; try{const m=await rkCall("/api/me",{id:RK.prof.id,token:RK.prof.token}); if(m&&m.elo){RK.prof.elo=m.elo;rkSave();if(RK.state==="idle")rkRender()}}catch(_){}}
 rkRender(); rkMe();
 rkCall("/api/health",null,true).then(h=>{const v=document.getElementById("rkVer");RK.sv=h.version;if(v)v.textContent="Serveur "+h.version}).catch(()=>{});

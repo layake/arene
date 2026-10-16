@@ -438,7 +438,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Sélection d'équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>mannequin d'entraînement</small></button><button type="button" data-mode="duel" aria-pressed="false">Versus<small>contre un adversaire</small></button><button type="button" data-mode="rush" aria-pressed="false">Marathon<small>16 adversaires d'affilée, au chrono</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="rounds" role="group" aria-label="Rounds"><span>Rounds</span><button type="button" data-r="1">1</button><button type="button" data-r="3" aria-pressed="true">3</button><button type="button" data-r="5">5</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
 </div>
-<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.56 · 16/10/2026</b></footer>
+<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.57 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -4506,7 +4506,8 @@ function onMsg(m){
   else if(m.t==="pong"){pingMs=Math.round(performance.now()-m.ts);info.hidden=false;info.textContent=(mode==="peer"||rtcOpen()?"P2P ":"Relais ")+pingMs+" ms"}
   else if(m.t==="back"){NET.toLobby(true)}
   else if(m.t==="pick"||m.t==="ready"){
-    if(NET.started||!validTeam(m.team))return;
+    if(NET.started)return;
+    if(!validTeam(m.team)){if(NET.rk&&NET.rankedEvent)NET.rankedEvent("badteam");return}
     oppPick={team:m.team,key:m.team[0].key,kit:m.team[0].kit};
     if(m.t==="ready"){oppReady=!!m.on; if(m.on)oppHello=oppPick}
     refreshLobby(); maybeStart();
@@ -4532,7 +4533,7 @@ function begin(hostH,guestH,asHost){
 }
 function beginHost(){
   myHello=mineHello(); const h=myHello, g=oppHello;
-  if(!h||!g||!validTeam(g.team)){say("Équipe de l'adversaire invalide");return}
+  if(!h||!g||!validTeam(g.team)){say("Équipe de l'adversaire invalide");if(NET.rk&&NET.rankedEvent)NET.rankedEvent("badteam");return}
   const arena=NET.rk?"colisee":ARENA_PICK; setArena(arena); relay({t:"start",h:{team:h.team},g:{team:g.team},a:arena});
   begin(h,g,true);
 }
@@ -4645,6 +4646,11 @@ btnJ.addEventListener("click",()=>{
 });
 // Combat classé : la liaison passe toujours par PeerJS avec le code donné par le serveur de classement.
 NET.saveKit=saveKit;
+NET.teamOk=()=>{try{return validTeam(teamPicks())}catch(_){return false}};
+NET.rankedKick=()=>{ // combat classé : on renvoie "prêt" tant que le match n'a pas démarré (message perdu, hôte lent)
+  if(!NET.rk||NET.started||!peerHere||!inLobby)return;
+  myReady=true; myHello=mineHello(); relay({t:"ready",on:true,team:myHello.team}); maybeStart();
+};
 NET.rankedStart=function(info){
   NET.leave(); NET.rk={matchId:info.matchId,code:info.code,role:info.role}; role=info.role; myHello=mineHello(); mode="peer";
   btnC.disabled=btnJ.disabled=true; say("Connexion à l'adversaire…");
@@ -4850,7 +4856,7 @@ function rkRender(){
   const g=id=>document.getElementById(id);
   if(g("rkReg"))g("rkReg").onclick=rkRegister;
   if(g("rkName"))g("rkName").onkeydown=e=>{e.stopPropagation();if(e.key==="Enter")rkRegister()};
-  if(g("rkGo"))g("rkGo").onclick=()=>RK.state==="queue"?rkCancel():rkSearch();
+  if(g("rkGo"))g("rkGo").onclick=()=>RK.state==="queue"?rkCancel():rkSearch(false);
   if(g("rkTop"))g("rkTop").onclick=()=>{RK.board=!RK.board;rkRender();if(RK.board)rkBoard()};
 }
 async function rkRegister(){
@@ -4864,9 +4870,9 @@ async function rkBoard(){
     t.innerHTML=lb.length?lb.map(r=>'<tr><td>'+r.rank+'</td><td>'+r.name.replace(/[<>&]/g,"")+'</td><td>'+r.elo+'</td></tr>').join(""):'<tr><td>'+(LANG==="en"?"No ranked games yet":"Aucune partie classée pour l'instant")+'</td></tr>';
   }catch(_){rkMsg(LANG==="en"?"Ranking server unreachable":"Serveur de classement injoignable",true)}
 }
-function rkSearch(){
-  if(!RK.prof)return;
-  if(!NET.saveKit()){rkMsg(LANG==="en"?"Pick 3 Aces with 4 moves each first":"Choisis d'abord 3 Aces avec 4 sorts chacun",true);return}
+function rkSearch(auto){
+  if(!RK.prof)return; if(!auto)RK.retries=0;
+  if(!NET.saveKit()||!NET.teamOk()){RK.retries=99;rkMsg(LANG==="en"?"Invalid team: pick 3 different Aces with 4 valid moves each":"Équipe invalide : choisis 3 Aces différents avec 4 sorts valides chacun",true);return}
   RK.state="queue"; RK.since=performance.now(); RK.fresh=true; rkRender(); rkPoll();
 }
 async function rkPoll(){
@@ -4875,7 +4881,11 @@ async function rkPoll(){
     const r=await rkCall("/api/queue",{id:RK.prof.id,token:RK.prof.token,fresh:!!RK.fresh}); RK.fresh=false;
     if(RK.state!=="queue")return;
     if(r.status==="matched"){
-      RK.state="found"; RK.match={matchId:r.matchId,reported:false,started:false,oppName:r.opp.name}; async function rkMe(){if(!RK.prof)return; try{const m=await rkCall("/api/me",{id:RK.prof.id,token:RK.prof.token}); if(m&&m.elo){RK.prof.elo=m.elo;rkSave();if(RK.state==="idle")rkRender()}}catch(_){}}
+      RK.state="found"; RK.match={matchId:r.matchId,reported:false,started:false,oppName:r.opp.name,t0:performance.now()}; // chien de garde : tant que le combat n'a pas démarré, on renvoie "prêt" ; au bout de 40 s on abandonne proprement
+setInterval(()=>{const M=RK.match; if(RK.state!=="found"||!M||M.finished||NET.started)return;
+  if(NET.rankedKick)NET.rankedKick();
+  if(performance.now()-M.t0>40000)rkAbort(LANG==="en"?"The fight could not start (opponent unreachable). No rating change.":"Le combat n'a pas pu démarrer (adversaire injoignable). Aucun changement d'Elo.",true)},2000);
+async function rkMe(){if(!RK.prof)return; try{const m=await rkCall("/api/me",{id:RK.prof.id,token:RK.prof.token}); if(m&&m.elo){RK.prof.elo=m.elo;rkSave();if(RK.state==="idle")rkRender()}}catch(_){}}
 rkRender(); rkMe();
 rkCall("/api/health",null,true).then(h=>{const v=document.getElementById("rkVer");RK.sv=h.version;if(v)v.textContent="Serveur "+h.version}).catch(()=>{});
       rkMsg((LANG==="en"?"Opponent found: ":"Adversaire trouvé : ")+r.opp.name+" ("+r.opp.elo+")");
@@ -4900,9 +4910,18 @@ function rkReport(result,beacon){
   if(beacon)return rkBeacon("/api/report",b);
   return rkCall("/api/report",b).catch(()=>{M.reported=false});
 }
+function rkAbort(msg,retry){ // le combat n'a pas pu démarrer : on nettoie, on prévient, on relance la recherche (3 fois max)
+  const M=RK.match; RK.match=null; RK.state="idle";
+  try{NET.leave()}catch(_){}
+  if(RK.prof)rkCall("/api/queue/leave",{id:RK.prof.id,token:RK.prof.token}).catch(()=>{});
+  rkRender(); rkMsg(msg,true);
+  if(retry&&(RK.retries=(RK.retries||0)+1)<=3)setTimeout(()=>{if(RK.state==="idle"&&!RK.match){rkMsg((LANG==="en"?"New search… ":"Nouvelle recherche… ")+RK.retries+"/3");rkSearch(true)}},1800);
+}
 function rkEvent(ev,arg){
   const M=RK.match; if(!M)return;
-  if(ev==="fail"&&!M.started){RK.state="idle";RK.match=null;NET.rankedEvent=null;rkRender();rkMsg(LANG==="en"?"Could not connect to the opponent. No rating change.":"Connexion impossible avec l'adversaire. Aucun changement d'Elo.",true);return}
+  if(ev==="fail"&&!M.started&&!M.finished)return rkAbort(LANG==="en"?"Could not connect to the opponent. No rating change.":"Connexion impossible avec l'adversaire. Aucun changement d'Elo.",true);
+  if(ev==="badteam"&&!M.finished&&!NET.started)return rkAbort(LANG==="en"?"The opponent's team is invalid (or outdated version). No rating change.":"L'équipe de l'adversaire est invalide (ou version du jeu différente). Aucun changement d'Elo.",true);
+  if(ev==="peergone"&&!arg&&!M.finished)return rkAbort(LANG==="en"?"Opponent left before the fight. No rating change.":"L'adversaire est parti avant le combat. Aucun changement d'Elo.",true);
   if(ev==="peergone"&&arg&&!M.reported&&!M.finished){rkReport("win",true)}   // l'adversaire est parti en plein combat
   if(ev==="leave"&&arg&&!M.reported&&!M.finished){rkReport("loss",true)}      // je quitte en plein combat : défaite
   if(ev==="leave"){setTimeout(rkMe,3000);RK.state="idle"; if(!M.finished)RK.match=null; rkRender()}
@@ -4931,6 +4950,10 @@ function rkFinished(win,endEl){ // appelée à la fin d'un combat classé
 const rankedFinished=rkFinished;
 // la fiche se met à jour quand on revient dans l'onglet en ligne ; masquée dans un salon
 setInterval(()=>{rkBox.hidden=!!(rkRow&&rkRow.hidden)},300);
+// chien de garde : tant que le combat n'a pas démarré, on renvoie "prêt" ; au bout de 40 s on abandonne proprement
+setInterval(()=>{const M=RK.match; if(RK.state!=="found"||!M||M.finished||NET.started)return;
+  if(NET.rankedKick)NET.rankedKick();
+  if(performance.now()-M.t0>40000)rkAbort(LANG==="en"?"The fight could not start (opponent unreachable). No rating change.":"Le combat n'a pas pu démarrer (adversaire injoignable). Aucun changement d'Elo.",true)},2000);
 async function rkMe(){if(!RK.prof)return; try{const m=await rkCall("/api/me",{id:RK.prof.id,token:RK.prof.token}); if(m&&m.elo){RK.prof.elo=m.elo;rkSave();if(RK.state==="idle")rkRender()}}catch(_){}}
 rkRender(); rkMe();
 rkCall("/api/health",null,true).then(h=>{const v=document.getElementById("rkVer");RK.sv=h.version;if(v)v.textContent="Serveur "+h.version}).catch(()=>{});
