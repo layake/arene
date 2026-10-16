@@ -256,7 +256,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Choisis ton équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>Tortipousse, mannequin</small></button><button type="button" data-mode="duel" aria-pressed="false">Duel<small>contre l'autre Ace</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div>
 </div>
-<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.17 · 16/10/2026</b></footer>
+<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.18 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -2856,15 +2856,16 @@ function ballFx(e){
   const pal=["#ffffff","#ff5a4a","#ffd0c8","#e03020","#ffffff"];
   colorBurst(e.x,e.y-6,16,pal,24,90); rings.push({x:e.x,y:e.y-4,t:0,dur:.3,max:22,c:"#ffffff"});
 }
+const BALL_PIX=["..kkkkk..",".krrrrrk.","krhhrrrrk","krrrrrrrk","kkkkwkkkk","kwwwwwwwk","kwwwwwwgk",".kwwwggk.","..kkkkk.."];
+const BALL_COL={k:"#14171c",r:"#e8402e",h:"#ff9a8a",w:"#f4f4f4",g:"#b8b8c8"};
 function drawBall(x,y,r,open){
-  ctx.save(); ctx.translate(x,y);
-  ctx.fillStyle="#14171c"; ctx.beginPath(); ctx.arc(0,0,r+1,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle="#e8402e"; ctx.beginPath(); ctx.arc(0,0,r,Math.PI,0); ctx.fill();
-  ctx.fillStyle="#f4f4f4"; ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI); ctx.fill();
-  ctx.fillStyle="#14171c"; ctx.fillRect(-r,-1,r*2,2);
-  ctx.fillStyle="#f4f4f4"; ctx.beginPath(); ctx.arc(0,0,Math.max(1.5,r*.35),0,Math.PI*2); ctx.fill(); ctx.strokeStyle="#14171c"; ctx.lineWidth=1; ctx.stroke();
-  if(open){ctx.globalAlpha=.7;ctx.fillStyle="#ffffff";ctx.beginPath();ctx.arc(0,0,r*(1+open*1.2),0,Math.PI*2);ctx.fill();ctx.globalAlpha=1}
-  ctx.restore();
+  const ox=Math.round(x)-4, oy=Math.round(y)-4;
+  BALL_PIX.forEach((row,j)=>{for(let i=0;i<9;i++){const c=row[i]; if(c==="."||c===undefined)continue; ctx.fillStyle=BALL_COL[c]; ctx.fillRect(ox+i,oy+j,1,1)}});
+  if(open>0){ // etincelles en pixels qui s'ecartent
+    const d=Math.round(5+open*9); ctx.fillStyle="#ffffff";
+    [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]].forEach(([dx,dy])=>{const k=dx&&dy?.7:1; ctx.fillRect(Math.round(x+dx*d*k)-1,Math.round(y+dy*d*k)-1,2,2)});
+    ctx.fillStyle="#ffd0c8"; ctx.fillRect(Math.round(x)-1,Math.round(y)-d,2,2);
+  }
 }
 function drawSwap(e){
   const S=e.swapC, half=SWAP.t/2, s=e.sp.sheets[e.anim], a=e.sp.anch[e.anim][e.dir][e.frame];
