@@ -374,6 +374,24 @@ img,canvas{image-rendering:pixelated}
 #endscr button{font:600 18px "Pixelify Sans",var(--display);color:#ffe45e;background:#1b2a8a;border:3px solid #ffe45e;padding:8px 22px;cursor:pointer}
 #endscr button:hover{background:#2a3fc0}
 @keyframes epop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+
+header,footer{display:none!important}
+body{padding:0!important;gap:0!important}
+#stage{border:0!important;border-radius:0!important}
+#help{position:absolute!important;left:50%;top:50%;right:auto!important;transform:translate(-50%,-50%);z-index:70;width:min(420px,86vw)!important;font-size:15px!important;line-height:1.6;padding:16px 20px!important}
+.pmenu{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.pmenu button{font:500 16px "Pixelify Sans",var(--display);color:#fff;background:rgba(7,12,36,.55);border:2px solid #4a68c8;border-radius:6px;padding:7px 14px;min-height:38px;cursor:pointer}
+.pmenu button:hover{color:#ffe45e;border-color:#ffe45e}
+.credit{font:500 11px/1.4 "Pixelify Sans",var(--display);color:#7f95e8;margin-top:12px;max-width:340px;margin-inline:auto}
+.credit b{color:#ffe45e;font-weight:500}
+.tcredit{position:absolute;left:0;right:0;bottom:8px;max-width:none;text-align:center;margin:0;z-index:2}
+#gear{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:3;font:600 14px "Pixelify Sans",var(--display);color:#c9d6ff;background:rgba(7,12,36,.6);border:2px solid #4a68c8;padding:4px 10px;cursor:pointer;letter-spacing:2px}
+#gear:hover{color:#ffe45e;border-color:#ffe45e}
+#gear[hidden]{display:none}
+
+.pmenu{flex-direction:row}.pmenu button{flex:1}
+.tfoot{bottom:34px!important}
+.tcredit{bottom:6px}
 footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </style>
 
@@ -398,7 +416,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Choisis ton équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>Tortipousse, mannequin</small></button><button type="button" data-mode="duel" aria-pressed="false">Duel<small>contre l'autre Ace</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="rounds" role="group" aria-label="Manches"><span>Manches</span><button type="button" data-r="1">1</button><button type="button" data-r="3" aria-pressed="true">3</button><button type="button" data-r="5">5</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
 </div>
-<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.22 · 16/10/2026</b></footer>
+<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.23 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -3389,7 +3407,7 @@ const stageEl=document.getElementById("stage");
 })();
 // --- ecran titre ---
 var titleEl=document.createElement("div"); titleEl.id="title"; titleEl.hidden=true;
-titleEl.innerHTML='<canvas id="tcv"></canvas><div class="tbox"><div class="tpre">Combat en arène · 3 contre 3</div><h1><span>ARÈNE</span><b>DES ACES</b></h1><div class="tbtns"><button type="button" id="tPlay">Jouer</button><button type="button" id="tOnline">En ligne</button><button type="button" id="tHelp">Commandes</button></div></div><div class="tfoot">Entrée : jouer · <span id="tVer"></span></div>';
+titleEl.innerHTML='<canvas id="tcv"></canvas><div class="tbox"><div class="tpre">Combat en arène · 3 contre 3</div><h1><span>ARÈNE</span><b>DES ACES</b></h1><div class="tbtns"><button type="button" id="tPlay">Jouer</button><button type="button" id="tOnline">En ligne</button><button type="button" id="tHelp">Commandes</button></div></div><div class="tfoot">Entrée : jouer<span id="tVer"></span></div>';
 stageEl.appendChild(titleEl);
 const tcv=titleEl.querySelector("#tcv"), tctx2=tcv.getContext("2d");
 const T_SKY=["#1b2368","#26338a","#3a4fb0","#5c6fd0","#8d8ae0","#d98fb0","#f0a478"];
@@ -3417,7 +3435,7 @@ function titleDraw(now){
 }
 function showTitle(){
   titleEl.hidden=false; menuEl.hidden=true; menuOpen=true; try{musicSet("menu")}catch(_){}
-  const v=document.getElementById("ver"); document.getElementById("tVer").textContent=v?v.textContent:"";
+  const v=document.getElementById("ver"); document.getElementById("tVer").textContent="";
   titleResize(); tT0=performance.now(); if(!tRaf)tRaf=requestAnimationFrame(titleDraw);
 }
 function leaveTitle(tab){
@@ -3463,6 +3481,21 @@ function showResult(){
 }
 // invite : detecte la fin de match via le score
 setInterval(()=>{if(NET.guest&&NET.started&&!endShown&&matchWon()&&!menuOpen&&(!player||player.ko<=0.0001||true)){if(!window._endT)window._endT=setTimeout(()=>{window._endT=0;if(matchWon()&&!menuOpen)showResult()},2400)}},250);
+// --- habillage : plus de barre, menu pause propre ---
+var _helpEl=document.getElementById("help"); stageEl.appendChild(_helpEl);
+var _credit=document.querySelector("footer").innerHTML;
+var _pb=document.querySelector("#pause .pbox");
+(function(){
+  const wrap=document.createElement("div"); wrap.className="pmenu";
+  wrap.innerHTML='<button type="button" id="pCast"></button><button type="button" id="pMenu">Quitter vers le menu</button>';
+  _pb.insertBefore(wrap,_pb.querySelector(".vols"));
+  const cast=wrap.querySelector("#pCast"), lab=()=>{cast.textContent=document.getElementById("mode").textContent};
+  cast.onclick=()=>{document.getElementById("mode").click();lab()}; lab();
+  wrap.querySelector("#pMenu").onclick=()=>{_helpEl.hidden=true;hideResult();openMenu()};
+    const t=document.createElement("div"); t.className="credit tcredit"; t.innerHTML=_credit; titleEl.appendChild(t);
+  const g=document.createElement("button"); g.id="gear"; g.type="button"; g.title="Pause (Échap)"; g.textContent="II"; g.onclick=()=>setPause(true); stageEl.appendChild(g);
+  setInterval(()=>{g.hidden=menuOpen||!titleEl.hidden||endShown||vsT>0||paused},200);
+})();
 // affiche le titre au chargement
 showTitle();
 
