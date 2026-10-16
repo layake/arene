@@ -290,7 +290,7 @@ function frame(now){
   pops.forEach(q=>q.t+=dt); for(let i=pops.length-1;i>=0;i--)if(pops[i].t>(pops[i].col?1.2:.9))pops.splice(i,1);
   shake=Math.max(0,shake-dt);
   if(marker){marker.t+=dt;if(!player.moveTarget&&marker.t>.35)marker=null}
-  fighters.forEach(e=>{for(const k in e.cd)e.cd[k]=Math.max(0,e.cd[k]-dt); e.pp=Math.min(PP_MAX,e.pp+PP_REGEN*dt); e.comboT=Math.max(0,e.comboT-dt); for(const k in e.bf){e.bf[k]-=dt;if(e.bf[k]<=0)delete e.bf[k]} e.slow=Math.max(0,e.slow-dt); if(e.inv>0)e.inv-=dt; e.psn=Math.max(0,e.psn-dt); if(e.counter){e.counter.t-=dt;if(e.counter.t<=0){e.counter=null;e.lock=MBURST.rec}}});
+  fighters.forEach(e=>{for(const k in e.cd)e.cd[k]=Math.max(0,e.cd[k]-dt); e.pp=Math.min(PP_MAX,e.pp+PP_REGEN*dt); e.comboT=Math.max(0,e.comboT-dt); for(const k in e.bf){e.bf[k]-=dt;if(e.bf[k]<=0)delete e.bf[k]} if(e.team)e.team.forEach((m,i)=>{if(i!==e.ti&&m.cd)for(const k in m.cd)m.cd[k]=Math.max(0,m.cd[k]-dt)}); e.slow=Math.max(0,e.slow-dt); if(e.inv>0)e.inv-=dt; e.psn=Math.max(0,e.psn-dt); if(e.counter){e.counter.t-=dt;if(e.counter.t<=0){e.counter=null;e.lock=MBURST.rec}}});
   glows.forEach(g=>g.t+=dt); for(let i=glows.length-1;i>=0;i--)if(glows[i].t>glows[i].life)glows.splice(i,1);
   rings.forEach(r=>r.t+=dt); for(let i=rings.length-1;i>=0;i--)if(rings[i].t>rings[i].dur)rings.splice(i,1);
   holes.forEach(q=>q.t+=dt); for(let i=holes.length-1;i>=0;i--)if(holes[i].t>holes[i].life)holes.splice(i,1);
