@@ -1,3 +1,4 @@
+import os
 import re
 src=open('carchacrok_v58_backup.html',encoding='utf-8').read().split('\n')
 head='\n'.join(src[:108]); data=src[108:132]
