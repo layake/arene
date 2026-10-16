@@ -77,9 +77,9 @@ function showResult(){
   endEl.className=win?"win":"lose";
   endEl.innerHTML='<div class="ebox"><h2>'+(win?"VICTOIRE":"DÉFAITE")+'</h2><div class="esc"><b>'+score.me+'</b><i>-</i><b>'+score.foe+'</b></div><small>'+(bestOf===1?'Match en 1 round':'Premier à '+winsNeeded()+' rounds')+'</small><div class="ebtn">'+(NET.on?"":'<button type="button" id="eRe">Revanche</button>')+'<button type="button" id="eMenu">'+(NET.on?"Retour au salon":"Sélection d\'équipe")+'</button>'+'</div></div>';
   endEl.hidden=false; try{sfxUI(win?"ko":"click")}catch(_){}
-  if(NET.rk&&typeof rankedFinished==="function")rankedFinished(win,endEl);
   const re=endEl.querySelector("#eRe"); if(re)re.onclick=()=>{hideResult(); startMatch(picks.slice(),matchMode)};
   endEl.querySelector("#eMenu").onclick=()=>{hideResult(); openMenu()};
+  if(NET.rk&&typeof rankedFinished==="function")rankedFinished(win,endEl);
 }
 // invite : detecte la fin de match via le score
 setInterval(()=>{if(NET.guest&&NET.started&&!endShown&&matchWon()&&!menuOpen&&(!player||player.ko<=0.0001||true)){if(!window._endT)window._endT=setTimeout(()=>{window._endT=0;if(matchWon()&&!menuOpen)showResult()},2400)}},250);
