@@ -16,13 +16,19 @@ Chaque capacité appartient à une famille de sensation. Le moteur doit savoir l
 | Mêlée | coup devant soi | `defMelee` (`moves.js`) | Plaquage, Mâchouille |
 | Jet continu | flux qui sort du Pokémon pendant ~1 s, suit la visée, touche à chaque tick | `defStream` (`streams.js`) | Lance-Flammes |
 | Projectile unique | un tir net | `PROJ` + `fireBolt` | Ball'Ombre |
-| Rayon | trait instantané ou chargé | `beams` | Rayon Psy |
+| Rayon | trait instantané qui reste visible 0,4 s | `defRay` (`archetypes.js`) | Laser Glace |
+| Vague en éventail | un front qui s'étend devant soi et touche une fois | `defWave` (`archetypes.js`) | Canicule |
 | Zone / onde | expansion autour de soi ou d'un point | `GZ` + `spawnGZ` | Séisme |
 | Charge | le Pokémon se déplace | `RUSHES` | Aqua-Jet |
 | Buff / statut | effet sur soi | `BUFF` | Danse-Lames |
 
 - [ ] L'archétype est choisi **d'après ce que fait la capacité dans le vrai jeu** (ex. Lance-Flammes = jet continu, pas une boule).
 - [ ] Une capacité qui n'a pas d'archétype dans le moteur : on crée l'archétype d'abord.
+
+### Rayon (`defRay`) et vague (`defWave`)
+`defRay({id,style,pal,reach,half,push,noise,onHit,desc,en})` : touche instantanément la ligne devant soi, arrêté par les obstacles (qui s'abîment). Style `ice` disponible.
+`defWave({id,style,pal,reach,r0,cone,dur,push,noise,onHit,desc,en})` : front d'éventail qui avance de `r0` à `reach` en `dur` secondes, touche une seule fois. Style `fire` disponible.
+Zones d'impacts : le style `draco` fait tomber de vrais météores (Draco-Météore).
 
 ### Jet continu (`defStream`)
 Le flux part de la bouche du Pokémon, suit la visée pendant `dur` secondes, touche toutes les `tick` secondes (`tickPower` par tick), peut brûler / ralentir. Il s'interrompt si le lanceur est étourdi. Styles : `fire` (blobs qui montent et s'étalent), `water` (blobs mous qui retombent en arc). Pour un nouveau rendu, ajouter un style dans `STREAM_STYLE`.
