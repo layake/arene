@@ -28,7 +28,7 @@ function makeDummy(x,y){
   e.ai={wait:rand(1,2.5),tx:x,ty:y,speed:26,atk:null,atkCd:3}; e.hat=true;
   return e;
 }
-const START_A=[WORLD.w/2-55,WORLD.h/2+10], START_B=[WORLD.w/2+55,WORLD.h/2+20];
+const START_A=[WORLD.w/2-55,WORLD.h/2+10], START_B=[WORLD.w/2+55,WORLD.h/2+20]; // repris par setArena (arena.js)
 function resetRound(){
   if(typeof hideBanner==="function")hideBanner(); if(typeof obstReset==="function")obstReset();
   if((matchMode==="duel"||matchMode==="rush")&&typeof introPending!=="undefined")introPending=true;

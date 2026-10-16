@@ -142,7 +142,8 @@ function setArena(id){
   OBST.length=0; A.obst(cx,cy).forEach(o=>{const kk=o[3]==="pillarB"?"pillar":o[3],K=OBK[kk];
     const spr=SPR_CACHE[o[3]]||(SPR_CACHE[o[3]]=[0,1,2].map(st=>{const c=mkCv(OW,OH);K.draw.call(K,c.getContext("2d"),st,o[3]==="pillarB");return c}).concat([rubble(K)]));
     OBST.push({x:o[0],y:o[1],r:K.r,k:kk,hp:K.hp,max:K.hp,dead:false,hurtAt:0,spr})});
-  START_A[0]=cx-55; START_A[1]=cy+10; START_B[0]=cx+55; START_B[1]=cy+20;
+  const SDX=100; START_A[0]=Math.max(AB.x0+24,cx-SDX); START_A[1]=cy+10; START_B[0]=Math.min(AB.x1-24,cx+SDX); START_B[1]=cy+20; // 200 px d'écart au départ
+  [START_A,START_B].forEach(P=>{for(let it=0;it<6;it++)OBST.forEach(c=>{const dx=P[0]-c.x, dy=P[1]-c.y, d=Math.hypot(dx,dy)||1, m=c.r+30; if(d<m){P[0]+=dx/d*(m-d); P[1]+=dy/d*(m-d)}})}); // jamais collé à un obstacle
   if(!A.decoF&&A.deco)A.decoF=A.deco(A); arenaDeco=A.decoF||null;
 }
 // ---------- dégâts sur les obstacles ----------
