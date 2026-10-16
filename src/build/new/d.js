@@ -188,6 +188,7 @@ function knockOut(t,att){
   sfxUI("ko");
   t.ko=1.6; t.kb=null; t.counter=null; t.rush=null; t.chan=null; t.tunnel=null; t.shieldOn=false;
   const more=teamKO(t);
+  if(matchMode==="rush"&&!more){rushKO(t);return}
   if(!more&&matchMode==="duel"&&!NET.guest){if(t===player)score.foe++;else score.me++}
   if(!more&&matchMode==="duel"){t.ko=2.6; if(typeof showBanner==="function"){const over=typeof matchWon==="function"&&matchWon(); showBanner(over?(t===player?"DÉFAITE":"VICTOIRE"):(t===player?"ROUND PERDU":"ROUND GAGNÉ"),t===player?"lose":"win")}}
   showLog(t.sp.name+" est K.O. !",1600);
@@ -198,6 +199,7 @@ function updateKO(e,dt){
   if(e.ko<=0){
     if(e.team&&!NET.guest&&teamAlive(e)>0)teamEnter(e);
     else if(e.ai){e.x=clampX(player.x+rand(-110,110));e.y=clampY(player.y+rand(-70,70));e.hp=e.maxHp;e.hpShow=0;e.kb=null;setAnim(e,"idle");e.ai.wait=rand(.6,1.4);e.ai.tx=e.x;e.ai.ty=e.y}
+    else if(matchMode==="rush"){if(e===foe)rushNext();else rushEnd(false)}
     else if(!NET.guest){if(matchWon()&&typeof showResult==="function")showResult();else resetRound()}
   }
 }

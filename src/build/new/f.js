@@ -54,7 +54,7 @@ const DIFFS={
   hard:{think:[.15,.35],shield:7,dodge:1,lead:1,aggr:1.1,kit:2}
 };
 let diff="normal";
-const DF=()=>DIFFS[diff]||DIFFS.normal;
+const DF=()=>DIFFS[(typeof MARA!=="undefined"&&MARA&&matchMode==="rush")?rushStage(MARA.i):diff]||DIFFS.normal;
 function aimTo(e,t,chest,lead){
   const l=(lead||0)*DF().lead;
   e.aimPt={wx:t.x+(t.vx||0)*l,wy:t.y+(t.vy||0)*l-(chest?t.sp.body:0)};
@@ -172,5 +172,21 @@ function thinkBot(e,dt){
   if(e.shieldOn||e.stun>0)return;
   b.think-=dt;
   if(!botBusy(e)&&b.think<=0){b.think=rand(DF().think[0],DF().think[1]);botDecide(e,t,d)}
-  if(!botBusy(e))botSteer(e,t,d,dt);
+  if(!botBusy(e)){botSteer(e,t,d,dt);botAvoid(e)}
+}
+// Contournement : si la ligne droite vers la destination traverse un obstacle, on vise un point de détour sur le côté.
+function botAvoid(e){
+  const m=e.moveTarget; if(!m||typeof OBST==="undefined"||!OBST.length||e.tunnel||e.rush)return;
+  const g=m.orig||m, ax=e.x, ay=e.y/ISO, bx=g.x, by=g.y/ISO, vx=bx-ax, vy=by-ay, L2=vx*vx+vy*vy; if(L2<1)return;
+  let hit=null, ht=2;
+  for(const c of OBST){ if(c.dead)continue;
+    const R=c.r+e.sp.body*.3+4, cx=c.x, cy=c.y/ISO, u=((cx-ax)*vx+(cy-ay)*vy)/L2; if(u<=0||u>=1.05)continue;
+    const px=ax+vx*u-cx, py=ay+vy*u-cy, dd=Math.hypot(px,py);
+    if(dd<R&&u<ht){hit=c;ht=u}
+  }
+  if(!hit){ if(m.orig)e.moveTarget=m.orig; return }
+  const R=hit.r+e.sp.body*.3+16, cx=hit.x, cy=hit.y/ISO, L=Math.sqrt(L2), nx=-vy/L, ny=vx/L;
+  const side=((cx-ax)*nx+(cy-ay)*ny)>=0?-1:1; // du côté opposé au centre par rapport à la trajectoire
+  const wx=clampX(cx+nx*R*side), wy=clampY((cy+ny*R*side)*ISO);
+  e.moveTarget={x:wx,y:wy,det:true,orig:m.orig||{x:m.x,y:m.y,chase:m.chase}};
 }

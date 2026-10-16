@@ -295,6 +295,7 @@ function frame(now){
   rings.forEach(r=>r.t+=dt); for(let i=rings.length-1;i>=0;i--)if(rings[i].t>rings[i].dur)rings.splice(i,1);
   holes.forEach(q=>q.t+=dt); for(let i=holes.length-1;i>=0;i--)if(holes[i].t>holes[i].life)holes.splice(i,1);
   trail.forEach(q=>q.t+=dt); for(let i=trail.length-1;i>=0;i--)if(trail[i].t>.8)trail.splice(i,1);
+  if(typeof rushTick==="function")rushTick(dt);
   updateHud();
   if(logTimer>0){logTimer-=dt;if(logTimer<=0)logEl.hidden=true}
   draw(); requestAnimationFrame(frame);
