@@ -449,7 +449,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Sélection d'équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>mannequin d'entraînement</small></button><button type="button" data-mode="duel" aria-pressed="false">Versus<small>contre un adversaire</small></button><button type="button" data-mode="rush" aria-pressed="false">Marathon<small>Tous les Pokémon d'affilée, au chrono</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="rounds" role="group" aria-label="Rounds"><span>Rounds</span><button type="button" data-r="1">1</button><button type="button" data-r="3" aria-pressed="true">3</button><button type="button" data-r="5">5</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
 </div>
-<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.65 · 16/10/2026</b></footer>
+<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.66 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -872,7 +872,8 @@ function makeEntity(species,x,y){
 }
 // Panoplies choisies (4 sorts parmi les 8 de l'Ace), mémorisées d'une session à l'autre.
 const KITS={};
-try{const k=JSON.parse(localStorage.getItem("aceKits")||"{}");for(const s in k)if(SPECIES[s]&&Array.isArray(k[s])&&k[s].length===4&&k[s].every(id=>SPECIES[s].pool.includes(id))&&new Set(k[s]).size===4)KITS[s]=k[s]}catch(_){}
+var KITS_RAW={}; try{KITS_RAW=JSON.parse(localStorage.getItem("aceKits")||"{}")||{}}catch(_){} // relu dans ui2.js, une fois tous les Pokémon chargés
+try{const k=KITS_RAW;for(const s in k)if(SPECIES[s]&&Array.isArray(k[s])&&k[s].length===4&&k[s].every(id=>SPECIES[s].pool.includes(id))&&new Set(k[s]).size===4)KITS[s]=k[s]}catch(_){}
 const kitOf=key=>KITS[key]||SPECIES[key].kit;
 function makeFighter(species,x,y,bot,kit){
   const e=makeEntity(species,x,y);
@@ -4926,6 +4927,20 @@ showTitle();
 
 // écran tactile seul : prévenir que le jeu se joue à la souris et au clavier
 try{if(matchMedia("(pointer:coarse)").matches&&!matchMedia("(any-pointer:fine)").matches){const n=document.createElement("div");n.id="touchNote";n.textContent="Jeu prévu pour ordinateur : souris + clavier";titleEl.appendChild(n);if(LANG==="en"&&typeof retranslateAll==="function")retranslateAll()}}catch(_){}
+
+// ---- mémoire des sets et de l'équipe : relue après le chargement de tous les Pokémon, sauvegardée à chaque changement ----
+(function(){
+  const validKit=(s,k)=>SPECIES[s]&&Array.isArray(k)&&k.length===4&&new Set(k).size===4&&k.every(id=>SPECIES[s].pool.includes(id));
+  for(const s in KITS_RAW)if(validKit(s,KITS_RAW[s])){KITS[s]=KITS_RAW[s].slice(); delete draft[s]}
+  try{const t=JSON.parse(localStorage.getItem("aceTeam")||"[]"); if(Array.isArray(t)){const ok=t.filter((k,i)=>SPECIES[k]&&SPECIES[k].playable&&t.indexOf(k)===i).slice(0,3); if(ok.length){picks=ok; if(!picks.includes(pick))pick=picks[0]}}}catch(_){}
+  const _rm=refreshMenu;
+  refreshMenu=function(){
+    _rm.apply(this,arguments);
+    let ch=false; for(const k in draft){const d=draft[k]; if(validKit(k,d)&&JSON.stringify(KITS[k])!==JSON.stringify(d)){KITS[k]=d.slice(); ch=true}}
+    try{ if(ch)localStorage.setItem("aceKits",JSON.stringify(KITS)); localStorage.setItem("aceTeam",JSON.stringify(picks)) }catch(_){}
+  };
+  try{refreshMenu()}catch(_){}
+})();
 
 /* ===== Mode Marathon : tous les Aces à la suite, équipe de 1 à 3 sans soin entre les duels, classement victoires puis temps ===== */
 var MARA=null;

@@ -13,7 +13,8 @@ function makeEntity(species,x,y){
 }
 // Panoplies choisies (4 sorts parmi les 8 de l'Ace), mémorisées d'une session à l'autre.
 const KITS={};
-try{const k=JSON.parse(localStorage.getItem("aceKits")||"{}");for(const s in k)if(SPECIES[s]&&Array.isArray(k[s])&&k[s].length===4&&k[s].every(id=>SPECIES[s].pool.includes(id))&&new Set(k[s]).size===4)KITS[s]=k[s]}catch(_){}
+var KITS_RAW={}; try{KITS_RAW=JSON.parse(localStorage.getItem("aceKits")||"{}")||{}}catch(_){} // relu dans ui2.js, une fois tous les Pokémon chargés
+try{const k=KITS_RAW;for(const s in k)if(SPECIES[s]&&Array.isArray(k[s])&&k[s].length===4&&k[s].every(id=>SPECIES[s].pool.includes(id))&&new Set(k[s]).size===4)KITS[s]=k[s]}catch(_){}
 const kitOf=key=>KITS[key]||SPECIES[key].kit;
 function makeFighter(species,x,y,bot,kit){
   const e=makeEntity(species,x,y);

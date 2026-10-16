@@ -117,3 +117,17 @@ showTitle();
 
 // écran tactile seul : prévenir que le jeu se joue à la souris et au clavier
 try{if(matchMedia("(pointer:coarse)").matches&&!matchMedia("(any-pointer:fine)").matches){const n=document.createElement("div");n.id="touchNote";n.textContent="Jeu prévu pour ordinateur : souris + clavier";titleEl.appendChild(n);if(LANG==="en"&&typeof retranslateAll==="function")retranslateAll()}}catch(_){}
+
+// ---- mémoire des sets et de l'équipe : relue après le chargement de tous les Pokémon, sauvegardée à chaque changement ----
+(function(){
+  const validKit=(s,k)=>SPECIES[s]&&Array.isArray(k)&&k.length===4&&new Set(k).size===4&&k.every(id=>SPECIES[s].pool.includes(id));
+  for(const s in KITS_RAW)if(validKit(s,KITS_RAW[s])){KITS[s]=KITS_RAW[s].slice(); delete draft[s]}
+  try{const t=JSON.parse(localStorage.getItem("aceTeam")||"[]"); if(Array.isArray(t)){const ok=t.filter((k,i)=>SPECIES[k]&&SPECIES[k].playable&&t.indexOf(k)===i).slice(0,3); if(ok.length){picks=ok; if(!picks.includes(pick))pick=picks[0]}}}catch(_){}
+  const _rm=refreshMenu;
+  refreshMenu=function(){
+    _rm.apply(this,arguments);
+    let ch=false; for(const k in draft){const d=draft[k]; if(validKit(k,d)&&JSON.stringify(KITS[k])!==JSON.stringify(d)){KITS[k]=d.slice(); ch=true}}
+    try{ if(ch)localStorage.setItem("aceKits",JSON.stringify(KITS)); localStorage.setItem("aceTeam",JSON.stringify(picks)) }catch(_){}
+  };
+  try{refreshMenu()}catch(_){}
+})();
