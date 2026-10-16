@@ -182,6 +182,37 @@ canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelate
 .aimsel button{flex:1;font:500 13px "Pixelify Sans",var(--display);color:#c9d6ff;background:rgba(7,12,36,.55);border:2px solid #4a68c8;border-radius:6px;padding:5px 8px;min-height:34px;cursor:pointer}
 .aimsel button[aria-pressed=true]{color:#ffe45e;border-color:#ffe45e}
 .aimsel p{margin:4px 0 0;font-size:11px;color:#9fb4ff;line-height:1.3}
+
+#fhud{position:absolute;left:0;right:0;top:0;display:flex;justify-content:space-between;gap:8px;padding:6px;pointer-events:none;z-index:5}
+#fhud .ht{flex:1;max-width:min(46%,340px);display:flex;gap:6px;align-items:stretch;background:rgba(14,16,28,.78);border:2px solid #e8e8f0;border-radius:6px;padding:4px;box-shadow:0 2px 0 #000a;color:#fff;font:700 12px/1.1 system-ui,sans-serif;transition:box-shadow .2s}
+#fhud .ht.foe{flex-direction:row-reverse;text-align:right}
+#fhud .hp-pt{width:44px;height:44px;flex:none;background:#2a2e48;border:2px solid #8a90b8;border-radius:4px;overflow:hidden}
+#fhud .ht.me .hp-pt{border-color:#5fb0ff}#fhud .ht.foe .hp-pt{border-color:#ff7a6a}
+#fhud .hp-pt img{width:100%;height:100%;image-rendering:pixelated;display:block}
+#fhud .foe .hp-pt img{transform:scaleX(-1)}
+#fhud .hb{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;justify-content:center}
+#fhud .hn{display:flex;gap:5px;align-items:center;white-space:nowrap;overflow:hidden}
+#fhud .foe .hn{flex-direction:row-reverse}
+#fhud .hn b{font-size:13px;letter-spacing:.3px;overflow:hidden;text-overflow:ellipsis}
+#fhud .hty u{text-decoration:none;font-size:9px;padding:1px 4px;border-radius:3px;margin:0 1px;color:#fff;text-shadow:0 1px 0 #0008}
+#fhud .hst{font-size:11px}
+#fhud .hbar{position:relative;height:14px;background:#10121c;border:2px solid #000;border-radius:3px;overflow:hidden}
+#fhud .hbar i{position:absolute;left:0;top:0;bottom:0;width:100%}
+#fhud .foe .hbar i{left:auto;right:0}
+#fhud .hbar .gh{background:#fff;opacity:.85;transition:width .6s ease .35s}
+#fhud .hbar .fl{transition:width .15s linear,background .2s;box-shadow:inset 0 3px 0 #fff4}
+#fhud .hbar em{position:absolute;inset:0;font:700 10px/10px system-ui,sans-serif;font-style:normal;text-align:center;color:#fff;text-shadow:0 1px 1px #000,0 0 3px #000;padding-top:0}
+#fhud .pbar{height:5px;background:#10121c;border:1px solid #000;border-radius:3px;overflow:hidden}
+#fhud .pbar i{display:block;height:100%;background:linear-gradient(#6cc8ff,#2c7be0);transition:width .1s linear}
+#fhud .pips{display:flex;gap:3px;min-height:0}#fhud .foe .pips{justify-content:flex-end}
+#fhud .pips s{width:9px;height:9px;border-radius:50%;border:2px solid #fff8;background:transparent}
+#fhud .pips s.on{background:#ffd23c;border-color:#ffd23c}
+#fhud .pips:empty{display:none}
+#fhud .ht.low{animation:hlow .5s infinite alternate}
+@keyframes hlow{to{box-shadow:0 0 10px #f44}}
+#fhud .ht.ko{filter:grayscale(1);opacity:.7}
+@media(max-width:560px){#fhud{padding:3px;gap:4px}#fhud .ht{max-width:49%;padding:3px;gap:4px}#fhud .hp-pt{width:34px;height:34px}#fhud .hn b{font-size:11px}#fhud .hty{display:none}#fhud .hbar{height:12px}}
+#fhud .pips{font-size:11px;color:#ffd23c}
 footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </style>
 
@@ -2067,14 +2098,40 @@ function setSlot(btn,cd,max,active,cost){
   if(key===t.last)return; t.last=key;
   btn.style.setProperty("--cd",f.toFixed(3)); t.t.textContent=txt; btn.setAttribute("aria-disabled",String(cd>0)); btn.classList.toggle("aim",active); btn.classList.toggle("nopp",!afford);
 }
+
+/* ===== HUD de combat ===== */
+const HUD_TC={normal:"#a8a878",fire:"#f08030",water:"#6890f0",electric:"#f8d030",grass:"#78c850",ice:"#98d8d8",fighting:"#c03028",poison:"#a040a0",ground:"#e0c068",flying:"#a890f0",psychic:"#f85888",bug:"#a8b820",rock:"#b8a038",ghost:"#705898",dragon:"#7038f8",dark:"#705848",steel:"#b8b8d0",fairy:"#ee99ac"};
+const hudEl=document.createElement("div"); hudEl.id="fhud";
+hudEl.innerHTML=["me","foe"].map(s=>'<div class="ht '+s+'"><div class="hp-pt"><img alt=""></div><div class="hb"><div class="hn"><b></b><span class="hty"></span><span class="hst"></span></div><div class="hbar"><i class="gh"></i><i class="fl"></i><em></em></div><div class="pbar"><i></i></div><div class="pips"></div></div></div>').join("");
+document.getElementById("stage").appendChild(hudEl);
+const HT={me:hudEl.querySelector(".ht.me"),foe:hudEl.querySelector(".ht.foe")};
+Object.values(HT).forEach(t=>{t.img=t.querySelector("img");t.nm=t.querySelector(".hn b");t.ty=t.querySelector(".hty");t.st=t.querySelector(".hst");t.gh=t.querySelector(".gh");t.fl=t.querySelector(".fl");t.num=t.querySelector(".hbar em");t.pp=t.querySelector(".pbar i");t.pips=t.querySelector(".pips");t.k=""});
+function hudTile(t,e,pts,show){
+  const key=e.key+"|"+e.sp.name; if(t.k!==key){t.k=key;t.img.src=PORTRAITS[e.key]||"";t.nm.textContent=e.sp.name;t.ty.innerHTML=e.sp.types.map(x=>'<u style="background:'+(HUD_TC[x]||"#888")+'">'+TYPE_FR[x]+'</u>').join("")}
+  const f=clamp(e.hp/e.maxHp,0,1), c=f>.5?"#5fd35f":f>.2?"#f0c030":"#e84040";
+  t.fl.style.width=(f*100).toFixed(1)+"%"; t.fl.style.background=c; t.gh.style.width=(f*100).toFixed(1)+"%";
+  t.classList.toggle("low",f<=.2&&e.ko<=0); t.classList.toggle("ko",e.ko>0);
+  const n=Math.max(0,Math.ceil(e.hp))+" / "+e.maxHp; if(t.num.textContent!==n)t.num.textContent=n;
+  t.pp.parentNode.style.display=e===player?"":"none"; if(e===player)t.pp.style.width=(clamp(e.pp/PP_MAX,0,1)*100).toFixed(1)+"%";
+  const st=[]; if(e.burn>0)st.push("🔥"); if(e.psn>0)st.push("☠"); if(e.slow>0)st.push("❄"); if(e.stun>0)st.push("💫"); if(e.shieldOn)st.push("🛡");
+  if(e.bf)for(const k in e.bf)if(e.bf[k]>0)st.push("⬆");
+  const s=st.join(" "); if(t.st.textContent!==s)t.st.textContent=s;
+  const p=show?String(pts):""; if(t.pips.dataset.v!==p){t.pips.dataset.v=p;t.pips.textContent=show?"★ "+pts+(pts>1?" KO":" KO"):""}
+}
+function hudUpdate(){
+  const duel=matchMode==="duel"; hudEl.style.display=(menuOpen||!player||!foe)?"none":"";
+  if(!player||!foe)return;
+  hudTile(HT.me,player,score.me,duel); hudTile(HT.foe,foe,score.foe,duel);
+}
 const scoreEl=document.getElementById("score"); let scoreTxt="";
 function updateHud(){
+  hudUpdate();
   slotBtns.forEach((btn,i)=>{
     const id=player.kit[i], sp=SPL[id], ch=(id==="rush"&&player.rush&&player.rush.ph==="chan")||(id==="gleam"&&!!player.chan)||(!!SPL[id].buff&&!!player.bf[SPL[id].buff])||((id==="mburst"||id==="riposte")&&!!player.counter);
     setSlot(btn,cdOf(player,id),sp.cd,aiming===id||ch,sp.cost);
   });
   const pr=String(!!player.shieldOn); if(shdBtn.getAttribute("aria-pressed")!==pr)shdBtn.setAttribute("aria-pressed",pr);
-  const txt=matchMode==="duel"?player.sp.name+" "+score.me+" : "+score.foe+" "+foe.sp.name:"";
+  const txt="";
   if(txt!==scoreTxt){scoreTxt=txt;scoreEl.textContent=txt}
 }
 slotBtns.forEach((btn,i)=>btn.addEventListener("click",()=>{if(!menuOpen&&!paused&&player.ko<=0)cast(player,player.kit[i])}));
