@@ -51,7 +51,7 @@ function updateStreams(dt){
     S.nt-=dt;
     if(S.nt<=0){ S.nt=d.tick;
       let len=d.reach; for(let q=12;q<=d.reach;q+=6){ if(arenaShot({x:e.x+f[0]*q,y:e.y+f[1]*q,id:"~"+d.id})){len=q;break} } S.len=len;
-      if(alive(t)&&!t.tunnel){
+      for(const t of foesOf(e))if(alive(t)&&!t.tunnel){
         const dx=t.x-mx, dy=(t.y-t.sp.body)-my, along=dx*f[0]+dy*f[1], lat=Math.abs(dx*-f[1]+dy*f[0]);
         if(along>0&&along<len+t.sp.body*.5&&lat<d.width+(d.spread||0)*Math.max(0,along)/d.reach+t.sp.body*.5){
           const sp=Object.assign({},SPL[d.id],{power:d.tickPower});

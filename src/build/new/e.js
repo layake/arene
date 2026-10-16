@@ -28,7 +28,8 @@ function clawHit(e){
   const assist=ok&&td>0&&td<CLAW_ASSIST&&along/td>=CLAW_CONE, reach=assist?clamp(along,20,32):20;
   fx.push({k:"claw",x:bx+f[0]*reach,y:by+f[1]*reach,sy:e.y+f[1]*reach+.01,f,t:0});
   logFor(e,e.sp.name+" utilise Draco-Griffe !",1800);
-  if(ok&&(assist||Math.hypot(tx-f[0]*20,ty-f[1]*20)<14))strike(e,t,SPL.claw,{from:e,push:e.comboClaw?CLAW_COMBO_PUSH:CLAW_PUSH,contact:true});
+  const one=v=>strike(e,v,SPL.claw,{from:e,push:e.comboClaw?CLAW_COMBO_PUSH:CLAW_PUSH,contact:true}), p=ok&&(assist||Math.hypot(tx-f[0]*20,ty-f[1]*20)<14);
+  if(p)one(t); meleeOthers(e,p?t:null,bx+f[0]*reach,by+f[1]*reach,14,one);
 }
 // Choc Mental : une onde psychique devant le lanceur, portée un peu plus longue.
 function waveHit(e,id){
@@ -38,7 +39,8 @@ function waveHit(e,id){
   const assist=ok&&td>0&&td<CONF.assist&&along/td>=CONF.cone, reach=assist?clamp(along,22,CONF.reach):22;
   fx.push({k:id==="scl"?"claw":"wave",x:bx+f[0]*reach,y:by+f[1]*reach,sy:e.y+f[1]*reach+.01,f,t:0,pal:WP});
   logFor(e,e.sp.name+" utilise "+SPL[id].name+" !",1800);
-  if(ok&&(assist||Math.hypot(tx-f[0]*22,ty-f[1]*22)<16))strike(e,t,SPL[id],{from:e,push:CONF.push,contact:true});
+  const one=v=>strike(e,v,SPL[id],{from:e,push:CONF.push,contact:true}), p=ok&&(assist||Math.hypot(tx-f[0]*22,ty-f[1]*22)<16);
+  if(p)one(t); meleeOthers(e,p?t:null,bx+f[0]*reach,by+f[1]*reach,16,one);
 }
 // Projectiles (Tir de Boue, Pouvoir Lunaire)
 function fireBolt(e,id){
@@ -53,7 +55,7 @@ function updateOrbs(dt){
     if(o.id!=="mud"&&Math.random()<dt*40){const pl=TYPE_PAL[SPL[o.id].type];spark(o.x+rand(-3,3),o.y-14+rand(-3,3),rand(-14,14),rand(-14,14),rand(.25,.45),pl[Math.floor(rand(0,5))],0,2)} let left=P.speed*dt, gone=false;
     while(left>0&&!gone){
       const st=Math.min(4,left); left-=st; o.x+=o.vx*st; o.y+=o.vy*st; o.trav+=st;
-      const t=foeOf(o.o);
+      const t=foeAt(o.o,o.x,o.y,P.hit)||foeOf(o.o); // en multi : le premier adversaire touché
       if(alive(t)&&!t.tunnel&&!(t.inv>0)&&Math.hypot(t.x-o.x,(t.y-o.y)*1.3)<P.hit+t.sp.body*.55&&o.id==="hypno"){
         if(t.shieldOn)blockHit(t,{x:o.x-o.vx*10,y:o.y-o.vy*10},10,o.o,false);
         else{sfxUI("sleep");pops.push({x:t.x,y:t.y-46,t:0,txt:"Endormi"});colorBurst(t.x,t.y-10,18,TYPE_PAL.psychic,20,80);
@@ -147,7 +149,8 @@ function ironHead(e){
   fx.push({k:"wave",x:bx+f[0]*reach,y:by+f[1]*reach,sy:e.y+f[1]*reach+.01,f,t:0,pal:["#606080","#c8c8e0","#ffffff"]});
   fx.push({k:"star",x:bx+f[0]*reach,y:by+f[1]*reach,sy:e.y+f[1]*reach+.02,t:0,life:.35,r:10,col:"#ffffff"});
   logFor(e,e.sp.name+" utilise Tête de Fer !",1800);
-  if(ok&&(assist||Math.hypot(tx-f[0]*22,ty-f[1]*22)<16))strike(e,t,SPL.ihead,{from:e,push:IRON.push,stun:IRON.stun,contact:true});
+  const one=v=>strike(e,v,SPL.ihead,{from:e,push:IRON.push,stun:IRON.stun,contact:true}), p=ok&&(assist||Math.hypot(tx-f[0]*22,ty-f[1]*22)<16);
+  if(p)one(t); meleeOthers(e,p?t:null,bx+f[0]*reach,by+f[1]*reach,16,one);
 }
 // Éboulement : trois rochers tombent en ligne devant le lanceur, l'un après l'autre.
 function dropSlide(e){
@@ -178,7 +181,7 @@ function updateZones(dt){
         rings.push({x:z.x,y:z.y,t:0,dur:.3,max:RS.r+8,c:"#d8c890"}); colorBurst(z.x,z.y,18,ROCKC,40,150); shake=Math.max(shake,.12);
         for(let i=0;i<10;i++){const a=rand(0,Math.PI*2);spark(z.x+Math.cos(a)*4,z.y-4,Math.cos(a)*rand(30,90),rand(-170,-80),rand(.35,.6),["#6a5a3a","#8a7a50","#b8a878"][i%3],380,3)}
         for(let i=0;i<8;i++){const a=rand(0,Math.PI*2);spark(z.x+Math.cos(a)*6,z.y-2,Math.cos(a)*rand(40,80),Math.sin(a)*rand(10,25)-15,rand(.4,.7),"rgba(216,200,144,.6)",-10,4)}
-        if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<RS.r)strike(z.o,t,SPL.rslide,{from:{x:z.x,y:z.y},push:RS.push,stun:RS.stun,mult:RS.mult});
+        for(const t of foesOf(z.o))if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<RS.r)strike(z.o,t,SPL.rslide,{from:{x:z.x,y:z.y},push:RS.push,stun:RS.stun,mult:RS.mult});
       }
       if(z.t>z.delay+.35)zones.splice(i,1);
       continue;
@@ -190,7 +193,7 @@ function updateZones(dt){
         colorBurst(z.x,z.y,44,["#d1a35c","#8a6030","#e8d8a0","#6a5a30","#f0e8c0"],70,200); shake=Math.max(shake,.3);
         fx.push({k:"cracks",x:z.x,y:z.y,sy:z.y-.5,t:0,life:1,rays:Array.from({length:9},(_,i)=>({a:i*Math.PI*2/9+rand(-.2,.2),len:QUAKE.r*rand(.8,1.1),s:Math.floor(rand(0,9))}))});
         for(let i=0;i<14;i++){const a=rand(0,Math.PI*2),r=rand(8,QUAKE.r*.8);spark(z.x+Math.cos(a)*r,z.y+Math.sin(a)*r*ISO,rand(-15,15),rand(-150,-70),rand(.35,.6),["#6a5030","#8a6a3e","#b8965f"][i%3],360,3)}
-        if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<QUAKE.r)strike(z.o,t,SPL.quake,{from:{x:z.x,y:z.y},push:QUAKE.push,stun:QUAKE.stun});
+        for(const t of foesOf(z.o))if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<QUAKE.r)strike(z.o,t,SPL.quake,{from:{x:z.x,y:z.y},push:QUAKE.push,stun:QUAKE.stun});
       }
       if(z.t>QUAKE.delay+.45)zones.splice(i,1);
       continue;
@@ -200,18 +203,19 @@ function updateZones(dt){
         z.done=true; const t=foeOf(z.o);
         rings.push({x:z.x,y:z.y,t:0,dur:.4,max:SB.r+12,c:"#d070d0"}); colorBurst(z.x,z.y,34,TYPE_PAL.poison,50,170); shake=Math.max(shake,.15);
         for(let k=0;k<14;k++){const a=rand(0,Math.PI*2),v=rand(40,110);spark(z.x,z.y-4,Math.cos(a)*v,Math.sin(a)*v*.4-rand(60,130),rand(.4,.7),TYPE_PAL.poison[k%5],330,3)} // éclaboussures
-        if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<SB.r)strike(z.o,t,SPL.sbomb,{from:{x:z.x,y:z.y},push:SB.push});
+        for(const t of foesOf(z.o))if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<SB.r)strike(z.o,t,SPL.sbomb,{from:{x:z.x,y:z.y},push:SB.push});
         z.k="pois"; z.t=0; z.tick=SB.tick; z.done=false; // devient une flaque
       }
       continue;
     }
     if(z.k==="pois"){
-      const t=foeOf(z.o); z.tick-=dt;
+      z.tick-=dt; const tickNow=z.tick<=0; let ticked=false;
       if(Math.random()<dt*10)spark(z.x+rand(-SB.r,SB.r)*.8,z.y+rand(-SB.r,SB.r)*ISO*.8,rand(-6,6),rand(-40,-20),rand(.4,.7),TYPE_PAL.poison[Math.floor(rand(0,5))],-20,2);
-      if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<SB.r){
+      for(const t of foesOf(z.o))if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<SB.r){
         t.psn=.8;
-        if(z.tick<=0){z.tick=SB.tick; if(!t.shieldOn){applyDamage(t,z.o,{x:z.x,y:z.y},Math.max(1,Math.round(calcDamage(z.o,t,SPL.sbomb)*SB.dotMult)),{dot:true});colorBurst(t.x,t.y-8,4,TYPE_PAL.poison,10,40)}}
+        if(tickNow){ticked=true; if(!t.shieldOn)applyDamage(t,z.o,{x:z.x,y:z.y},Math.max(1,Math.round(calcDamage(z.o,t,SPL.sbomb)*SB.dotMult)),{dot:true}),colorBurst(t.x,t.y-8,4,TYPE_PAL.poison,10,40)}
       }
+      if(ticked)z.tick=SB.tick;
       if(z.t>SB.life)zones.splice(i,1);
       continue;
     }
@@ -221,7 +225,7 @@ function updateZones(dt){
         rings.push({x:z.x,y:z.y,t:0,dur:.4,max:HX.r+12,c:"#b090d8"}); colorBurst(z.x,z.y,30,TYPE_PAL.ghost,50,170); shake=Math.max(shake,.15);
         fx.push({k:"pillar",x:z.x,y:z.y,sy:z.y+.5,top:80,w:HX.r*.45,t:0,life:.4,pal:["#2a1840","#a070d8","#e0c8ff"]});
         for(let k=0;k<16;k++){const a=rand(0,Math.PI*2),r=rand(0,HX.r);spark(z.x+Math.cos(a)*r,z.y+Math.sin(a)*r*ISO,rand(-10,10),rand(-90,-40),rand(.4,.8),TYPE_PAL.ghost[k%5],-30,3)}
-        if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<HX.r){if(boost)pops.push({x:z.x,y:z.y-56,t:0,txt:"x1,6 !"});strike(z.o,t,SPL.hex,{from:{x:z.x,y:z.y},push:HX.push,mult:boost?1.6:1})}
+        for(const t of foesOf(z.o)){const boost=alive(t)&&hexBoost(t); if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<HX.r){if(boost)pops.push({x:z.x,y:z.y-56,t:0,txt:"x1,6 !"});strike(z.o,t,SPL.hex,{from:{x:z.x,y:z.y},push:HX.push,mult:boost?1.6:1})}}
       }
       if(z.t>HX.delay+.4)zones.splice(i,1);
       continue;
@@ -232,13 +236,13 @@ function updateZones(dt){
         rings.push({x:z.x,y:z.y,t:0,dur:.45,max:FS.r+14,c:"#ffb0e0"}); rings.push({x:z.x,y:z.y,t:0,dur:.25,max:FS.r,c:"#ffffff"});
         colorBurst(z.x,z.y,42,PSYC,60,200); shake=Math.max(shake,.25);
         fx.push({k:"pillar",x:z.x,y:z.y,sy:z.y+.5,top:170,w:FS.r*.6,t:0,life:.5,pal:["#f060a8","#ffb0e0","#ffffff"]});
-        if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<FS.r)strike(z.o,t,SPL.fsight,{from:{x:z.x,y:z.y},push:FS.push,stun:.3});
+        for(const t of foesOf(z.o))if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<FS.r)strike(z.o,t,SPL.fsight,{from:{x:z.x,y:z.y},push:FS.push,stun:.3});
       }
       if(z.t>FS.delay+.45)zones.splice(i,1);
       continue;
     }
     if(z.k==="trap"){
-      const t=foeOf(z.o);
+      const t=foesOf(z.o).find(x=>alive(x)&&!x.tunnel&&gdist(x.x-z.x,x.y-z.y)<TRAP.r)||foeOf(z.o);
       if(z.t>=TRAP.arm&&!z.done&&alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<TRAP.r){
         z.done=true; z.t=TRAP.life; // se déclenche : disparaît juste après
         rings.push({x:z.x,y:z.y,t:0,dur:.3,max:TRAP.r+10,c:"#d8c890"}); colorBurst(z.x,z.y,18,["#b8a038","#8a7a40","#d8c890","#6a5a30","#e8e0b0"],40,140);
@@ -251,14 +255,13 @@ function updateZones(dt){
       if(!z.done&&z.t>=EDGE.delay){
         z.done=true; const t=foeOf(z.o), pts=edgePts(z.x,z.y,z.f);
         pts.forEach((p,k)=>{if(k%2===0)colorBurst(p.x,p.y,3,["#b8a038","#8a7a40","#d8c890","#6a5a30","#e8e0b0"],20,80)}); shake=Math.max(shake,.15);
-        if(alive(t)&&!t.tunnel&&pts.some(p=>Math.hypot(t.x-p.x,(t.y-p.y)*1.3)<EDGE.half))strike(z.o,t,SPL.sedge,{from:{x:z.x,y:z.y},push:EDGE.push,stun:EDGE.stun});
+        for(const t of foesOf(z.o))if(alive(t)&&!t.tunnel&&pts.some(p=>Math.hypot(t.x-p.x,(t.y-p.y)*1.3)<EDGE.half))strike(z.o,t,SPL.sedge,{from:{x:z.x,y:z.y},push:EDGE.push,stun:EDGE.stun});
       }
       if(z.t>EDGE.delay+.5)zones.splice(i,1);
       continue;
     }
     if(z.k==="grav"){
-      const t=foeOf(z.o);
-      if(z.t>GRAV.delay&&alive(t)&&!t.tunnel&&!t.shieldOn&&!(t.rush&&t.rush.ph==="dash")){
+      for(const t of foesOf(z.o))if(z.t>GRAV.delay&&alive(t)&&!t.tunnel&&!t.shieldOn&&!(t.rush&&t.rush.ph==="dash")){
         const dx=z.x-t.x, dy=z.y-t.y, d=gdist(dx,dy);
         if(d<GRAV.r&&d>1){const st=Math.min(d,GRAV.pull*(.55+.45*d/GRAV.r)*dt); t.x=clampX(t.x+dx/d*st); t.y=clampY(t.y+dy/d*st*ISO)}
       }
@@ -271,7 +274,7 @@ function updateZones(dt){
       rings.push({x:z.x,y:z.y,t:0,dur:.4,max:PSY.r+14,c:"#e0a0ff"}); rings.push({x:z.x,y:z.y,t:0,dur:.25,max:PSY.r,c:"#ffffff"});
       colorBurst(z.x,z.y,36,PSYC,60,190); shake=Math.max(shake,.2);
       fx.push({k:"pillar",x:z.x,y:z.y,sy:z.y+.5,top:90,w:PSY.r*.5,t:0,life:.4,pal:["#7030c0","#e0a0ff","#ffffff"]});
-      if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<PSY.r)strike(z.o,t,SPL.psy,{from:{x:z.x,y:z.y},push:PSY.push});
+      for(const t of foesOf(z.o))if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<PSY.r)strike(z.o,t,SPL.psy,{from:{x:z.x,y:z.y},push:PSY.push});
     }
     if(z.t>PSY.delay+.4)zones.splice(i,1);
   }
@@ -294,7 +297,7 @@ function emerge(e){
   holes.push({x,y,t:0,life:4}); rings.push({x,y,t:0,dur:.35}); burst(x,y,24);
   shake=.25; hitstop=.06;
   const t=foeOf(e);
-  if(alive(t)&&gdist(t.x-x,t.y-y)<=TUNNEL.radius)strike(e,t,SPL.tun,{from:{x,y}});
+  for(const t of foesOf(e))if(alive(t)&&gdist(t.x-x,t.y-y)<=TUNNEL.radius)strike(e,t,SPL.tun,{from:{x,y}});
 }
 function updateTunnel(e,dt){
   const T=e.tunnel; T.t+=dt;
@@ -360,7 +363,7 @@ function updateRush(e,dt){
       if(plain&&Math.floor((R.trav-st)/5)!==Math.floor(R.trav/5))glows.push({x:e.x,y:e.y,t:0,life:.8});
       if(!plain&&Math.floor((R.trav-st)/5)!==Math.floor(R.trav/5)){for(let q=0;q<3;q++)spark(e.x+rand(-4,4),e.y-rand(4,18),rand(-6,6),rand(-20,0),.4,TYPE_PAL.ghost[q%3],0,4)}
       for(let k=0;k<2;k++){const n=rand(-5,5);spark(e.x+(-R.fy)*n,e.y-8+R.fx*n*.5,-R.fx*rand(30,90)+rand(-10,10),-R.fy*rand(30,90)*.7+rand(-10,10),rand(.2,.4),PAL[Math.floor(rand(0,4))],0,k?3:2)}
-      const t=foeOf(e), contact=alive(t)&&!t.tunnel&&Math.hypot(t.x-e.x,(t.y-e.y)*1.3)<C.hit+t.sp.body*.4;
+      const t=(isMulti()&&foeAt(e,e.x,e.y,C.hit))||foeOf(e), contact=alive(t)&&!t.tunnel&&Math.hypot(t.x-e.x,(t.y-e.y)*1.3)<C.hit+t.sp.body*.4;
       const blocked=(R.fx>0&&e.x>=AB.x1)||(R.fx<0&&e.x<=AB.x0)||(R.fy>0&&e.y>=AB.y1)||(R.fy<0&&e.y<=AB.y0);
       if(contact&&C.flurry){beginFlurry(e,R);break}
       const pun=contact&&C.punish&&punishable(t);
@@ -403,7 +406,7 @@ function fireBeam(e){
   shake=.3; hitstop=.05;
   rings.push({x:e.x,y:e.y,t:0,dur:.3,max:30,c:"#ff8ec4"}); rings.push({x:e.x,y:e.y,t:0,dur:.2,max:18,c:"#ffffff"});
   for(let d=14;d<GLEAM.len;d+=10)spark(e.x+C.fx*d,e.y-8+C.fy*d*.7,rand(-12,12),rand(-30,-8),rand(.3,.6),PINK[Math.floor(rand(0,5))],-10,2);
-  if(alive(t)&&!t.tunnel){
+  for(const t of foesOf(e))if(alive(t)&&!t.tunnel){
     const dx=t.x-e.x, dy=t.y-e.y, proj=dx*C.fx+dy*C.fy, perp=Math.abs(dx*C.fy-dy*C.fx);
     if(proj>6&&proj<GLEAM.len&&perp<GLEAM.half&&strike(e,t,SPL.gleam,{from:e,push:100,stun:GLEAM.stun}))colorBurst(t.x,t.y,40,PINK,80,220);
   }

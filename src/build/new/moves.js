@@ -63,7 +63,8 @@ function defMelee(d){
     fx.push({k:"mfx",s:d.fx,x:px,y:py,sy:e.y+f[1]*reach+.01,f,t:0,life:.34,pal});
     colorBurst(px,py+8,10,pal,40,120); if(d.sparks)d.sparks(px,py,f);
     logFor(e,e.sp.name+" utilise "+SPL[d.id].name+" !",1800);
-    if(ok&&(assist||Math.hypot(tx-f[0]*22,ty-f[1]*22)<16)){ if(strike(e,t,SPL[d.id],{from:e,push:CONF.push,contact:true})&&d.after)d.after(e,t) }
+    const one=v=>{ if(strike(e,v,SPL[d.id],{from:e,push:CONF.push,contact:true})&&d.after)d.after(e,v) }, p=ok&&(assist||Math.hypot(tx-f[0]*22,ty-f[1]*22)<16);
+    if(p)one(t); meleeOthers(e,p?t:null,px,py,16,one);
   }};
 }
 // ---- capacités ----

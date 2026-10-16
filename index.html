@@ -450,7 +450,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Sélection d'équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>mannequin d'entraînement</small></button><button type="button" data-mode="duel" aria-pressed="false">Versus<small>contre un adversaire</small></button><button type="button" data-mode="rush" aria-pressed="false">Marathon<small>Tous les Pokémon d'affilée, au chrono</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="rounds" role="group" aria-label="Rounds"><span>Rounds</span><button type="button" data-r="1">1</button><button type="button" data-r="3" aria-pressed="true">3</button><button type="button" data-r="5">5</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
 </div>
-<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.71 · 16/10/2026</b></footer>
+<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.72 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -870,7 +870,22 @@ let player=null, foe=null, entities=[], fighters=[], matchMode="train", playerKe
 const fx=[], parts=[], pops=[], orbs=[], zones=[], beams=[], holes=[], trail=[], rings=[], glows=[];
 const score={me:0,foe:0};
 const alive=e=>e.ko<=0&&e.hp>0;
-const foeOf=e=>e===player?foe:player;
+// ---- Adversaires : en 1 contre 1, "l'autre" ; en mêlée générale (matchMode "ffa"), tous les autres combattants ----
+const isMulti=()=>matchMode==="ffa";
+function foesOf(e){ // tous les adversaires de e (en 1v1 : une liste à un seul élément, comportement inchangé)
+  if(!isMulti())return [e===player?foe:player];
+  return fighters.filter(x=>x!==e&&!x.out);
+}
+function foeOf(e){ // cible principale : en 1v1 l'autre ; en multi l'adversaire vivant le plus proche du point visé (ou de soi)
+  if(!isMulti())return e===player?foe:player;
+  const L=foesOf(e).filter(alive); if(!L.length)return foesOf(e)[0]||e;
+  const p=(e===player&&!e.bot&&typeof mouse!=="undefined"&&mouse)?{x:mouse.wx,y:mouse.wy}:(e.tgt&&L.includes(e.tgt)?e.tgt:e);
+  let best=L[0],bd=1e9; for(const t of L){const d=Math.hypot(t.x-p.x,t.y-p.y); if(d<bd){bd=d;best=t}} return best;
+}
+// mêlée en multi : les autres adversaires proches du point d'impact sont touchés aussi (en 1v1 : rien ne change)
+function meleeOthers(e,skip,px,py,r,hit){ if(!isMulti())return; for(const t of foesOf(e))if(t!==skip&&alive(t)&&!t.tunnel&&Math.hypot(t.x-px,(t.y-t.sp.body)-py)<r+t.sp.body*.4)hit(t) }
+// premier adversaire touché par un objet au point (x,y) avec un rayon r (projectiles, charges)
+function foeAt(owner,x,y,r){ for(const t of foesOf(owner))if(alive(t)&&!t.tunnel&&!(t.inv>0)&&Math.hypot(t.x-x,(t.y-y)*1.3)<r+t.sp.body*.55)return t; return null }
 function makeEntity(species,x,y){
   const sp=SPECIES[species];
   return {sp,key:species,x,y,dir:0,anim:"idle",frame:0,tick:0,rest:rand(.6,1.5),run:false,ai:null,hit:false,kb:null,flash:0,hp:sp.maxHp,maxHp:sp.maxHp,hpShow:0,lock:0,ko:0,vx:0,vy:0,lx:x,ly:y,stun:0};
@@ -895,12 +910,12 @@ function makeDummy(x,y){
 const START_A=[WORLD.w/2-55,WORLD.h/2+10], START_B=[WORLD.w/2+55,WORLD.h/2+20]; // repris par setArena (arena.js)
 function resetRound(){
   if(typeof hideBanner==="function")hideBanner(); if(typeof obstReset==="function")obstReset();
-  if((matchMode==="duel"||matchMode==="rush")&&typeof introPending!=="undefined")introPending=true;
+  if((matchMode==="duel"||matchMode==="rush"||matchMode==="ffa")&&typeof introPending!=="undefined")introPending=true;
   entities.forEach((e,i)=>{
     if(e.team&&matchMode!=="rush")resetTeam(e);
-    const s=i===0?START_A:START_B; e.x=s[0]; e.y=s[1]; if(matchMode!=="rush"||e===foe)e.hp=e.maxHp; e.hpShow=0; e.ko=0; e.kb=null; e.stun=0; e.dizzy=false; e.flash=0; e.lock=0; e.hit=false; e.run=false;
+    const s=matchMode==="ffa"?ffaSpawn(i,entities.length):i===0?START_A:START_B; e.x=s[0]; e.y=s[1]; if(matchMode!=="rush"||e===foe)e.hp=e.maxHp; e.hpShow=0; e.ko=0; e.kb=null; e.stun=0; e.dizzy=false; e.flash=0; e.lock=0; e.hit=false; e.run=false;
     e.lx=e.x; e.ly=e.y; setAnim(e,"idle");
-    if(e.fighter){e.pp=PP_MAX; e.shieldE=100; e.shieldOn=false; e.shieldBroken=false; e.tunnel=null; e.rush=null; e.chan=null; e.counter=null; e.bf={}; e.slow=0; e.burn=0; e.inv=0; e.psn=0; e.flashC=null; e.sleep=false; e.cd={}; e.comboT=0; e.moveTarget=null; e.cast=null; e.dir=i===0?2:6}
+    if(e.fighter){e.pp=PP_MAX; e.shieldE=100; e.shieldOn=false; e.shieldBroken=false; e.tunnel=null; e.rush=null; e.chan=null; e.counter=null; e.bf={}; e.slow=0; e.burn=0; e.inv=0; e.psn=0; e.flashC=null; e.sleep=false; e.cd={}; e.comboT=0; e.moveTarget=null; e.cast=null; e.dir=matchMode==="ffa"?dirFromVector(WORLD.w/2-e.x,WORLD.h/2-e.y):i===0?2:6; e.out=false; e.gone=false}
     if(e.ai){e.ai.atk=null;e.ai.atkCd=3;e.ai.wait=rand(1,2.5);e.ai.tx=e.x;e.ai.ty=e.y; e.dir=6}
   });
   [fx,parts,pops,orbs,zones,beams,holes,trail,rings,glows].forEach(a=>a.length=0);
@@ -924,6 +939,7 @@ function startMatch(key,mode){musicSet("battle");
     foe=makeFighter(fk[0]||pickFoe(key),START_B[0],START_B[1],true);
     if(keys.length>1&&fk.length>1)initTeam(foe,fk,fk.map(k=>SPECIES[k].kit));
   }
+  else if(mode==="ffa"){ffaStart(keys); return}
   else if(mode==="rush"){rushStart(); foe=makeFighter(MARA.order[0],START_B[0],START_B[1],true)}
   else foe=makeDummy(START_B[0],START_B[1]);
   entities=[player,foe]; fighters=entities.filter(e=>e.fighter);
@@ -1125,6 +1141,7 @@ function knockOut(t,att){
   t.ko=1.6; t.kb=null; t.counter=null; t.rush=null; t.chan=null; t.tunnel=null; t.shieldOn=false;
   const more=teamKO(t);
   if(matchMode==="rush"&&!more){rushKO(t);return}
+  if(matchMode==="ffa"&&!more){ffaOut(t,att);return}
   if(!more&&matchMode==="duel"&&!NET.guest){if(t===player)score.foe++;else score.me++}
   if(!more&&matchMode==="duel"){t.ko=2.6; if(typeof showBanner==="function"){const over=typeof matchWon==="function"&&matchWon(); showBanner(over?(t===player?"DÉFAITE":"VICTOIRE"):(t===player?"ROUND PERDU":"ROUND GAGNÉ"),t===player?"lose":"win")}}
   showLog(t.sp.name+" est K.O. !",1600);
@@ -1133,6 +1150,7 @@ function updateKO(e,dt){
   if(e.ko<=0)return;
   e.ko-=dt;
   if(e.ko<=0){
+    if(e.out){e.ko=1e9; e.gone=true; return} // éliminé : il quitte l'arène
     if(e.team&&!NET.guest&&teamAlive(e)>0)teamEnter(e);
     else if(e.ai){e.x=clampX(player.x+rand(-110,110));e.y=clampY(player.y+rand(-70,70));e.hp=e.maxHp;e.hpShow=0;e.kb=null;setAnim(e,"idle");e.ai.wait=rand(.6,1.4);e.ai.tx=e.x;e.ai.ty=e.y}
     else if(matchMode==="rush"){if(e===foe)rushNext();else rushEnd(false)}
@@ -1146,7 +1164,10 @@ function updateKb(e,dt){
 }
 // Collision douce entre les deux combattants sur le plan du sol (une ellipse), adoucie pour que personne ne saute.
 function resolveCollision(dt){
-  const a=player,b=foe;
+  if(matchMode==="ffa"){const L=fighters.filter(e=>!e.gone); for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++)collidePair(L[i],L[j],dt); return}
+  collidePair(player,foe,dt);
+}
+function collidePair(a,b,dt){
   if(a.tunnel||b.tunnel||b.ko>0||a.ko>0)return;
   const sx=(a.x-b.x)/18, sy=(a.y-b.y)/7, L=Math.hypot(sx,sy);
   if(L>=1)return;
@@ -1258,7 +1279,8 @@ function clawHit(e){
   const assist=ok&&td>0&&td<CLAW_ASSIST&&along/td>=CLAW_CONE, reach=assist?clamp(along,20,32):20;
   fx.push({k:"claw",x:bx+f[0]*reach,y:by+f[1]*reach,sy:e.y+f[1]*reach+.01,f,t:0});
   logFor(e,e.sp.name+" utilise Draco-Griffe !",1800);
-  if(ok&&(assist||Math.hypot(tx-f[0]*20,ty-f[1]*20)<14))strike(e,t,SPL.claw,{from:e,push:e.comboClaw?CLAW_COMBO_PUSH:CLAW_PUSH,contact:true});
+  const one=v=>strike(e,v,SPL.claw,{from:e,push:e.comboClaw?CLAW_COMBO_PUSH:CLAW_PUSH,contact:true}), p=ok&&(assist||Math.hypot(tx-f[0]*20,ty-f[1]*20)<14);
+  if(p)one(t); meleeOthers(e,p?t:null,bx+f[0]*reach,by+f[1]*reach,14,one);
 }
 // Choc Mental : une onde psychique devant le lanceur, portée un peu plus longue.
 function waveHit(e,id){
@@ -1268,7 +1290,8 @@ function waveHit(e,id){
   const assist=ok&&td>0&&td<CONF.assist&&along/td>=CONF.cone, reach=assist?clamp(along,22,CONF.reach):22;
   fx.push({k:id==="scl"?"claw":"wave",x:bx+f[0]*reach,y:by+f[1]*reach,sy:e.y+f[1]*reach+.01,f,t:0,pal:WP});
   logFor(e,e.sp.name+" utilise "+SPL[id].name+" !",1800);
-  if(ok&&(assist||Math.hypot(tx-f[0]*22,ty-f[1]*22)<16))strike(e,t,SPL[id],{from:e,push:CONF.push,contact:true});
+  const one=v=>strike(e,v,SPL[id],{from:e,push:CONF.push,contact:true}), p=ok&&(assist||Math.hypot(tx-f[0]*22,ty-f[1]*22)<16);
+  if(p)one(t); meleeOthers(e,p?t:null,bx+f[0]*reach,by+f[1]*reach,16,one);
 }
 // Projectiles (Tir de Boue, Pouvoir Lunaire)
 function fireBolt(e,id){
@@ -1283,7 +1306,7 @@ function updateOrbs(dt){
     if(o.id!=="mud"&&Math.random()<dt*40){const pl=TYPE_PAL[SPL[o.id].type];spark(o.x+rand(-3,3),o.y-14+rand(-3,3),rand(-14,14),rand(-14,14),rand(.25,.45),pl[Math.floor(rand(0,5))],0,2)} let left=P.speed*dt, gone=false;
     while(left>0&&!gone){
       const st=Math.min(4,left); left-=st; o.x+=o.vx*st; o.y+=o.vy*st; o.trav+=st;
-      const t=foeOf(o.o);
+      const t=foeAt(o.o,o.x,o.y,P.hit)||foeOf(o.o); // en multi : le premier adversaire touché
       if(alive(t)&&!t.tunnel&&!(t.inv>0)&&Math.hypot(t.x-o.x,(t.y-o.y)*1.3)<P.hit+t.sp.body*.55&&o.id==="hypno"){
         if(t.shieldOn)blockHit(t,{x:o.x-o.vx*10,y:o.y-o.vy*10},10,o.o,false);
         else{sfxUI("sleep");pops.push({x:t.x,y:t.y-46,t:0,txt:"Endormi"});colorBurst(t.x,t.y-10,18,TYPE_PAL.psychic,20,80);
@@ -1377,7 +1400,8 @@ function ironHead(e){
   fx.push({k:"wave",x:bx+f[0]*reach,y:by+f[1]*reach,sy:e.y+f[1]*reach+.01,f,t:0,pal:["#606080","#c8c8e0","#ffffff"]});
   fx.push({k:"star",x:bx+f[0]*reach,y:by+f[1]*reach,sy:e.y+f[1]*reach+.02,t:0,life:.35,r:10,col:"#ffffff"});
   logFor(e,e.sp.name+" utilise Tête de Fer !",1800);
-  if(ok&&(assist||Math.hypot(tx-f[0]*22,ty-f[1]*22)<16))strike(e,t,SPL.ihead,{from:e,push:IRON.push,stun:IRON.stun,contact:true});
+  const one=v=>strike(e,v,SPL.ihead,{from:e,push:IRON.push,stun:IRON.stun,contact:true}), p=ok&&(assist||Math.hypot(tx-f[0]*22,ty-f[1]*22)<16);
+  if(p)one(t); meleeOthers(e,p?t:null,bx+f[0]*reach,by+f[1]*reach,16,one);
 }
 // Éboulement : trois rochers tombent en ligne devant le lanceur, l'un après l'autre.
 function dropSlide(e){
@@ -1408,7 +1432,7 @@ function updateZones(dt){
         rings.push({x:z.x,y:z.y,t:0,dur:.3,max:RS.r+8,c:"#d8c890"}); colorBurst(z.x,z.y,18,ROCKC,40,150); shake=Math.max(shake,.12);
         for(let i=0;i<10;i++){const a=rand(0,Math.PI*2);spark(z.x+Math.cos(a)*4,z.y-4,Math.cos(a)*rand(30,90),rand(-170,-80),rand(.35,.6),["#6a5a3a","#8a7a50","#b8a878"][i%3],380,3)}
         for(let i=0;i<8;i++){const a=rand(0,Math.PI*2);spark(z.x+Math.cos(a)*6,z.y-2,Math.cos(a)*rand(40,80),Math.sin(a)*rand(10,25)-15,rand(.4,.7),"rgba(216,200,144,.6)",-10,4)}
-        if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<RS.r)strike(z.o,t,SPL.rslide,{from:{x:z.x,y:z.y},push:RS.push,stun:RS.stun,mult:RS.mult});
+        for(const t of foesOf(z.o))if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<RS.r)strike(z.o,t,SPL.rslide,{from:{x:z.x,y:z.y},push:RS.push,stun:RS.stun,mult:RS.mult});
       }
       if(z.t>z.delay+.35)zones.splice(i,1);
       continue;
@@ -1420,7 +1444,7 @@ function updateZones(dt){
         colorBurst(z.x,z.y,44,["#d1a35c","#8a6030","#e8d8a0","#6a5a30","#f0e8c0"],70,200); shake=Math.max(shake,.3);
         fx.push({k:"cracks",x:z.x,y:z.y,sy:z.y-.5,t:0,life:1,rays:Array.from({length:9},(_,i)=>({a:i*Math.PI*2/9+rand(-.2,.2),len:QUAKE.r*rand(.8,1.1),s:Math.floor(rand(0,9))}))});
         for(let i=0;i<14;i++){const a=rand(0,Math.PI*2),r=rand(8,QUAKE.r*.8);spark(z.x+Math.cos(a)*r,z.y+Math.sin(a)*r*ISO,rand(-15,15),rand(-150,-70),rand(.35,.6),["#6a5030","#8a6a3e","#b8965f"][i%3],360,3)}
-        if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<QUAKE.r)strike(z.o,t,SPL.quake,{from:{x:z.x,y:z.y},push:QUAKE.push,stun:QUAKE.stun});
+        for(const t of foesOf(z.o))if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<QUAKE.r)strike(z.o,t,SPL.quake,{from:{x:z.x,y:z.y},push:QUAKE.push,stun:QUAKE.stun});
       }
       if(z.t>QUAKE.delay+.45)zones.splice(i,1);
       continue;
@@ -1430,18 +1454,19 @@ function updateZones(dt){
         z.done=true; const t=foeOf(z.o);
         rings.push({x:z.x,y:z.y,t:0,dur:.4,max:SB.r+12,c:"#d070d0"}); colorBurst(z.x,z.y,34,TYPE_PAL.poison,50,170); shake=Math.max(shake,.15);
         for(let k=0;k<14;k++){const a=rand(0,Math.PI*2),v=rand(40,110);spark(z.x,z.y-4,Math.cos(a)*v,Math.sin(a)*v*.4-rand(60,130),rand(.4,.7),TYPE_PAL.poison[k%5],330,3)} // éclaboussures
-        if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<SB.r)strike(z.o,t,SPL.sbomb,{from:{x:z.x,y:z.y},push:SB.push});
+        for(const t of foesOf(z.o))if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<SB.r)strike(z.o,t,SPL.sbomb,{from:{x:z.x,y:z.y},push:SB.push});
         z.k="pois"; z.t=0; z.tick=SB.tick; z.done=false; // devient une flaque
       }
       continue;
     }
     if(z.k==="pois"){
-      const t=foeOf(z.o); z.tick-=dt;
+      z.tick-=dt; const tickNow=z.tick<=0; let ticked=false;
       if(Math.random()<dt*10)spark(z.x+rand(-SB.r,SB.r)*.8,z.y+rand(-SB.r,SB.r)*ISO*.8,rand(-6,6),rand(-40,-20),rand(.4,.7),TYPE_PAL.poison[Math.floor(rand(0,5))],-20,2);
-      if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<SB.r){
+      for(const t of foesOf(z.o))if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<SB.r){
         t.psn=.8;
-        if(z.tick<=0){z.tick=SB.tick; if(!t.shieldOn){applyDamage(t,z.o,{x:z.x,y:z.y},Math.max(1,Math.round(calcDamage(z.o,t,SPL.sbomb)*SB.dotMult)),{dot:true});colorBurst(t.x,t.y-8,4,TYPE_PAL.poison,10,40)}}
+        if(tickNow){ticked=true; if(!t.shieldOn)applyDamage(t,z.o,{x:z.x,y:z.y},Math.max(1,Math.round(calcDamage(z.o,t,SPL.sbomb)*SB.dotMult)),{dot:true}),colorBurst(t.x,t.y-8,4,TYPE_PAL.poison,10,40)}
       }
+      if(ticked)z.tick=SB.tick;
       if(z.t>SB.life)zones.splice(i,1);
       continue;
     }
@@ -1451,7 +1476,7 @@ function updateZones(dt){
         rings.push({x:z.x,y:z.y,t:0,dur:.4,max:HX.r+12,c:"#b090d8"}); colorBurst(z.x,z.y,30,TYPE_PAL.ghost,50,170); shake=Math.max(shake,.15);
         fx.push({k:"pillar",x:z.x,y:z.y,sy:z.y+.5,top:80,w:HX.r*.45,t:0,life:.4,pal:["#2a1840","#a070d8","#e0c8ff"]});
         for(let k=0;k<16;k++){const a=rand(0,Math.PI*2),r=rand(0,HX.r);spark(z.x+Math.cos(a)*r,z.y+Math.sin(a)*r*ISO,rand(-10,10),rand(-90,-40),rand(.4,.8),TYPE_PAL.ghost[k%5],-30,3)}
-        if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<HX.r){if(boost)pops.push({x:z.x,y:z.y-56,t:0,txt:"x1,6 !"});strike(z.o,t,SPL.hex,{from:{x:z.x,y:z.y},push:HX.push,mult:boost?1.6:1})}
+        for(const t of foesOf(z.o)){const boost=alive(t)&&hexBoost(t); if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<HX.r){if(boost)pops.push({x:z.x,y:z.y-56,t:0,txt:"x1,6 !"});strike(z.o,t,SPL.hex,{from:{x:z.x,y:z.y},push:HX.push,mult:boost?1.6:1})}}
       }
       if(z.t>HX.delay+.4)zones.splice(i,1);
       continue;
@@ -1462,13 +1487,13 @@ function updateZones(dt){
         rings.push({x:z.x,y:z.y,t:0,dur:.45,max:FS.r+14,c:"#ffb0e0"}); rings.push({x:z.x,y:z.y,t:0,dur:.25,max:FS.r,c:"#ffffff"});
         colorBurst(z.x,z.y,42,PSYC,60,200); shake=Math.max(shake,.25);
         fx.push({k:"pillar",x:z.x,y:z.y,sy:z.y+.5,top:170,w:FS.r*.6,t:0,life:.5,pal:["#f060a8","#ffb0e0","#ffffff"]});
-        if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<FS.r)strike(z.o,t,SPL.fsight,{from:{x:z.x,y:z.y},push:FS.push,stun:.3});
+        for(const t of foesOf(z.o))if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<FS.r)strike(z.o,t,SPL.fsight,{from:{x:z.x,y:z.y},push:FS.push,stun:.3});
       }
       if(z.t>FS.delay+.45)zones.splice(i,1);
       continue;
     }
     if(z.k==="trap"){
-      const t=foeOf(z.o);
+      const t=foesOf(z.o).find(x=>alive(x)&&!x.tunnel&&gdist(x.x-z.x,x.y-z.y)<TRAP.r)||foeOf(z.o);
       if(z.t>=TRAP.arm&&!z.done&&alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<TRAP.r){
         z.done=true; z.t=TRAP.life; // se déclenche : disparaît juste après
         rings.push({x:z.x,y:z.y,t:0,dur:.3,max:TRAP.r+10,c:"#d8c890"}); colorBurst(z.x,z.y,18,["#b8a038","#8a7a40","#d8c890","#6a5a30","#e8e0b0"],40,140);
@@ -1481,14 +1506,13 @@ function updateZones(dt){
       if(!z.done&&z.t>=EDGE.delay){
         z.done=true; const t=foeOf(z.o), pts=edgePts(z.x,z.y,z.f);
         pts.forEach((p,k)=>{if(k%2===0)colorBurst(p.x,p.y,3,["#b8a038","#8a7a40","#d8c890","#6a5a30","#e8e0b0"],20,80)}); shake=Math.max(shake,.15);
-        if(alive(t)&&!t.tunnel&&pts.some(p=>Math.hypot(t.x-p.x,(t.y-p.y)*1.3)<EDGE.half))strike(z.o,t,SPL.sedge,{from:{x:z.x,y:z.y},push:EDGE.push,stun:EDGE.stun});
+        for(const t of foesOf(z.o))if(alive(t)&&!t.tunnel&&pts.some(p=>Math.hypot(t.x-p.x,(t.y-p.y)*1.3)<EDGE.half))strike(z.o,t,SPL.sedge,{from:{x:z.x,y:z.y},push:EDGE.push,stun:EDGE.stun});
       }
       if(z.t>EDGE.delay+.5)zones.splice(i,1);
       continue;
     }
     if(z.k==="grav"){
-      const t=foeOf(z.o);
-      if(z.t>GRAV.delay&&alive(t)&&!t.tunnel&&!t.shieldOn&&!(t.rush&&t.rush.ph==="dash")){
+      for(const t of foesOf(z.o))if(z.t>GRAV.delay&&alive(t)&&!t.tunnel&&!t.shieldOn&&!(t.rush&&t.rush.ph==="dash")){
         const dx=z.x-t.x, dy=z.y-t.y, d=gdist(dx,dy);
         if(d<GRAV.r&&d>1){const st=Math.min(d,GRAV.pull*(.55+.45*d/GRAV.r)*dt); t.x=clampX(t.x+dx/d*st); t.y=clampY(t.y+dy/d*st*ISO)}
       }
@@ -1501,7 +1525,7 @@ function updateZones(dt){
       rings.push({x:z.x,y:z.y,t:0,dur:.4,max:PSY.r+14,c:"#e0a0ff"}); rings.push({x:z.x,y:z.y,t:0,dur:.25,max:PSY.r,c:"#ffffff"});
       colorBurst(z.x,z.y,36,PSYC,60,190); shake=Math.max(shake,.2);
       fx.push({k:"pillar",x:z.x,y:z.y,sy:z.y+.5,top:90,w:PSY.r*.5,t:0,life:.4,pal:["#7030c0","#e0a0ff","#ffffff"]});
-      if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<PSY.r)strike(z.o,t,SPL.psy,{from:{x:z.x,y:z.y},push:PSY.push});
+      for(const t of foesOf(z.o))if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<PSY.r)strike(z.o,t,SPL.psy,{from:{x:z.x,y:z.y},push:PSY.push});
     }
     if(z.t>PSY.delay+.4)zones.splice(i,1);
   }
@@ -1524,7 +1548,7 @@ function emerge(e){
   holes.push({x,y,t:0,life:4}); rings.push({x,y,t:0,dur:.35}); burst(x,y,24);
   shake=.25; hitstop=.06;
   const t=foeOf(e);
-  if(alive(t)&&gdist(t.x-x,t.y-y)<=TUNNEL.radius)strike(e,t,SPL.tun,{from:{x,y}});
+  for(const t of foesOf(e))if(alive(t)&&gdist(t.x-x,t.y-y)<=TUNNEL.radius)strike(e,t,SPL.tun,{from:{x,y}});
 }
 function updateTunnel(e,dt){
   const T=e.tunnel; T.t+=dt;
@@ -1590,7 +1614,7 @@ function updateRush(e,dt){
       if(plain&&Math.floor((R.trav-st)/5)!==Math.floor(R.trav/5))glows.push({x:e.x,y:e.y,t:0,life:.8});
       if(!plain&&Math.floor((R.trav-st)/5)!==Math.floor(R.trav/5)){for(let q=0;q<3;q++)spark(e.x+rand(-4,4),e.y-rand(4,18),rand(-6,6),rand(-20,0),.4,TYPE_PAL.ghost[q%3],0,4)}
       for(let k=0;k<2;k++){const n=rand(-5,5);spark(e.x+(-R.fy)*n,e.y-8+R.fx*n*.5,-R.fx*rand(30,90)+rand(-10,10),-R.fy*rand(30,90)*.7+rand(-10,10),rand(.2,.4),PAL[Math.floor(rand(0,4))],0,k?3:2)}
-      const t=foeOf(e), contact=alive(t)&&!t.tunnel&&Math.hypot(t.x-e.x,(t.y-e.y)*1.3)<C.hit+t.sp.body*.4;
+      const t=(isMulti()&&foeAt(e,e.x,e.y,C.hit))||foeOf(e), contact=alive(t)&&!t.tunnel&&Math.hypot(t.x-e.x,(t.y-e.y)*1.3)<C.hit+t.sp.body*.4;
       const blocked=(R.fx>0&&e.x>=AB.x1)||(R.fx<0&&e.x<=AB.x0)||(R.fy>0&&e.y>=AB.y1)||(R.fy<0&&e.y<=AB.y0);
       if(contact&&C.flurry){beginFlurry(e,R);break}
       const pun=contact&&C.punish&&punishable(t);
@@ -1633,7 +1657,7 @@ function fireBeam(e){
   shake=.3; hitstop=.05;
   rings.push({x:e.x,y:e.y,t:0,dur:.3,max:30,c:"#ff8ec4"}); rings.push({x:e.x,y:e.y,t:0,dur:.2,max:18,c:"#ffffff"});
   for(let d=14;d<GLEAM.len;d+=10)spark(e.x+C.fx*d,e.y-8+C.fy*d*.7,rand(-12,12),rand(-30,-8),rand(.3,.6),PINK[Math.floor(rand(0,5))],-10,2);
-  if(alive(t)&&!t.tunnel){
+  for(const t of foesOf(e))if(alive(t)&&!t.tunnel){
     const dx=t.x-e.x, dy=t.y-e.y, proj=dx*C.fx+dy*C.fy, perp=Math.abs(dx*C.fy-dy*C.fx);
     if(proj>6&&proj<GLEAM.len&&perp<GLEAM.half&&strike(e,t,SPL.gleam,{from:e,push:100,stun:GLEAM.stun}))colorBurst(t.x,t.y,40,PINK,80,220);
   }
@@ -2391,6 +2415,7 @@ function drawBeam(b){
   ctx.globalAlpha=1;
 }
 function drawEntity(e){
+  if(e.gone)return; // éliminé en mêlée générale
   if(e.swapC&&!e.tunnel){drawSwap(e);return}
   if(e.tunnel){drawTunnelSprite(e);return}
   if(e.ko>0&&Math.floor(e.ko*12)%2)return;
@@ -2545,6 +2570,7 @@ function draw(){
   const order=entities.slice().sort((a,b)=>a.y-b.y);
   ctx.fillStyle="rgba(0,0,0,.32)";
   order.forEach(e=>{
+    if(e.gone)return;
     if(e.ko>0&&Math.floor(e.ko*12)%2)return;
     if(e.tunnel&&e.tunnel.phase==="dash")return;
     const gx=snap(e.x), gy=snap(e.y), [rx,ry]=e.sp.shadow;
@@ -2575,7 +2601,10 @@ function toWorld(e){const r=stage.getBoundingClientRect(),d=window.devicePixelRa
 stage.addEventListener("contextmenu",e=>e.preventDefault());
 // Pointer l'ennemi transforme un ordre de déplacement en poursuite qui s'arrête à portée d'attaque.
 function hoverEnemy(){
-  const t=foe; if(!mouse||!t||!alive(t))return false;
+  if(isMulti()&&mouse){for(const x of foesOf(player))if(alive(x)&&!x.gone&&hoverOn(x)){foe=x;return true} return false}
+  return hoverOn(foe);
+}
+function hoverOn(t){ if(!mouse||!t||!alive(t))return false;
   const s=SHT(t), a=ANF(t), x0=t.x-a[0], y0=t.y-a[1];
   return mouse.wx>=x0+2&&mouse.wx<=x0+s.w-2&&mouse.wy>=y0+2&&mouse.wy<=y0+s.h;
 }
@@ -2740,7 +2769,7 @@ var bestOf=3; try{const bo=+localStorage.getItem("aceBo"); if(bo===1||bo===3||bo
 var endShown=false;
 let pick="garchomp", pickMode="train";
 try{const d=localStorage.getItem("aceDiff"); if(DIFFS[d])diff=d; const fp=localStorage.getItem("aceFoe"); if(fp==="rand"||(SPECIES[fp]&&SPECIES[fp].playable))foePick=fp}catch(_){}
-try{const k=localStorage.getItem("aceKey"); if(SPECIES[k]&&SPECIES[k].playable)pick=k; const m=localStorage.getItem("aceMode"); if(m==="duel"||m==="train")pickMode=m}catch(_){}
+try{const k=localStorage.getItem("aceKey"); if(SPECIES[k]&&SPECIES[k].playable)pick=k; const m=localStorage.getItem("aceMode"); if(m==="duel"||m==="train"||m==="ffa")pickMode=m}catch(_){}
 let picks=[];
 try{const t=JSON.parse(localStorage.getItem("aceTeam")||"[]"); if(Array.isArray(t))picks=t.filter((k,i)=>SPECIES[k]&&SPECIES[k].playable&&t.indexOf(k)===i).slice(0,3)}catch(_){}
 if(!picks.length)picks=[pick]; if(!picks.includes(pick))pick=picks[0];
@@ -2821,7 +2850,7 @@ function refreshMenu(){
   teamLineEl.innerHTML=[0,1,2].map(i=>{const k=picks[i]; return k?'<div class="tslot'+(k===pick?" on":"")+'" data-i="'+i+'"><b>'+(i+1)+'</b><img alt="" src="'+PORTRAITS[k]+'"><span>'+SPECIES[k].name+'</span><u data-rm="'+i+'" title="Retirer">×</u></div>':'<div class="tslot empty"><b>'+(i+1)+'</b><span>Choisir un Ace</span></div>'}).join("")+'<small>Ordre d\'entrée 1, 2, 3 · Tab : changer d\'Ace en combat</small>';
   document.querySelectorAll("#menu .modes button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===pickMode)));
   document.querySelectorAll("#menu .diffs button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.diff===diff)));
-  document.querySelector("#menu .diffs").hidden=pickMode!=="duel";
+  document.querySelector("#menu .diffs").hidden=pickMode!=="duel"&&pickMode!=="ffa";
   {const duel=pickMode==="duel", fl=document.querySelector("#menu .foes>span"), fs0=document.getElementById("foeSel"), as=document.getElementById("arenaSel"); if(fl)fl.hidden=!duel; if(fs0)fs0.hidden=!duel; if(as)as.value=ARENA_PICK}
   document.querySelector("#menu .rounds").hidden=pickMode!=="duel";
   document.querySelectorAll("#menu .rounds button").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.r===bestOf)));
@@ -2830,9 +2859,10 @@ function refreshMenu(){
   buildEquip();
   cardsEl.querySelectorAll(".ace").forEach(b=>{b.querySelector("ul").innerHTML=draftOf(b.dataset.key).map(id=>'<li><b style="background:'+TYPE_COL[SPL[id].type]+'"></b>'+SPL[id].name+'</li>').join("")});
   goBtn.disabled=!teamReady();
-  goBtn.textContent=teamReady()?"Combattre":(picks.length<(pickMode==="duel"?3:1)?"Sélectionne "+(pickMode==="duel"?3:1)+(pickMode==="duel"?" Aces":" Ace"):"Sélectionne 4 sorts");
+  goBtn.textContent=teamReady()?"Combattre":(picks.length<teamNeed()?"Sélectionne "+teamNeed()+(teamNeed()>1?" Aces":" Ace"):"Sélectionne 4 sorts");
 }
-const teamReady=()=>picks.length>=(pickMode==="duel"?3:1)&&picks.every(k=>draftOf(k).length===4);
+const teamNeed=()=>pickMode==="duel"?3:pickMode==="ffa"?2:1;
+const teamReady=()=>picks.length>=teamNeed()&&picks.every(k=>draftOf(k).length===4);
 function openMenu(){if(typeof hideBanner==="function")hideBanner(); if(NET.on){NET.toLobby();NET.tab("online")}musicSet("menu");setPause(false);menuOpen=true;menuEl.hidden=false;refreshMenu()}
 goBtn.addEventListener("click",()=>{
   if(!teamReady())return;
@@ -2849,6 +2879,7 @@ function frame(now){
   if(vsT>0&&!menuOpen){vsT-=dt; if(vsT<=0)hideVersus(); draw(); requestAnimationFrame(frame); return}
   if((paused&&!NET.on)||menuOpen){draw();requestAnimationFrame(frame);return}
   if(lastE){if(held)setMoveTarget(lastE,false);else mouse=toWorld(lastE)}
+  if(isMulti()){const T=foeOf(player); if(T&&T!==player)foe=T; fighters.forEach(x=>{if(x!==player)x.hover=false})}
   foe.hover=hoverEnemy(); stage.style.cursor=foe.hover?"crosshair":"default";
   player.wantShield=(keys.has("shield")||btnShield)&&player.ko<=0;
   NET.tick(dt);
@@ -2921,9 +2952,8 @@ ACE2.fpalm={hit(e){
   fx.push({k:"palm",x:px,y:py,sy:e.y+f[1]*reach+.02,f,t:0,life:.3});
   colorBurst(px,py+8,10,FIGHT,40,130);
   logFor(e,e.sp.name+" utilise Forte-Paume !",1800);
-  if(ok&&(assist||Math.hypot(tx-f[0]*22,ty-f[1]*22)<16)){
-    if(strike(e,t,SPL.fpalm,{from:e,push:CONF.push,contact:true})){t.slow=Math.max(t.slow,1.4);pops.push({x:t.x,y:t.y-46,t:0,txt:"Ralenti"});shake=Math.max(shake,.1)}
-  }
+  const one=t=>{ if(strike(e,t,SPL.fpalm,{from:e,push:CONF.push,contact:true})){t.slow=Math.max(t.slow,1.4);pops.push({x:t.x,y:t.y-46,t:0,txt:"Ralenti"});shake=Math.max(shake,.1)} }, p=ok&&(assist||Math.hypot(tx-f[0]*22,ty-f[1]*22)<16);
+  if(p)one(t); meleeOthers(e,p?t:null,px,py,16,one);
 }};
 // ---- Aurasphère / Sheauriken : projectiles ----
 ACE2.asph=ACE2.icebeam=ACE2.fwave={hit(e,id){fireBolt(e,id)}};
@@ -2993,7 +3023,7 @@ ZONE2.wpulse=(z,i,dt)=>{
     fx.push({k:"pillar",x:z.x,y:z.y,sy:z.y+.5,top:84,w:WP.r*.4,t:0,life:.42,pal:["#1a4aa0","#90c8ff","#ffffff"]});
     colorBurst(z.x,z.y,28,WATERC,50,170); shake=Math.max(shake,.14);
     for(let k=0;k<18;k++){const a=rand(0,Math.PI*2),r=rand(0,WP.r);spark(z.x+Math.cos(a)*r,z.y+Math.sin(a)*r*ISO,rand(-14,14),rand(-130,-50),rand(.4,.8),WATERC[k%5],260,k%3?2:3)}
-    if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<WP.r){
+    for(const t of foesOf(z.o))if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<WP.r){
       if(strike(z.o,t,SPL.wpulse,{from:{x:z.x,y:z.y},push:WP.push})){t.slow=Math.max(t.slow,WP.slowT);pops.push({x:t.x,y:t.y-46,t:0,txt:"Ralenti"})}
     }
   }
@@ -3125,7 +3155,7 @@ ACE2.flame={hit(e){
   fx.push({k:"flame",x:bx,y:by,sy:e.y+f[1]*14+.01,f,t:0,life:.5});
   for(let i=0;i<18;i++){const a=rand(-.4,.4),c=Math.cos(a),s=Math.sin(a),dx=f[0]*c-f[1]*s,dy=f[0]*s+f[1]*c,v=rand(60,150);spark(bx,by,dx*v,dy*v*.7-10,rand(.25,.45),FLAMEC[Math.floor(rand(0,5))],-40,Math.random()<.4?3:2)}
   logFor(e,e.sp.name+" utilise Lance-Flammes !",1600);
-  if(alive(t)&&!t.tunnel){
+  for(const t of foesOf(e))if(alive(t)&&!t.tunnel){
     const dx=t.x-bx, dy=(t.y-t.sp.body)-by, d=Math.hypot(dx,dy)||1, along=dx*f[0]+dy*f[1];
     if(d<FLAME.reach+t.sp.body*.5&&(along/d>=FLAME.cone||d<22)){
       if(strike(e,t,SPL.flame,{from:e,push:26,contact:true,shieldCost:20}))applyBurn(t,e);
@@ -3162,7 +3192,7 @@ ZONE2.heat=(z,i,dt)=>{
     rings.push({x:z.x,y:z.y,t:0,dur:.4,max:HEAT.r+12,c:"#ff9a30"}); rings.push({x:z.x,y:z.y,t:0,dur:.25,max:HEAT.r,c:"#ffffff"});
     fx.push({k:"pillar",x:z.x,y:z.y,sy:z.y+.5,top:70,w:HEAT.r*.4,t:0,life:.4,pal:["#a01808","#ff9a30","#ffffff"]});
     colorBurst(z.x,z.y,30,FLAMEC,50,170); shake=Math.max(shake,.15);
-    if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<HEAT.r){if(strike(z.o,t,SPL.heat,{from:{x:z.x,y:z.y},push:30}))applyBurn(t,z.o)}
+    for(const t of foesOf(z.o))if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<HEAT.r){if(strike(z.o,t,SPL.heat,{from:{x:z.x,y:z.y},push:30}))applyBurn(t,z.o)}
   }
   if(z.done){
     if(Math.random()<dt*16){const a=rand(0,Math.PI*2),r=rand(0,HEAT.r);spark(z.x+Math.cos(a)*r,z.y+Math.sin(a)*r*ISO,rand(-5,5),rand(-60,-25),rand(.35,.6),FLAMEC[Math.floor(rand(0,4))],-30,Math.random()<.4?3:2)}
@@ -3197,9 +3227,8 @@ ACE2.icepunch={hit(e){
   fx.push({k:"star",x:px,y:py,sy:e.y+f[1]*reach+.02,t:0,life:.32,r:12,col:"#d8f4f8"});
   colorBurst(px,py+8,12,ICEC,40,130);
   logFor(e,e.sp.name+" utilise Poing Glace !",1800);
-  if(ok&&(assist||Math.hypot(tx-f[0]*22,ty-f[1]*22)<16)){
-    if(strike(e,t,SPL.icepunch,{from:e,push:CONF.push,contact:true})){t.slow=Math.max(t.slow,1.4);pops.push({x:t.x,y:t.y-46,t:0,txt:"Ralenti"})}
-  }
+  const one=t=>{ if(strike(e,t,SPL.icepunch,{from:e,push:CONF.push,contact:true})){t.slow=Math.max(t.slow,1.4);pops.push({x:t.x,y:t.y-46,t:0,txt:"Ralenti"})} }, p=ok&&(assist||Math.hypot(tx-f[0]*22,ty-f[1]*22)<16);
+  if(p)one(t); meleeOthers(e,p?t:null,px,py,16,one);
 }};
 // ---- Avalanche : un bloc de glace tombe sur la zone ----
 ACE2.avalanche={hit(e){
@@ -3213,7 +3242,7 @@ ZONE2.aval=(z,i,dt)=>{
     rings.push({x:z.x,y:z.y,t:0,dur:.45,max:AVAL.r+16,c:"#d8f4f8"}); rings.push({x:z.x,y:z.y,t:0,dur:.28,max:AVAL.r,c:"#ffffff"});
     colorBurst(z.x,z.y,34,ICEC,50,190); shake=Math.max(shake,.26); hitstop=Math.max(hitstop,.04);
     for(let k=0;k<14;k++){const a=rand(0,Math.PI*2);spark(z.x+Math.cos(a)*5,z.y-4,Math.cos(a)*rand(30,100),rand(-170,-80),rand(.35,.6),ICEC[k%5],380,3)}
-    if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<AVAL.r){if(strike(z.o,t,SPL.avalanche,{from:{x:z.x,y:z.y},push:AVAL.push})){t.slow=Math.max(t.slow,AVAL.slowT);pops.push({x:t.x,y:t.y-46,t:0,txt:"Ralenti"})}}
+    for(const t of foesOf(z.o))if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<AVAL.r){if(strike(z.o,t,SPL.avalanche,{from:{x:z.x,y:z.y},push:AVAL.push})){t.slow=Math.max(t.slow,AVAL.slowT);pops.push({x:t.x,y:t.y-46,t:0,txt:"Ralenti"})}}
   }
   return z.t>AVAL.delay+.5;
 };
@@ -3249,7 +3278,7 @@ ZONE2.stomp=(z,i,dt)=>{
     colorBurst(z.x,z.y,36,["#d1a35c","#8a6030","#e8d8a0","#98d8d8","#f0e8c0"],60,190); shake=Math.max(shake,.3);
     fx.push({k:"cracks",x:z.x,y:z.y,sy:z.y-.5,t:0,life:1,rays:Array.from({length:8},(_,k)=>({a:k*Math.PI*2/8+rand(-.2,.2),len:STOMP.r*rand(.8,1.1),s:Math.floor(rand(0,9))}))});
     for(let k=0;k<12;k++){const a=rand(0,Math.PI*2),r=rand(8,STOMP.r*.8);spark(z.x+Math.cos(a)*r,z.y+Math.sin(a)*r*ISO,rand(-15,15),rand(-140,-60),rand(.35,.6),["#6a5030","#8a6a3e","#b8965f"][k%3],360,3)}
-    if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<STOMP.r)strike(z.o,t,SPL.stomp,{from:{x:z.x,y:z.y},push:STOMP.push,stun:STOMP.stun});
+    for(const t of foesOf(z.o))if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<STOMP.r)strike(z.o,t,SPL.stomp,{from:{x:z.x,y:z.y},push:STOMP.push,stun:STOMP.stun});
   }
   return z.t>STOMP.delay+.45;
 };
@@ -3533,12 +3562,12 @@ function gHit(z,t,spell,x,y,C,mult){
   return ok;
 }
 ZONE2.gz=(z,i,dt)=>{
-  const C=GZ[z.g], sp=SPL[z.g], pal=gpal(z.g), t=foeOf(z.o), live=alive(t)&&!t.tunnel;
+  const C=GZ[z.g], sp=SPL[z.g], pal=gpal(z.g), t=foeOf(z.o), live=alive(t)&&!t.tunnel, TS=foesOf(z.o).filter(x=>alive(x)&&!x.tunnel); // TS : tous les adversaires touchables (multi)
   if(C.kind==="impacts"){
     let allDone=true;
     z.pts.forEach((p,pi)=>{
       if(p.f&&!(z.t<p.d))return;
-      if(z.t>=p.d){p.f=1; if(once(z.u+"i"+pi))gImpact(p.x,p.y,pal,C.style,C.r,false,z.g); if(gHost()&&live&&gdist(t.x-p.x,t.y-p.y)<C.r+t.sp.body*.3&&once(z.u+"h"+pi))gHit(z,t,sp,p.x,p.y,C)}
+      if(z.t>=p.d){p.f=1; if(once(z.u+"i"+pi))gImpact(p.x,p.y,pal,C.style,C.r,false,z.g); if(gHost())for(const v of TS)if(gdist(v.x-p.x,v.y-p.y)<C.r+v.sp.body*.3&&once(z.u+"h"+pi+"_"+fighters.indexOf(v)))gHit(z,v,sp,p.x,p.y,C)}
       else allDone=false;
     });
     return allDone&&z.t>Math.max(...z.pts.map(p=>p.d))+.45;
@@ -3548,7 +3577,7 @@ ZONE2.gz=(z,i,dt)=>{
     if(z.done&&once(z.u+"f"))gImpact(z.x,z.y,pal,C.style,C.r,true,z.g);
     if(z.done&&z.tk===undefined)z.tk=C.tick;
     if(z.done){
-      z.tk-=dt; const inside=live&&gdist(t.x-z.x,t.y-z.y)<C.r, own=alive(z.o)&&gdist(z.o.x-z.x,z.o.y-z.y)<C.r;
+      z.tk-=dt; const IN=TS.filter(v=>gdist(v.x-z.x,v.y-z.y)<C.r), inside=live&&gdist(t.x-z.x,t.y-z.y)<C.r, own=alive(z.o)&&gdist(z.o.x-z.x,z.o.y-z.y)<C.r;
       // particules d'ambiance
       const R=C.r, N=C.style==="snow"?40:C.style==="sand"?30:16;
       if(Math.random()<dt*N){const a=rand(0,Math.PI*2),r=Math.sqrt(Math.random())*R,px=z.x+Math.cos(a)*r,py=z.y+Math.sin(a)*r*ISO;
@@ -3558,10 +3587,10 @@ ZONE2.gz=(z,i,dt)=>{
         else if(C.style==="psyfield")spark(px,py,rand(-6,6),-rand(30,80),rand(.5,.9),PSYC[1+Math.floor(rand(0,3))],-20,2);
         else spark(px,py,rand(-8,8),-rand(20,60),rand(.5,.9),GRASSC[1+Math.floor(rand(0,3))],-10,2)}
       if(C.style==="leech"&&inside&&Math.random()<dt*14){const sx=t.x+rand(-6,6),sy=t.y-t.sp.body*.6,dx=z.o.x-sx,dy=(z.o.y-z.o.sp.body*.6)-sy,d=Math.hypot(dx,dy)||1;spark(sx,sy,dx/d*120,dy/d*120,Math.min(.6,d/120),GRASSC[2+Math.floor(rand(0,2))],0,2)}
-      if(inside&&C.slow&&gHost())t.slow=Math.max(t.slow,.3);
+      if(C.slow&&gHost())IN.forEach(v=>{v.slow=Math.max(v.slow,.3)});
       if(z.tk<=0){z.tk=C.tick;
         if(gHost()){
-          if(inside&&!t.shieldOn){const dm=Math.max(1,Math.round(calcDamage(z.o,t,sp)*C.dot)); applyDamage(t,z.o,{x:z.x,y:z.y},dm,{dot:true}); colorBurst(t.x,t.y-8,5,pal,10,50);
+          for(const t of IN)if(!t.shieldOn){const dm=Math.max(1,Math.round(calcDamage(z.o,t,sp)*C.dot)); applyDamage(t,z.o,{x:z.x,y:z.y},dm,{dot:true}); colorBurst(t.x,t.y-8,5,pal,10,50);
             if(C.drain&&alive(z.o)){const h=Math.max(1,Math.round(dm*C.drain));z.o.hp=Math.min(z.o.maxHp,z.o.hp+h);pops.push({x:z.o.x,y:z.o.y-z.o.sp.body-22,t:0,txt:"+"+h});colorBurst(z.o.x,z.o.y-12,6,pal,10,50)}}
           if(own&&C.healOwner){const h=Math.round(z.o.maxHp*C.healOwner);z.o.hp=Math.min(z.o.maxHp,z.o.hp+h);pops.push({x:z.o.x,y:z.o.y-z.o.sp.body-22,t:0,txt:"+"+h});colorBurst(z.o.x,z.o.y-12,8,pal,10,60)}
         }
@@ -3572,18 +3601,19 @@ ZONE2.gz=(z,i,dt)=>{
   if(C.kind==="mine"){
     if(z.done){if(once(z.u+"m"))gImpact(z.x,z.y,pal,C.style==="spikes"?"rock":C.style,C.r,true,z.g); return z.t>z.tt+.5}
     if(z.t>C.life)return true;
-    if(z.t>=.7&&live&&gdist(t.x-z.x,t.y-z.y)<C.r&&gHost()){
+    const mv=TS.find(v=>gdist(v.x-z.x,v.y-z.y)<C.r);
+    if(z.t>=.7&&mv&&gHost()){
       z.done=true; z.tt=z.t;
-      gHit(z,t,sp,z.x,z.y,C,1);
+      gHit(z,mv,sp,z.x,z.y,C,1);
     }
     return false;
   }
   if(C.kind==="wall"){
-    if(C.touch&&gHost()&&live&&alive(t)){
+    if(C.touch&&gHost()&&TS.length){
       z.tk=(z.tk===undefined?0:z.tk)-dt;
-      const near=z.c.some(c=>gdist(t.x-c.x,t.y-c.y)<C.cr+10);
-      if(C.touch==="burn"&&near&&!t.shieldOn){applyBurn(t,z.o)}
-      if(C.touch==="dmg"&&near&&z.tk<=0&&!t.shieldOn){z.tk=C.tick;applyDamage(t,z.o,{x:z.x,y:z.y},Math.max(1,Math.round(calcDamage(z.o,t,sp)*C.dot)),{dot:true});colorBurst(t.x,t.y-8,4,GRASSC,10,40)}
+      const NEAR=TS.filter(t=>!t.shieldOn&&z.c.some(c=>gdist(t.x-c.x,t.y-c.y)<C.cr+10));
+      if(C.touch==="burn")NEAR.forEach(t=>applyBurn(t,z.o));
+      if(C.touch==="dmg"&&NEAR.length&&z.tk<=0){z.tk=C.tick; NEAR.forEach(t=>{applyDamage(t,z.o,{x:z.x,y:z.y},Math.max(1,Math.round(calcDamage(z.o,t,sp)*C.dot)),{dot:true});colorBurst(t.x,t.y-8,4,GRASSC,10,40)})}
     }
     // poussière et énergie le long du mur
     if(Math.random()<dt*10){const c=z.c[Math.floor(Math.random()*z.c.length)];
@@ -3765,7 +3795,8 @@ function mkMelee(id,pal,sfx,after){
     fx.push({k:"claw",x:px,y:py,sy:e.y+f[1]*reach+.02,f,t:0,pal:[pal[0],pal[2],pal[3]]});
     colorBurst(px,py+8,14,pal,40,140); if(sfx)sfx(px,py,f);
     logFor(e,e.sp.name+" utilise "+SPL[id].name+" !",1800);
-    if(ok&&(assist||Math.hypot(tx-f[0]*22,ty-f[1]*22)<16)){ if(strike(e,t,SPL[id],{from:e,push:CONF.push,contact:true})&&after)after(e,t) }
+    const one=v=>{ if(strike(e,v,SPL[id],{from:e,push:CONF.push,contact:true})&&after)after(e,v) }, p=ok&&(assist||Math.hypot(tx-f[0]*22,ty-f[1]*22)<16);
+    if(p)one(t); meleeOthers(e,p?t:null,px,py,16,one);
   }};
 }
 mkMelee("wsteel",STEELC,(x,y,f)=>{for(let i=0;i<5;i++)spark(x,y-4,f[0]*rand(60,120),f[1]*rand(30,70)-rand(10,50),rand(.25,.5),i%2?"#ffffff":STEELC[1],0,2)});
@@ -3881,7 +3912,8 @@ function defMelee(d){
     fx.push({k:"mfx",s:d.fx,x:px,y:py,sy:e.y+f[1]*reach+.01,f,t:0,life:.34,pal});
     colorBurst(px,py+8,10,pal,40,120); if(d.sparks)d.sparks(px,py,f);
     logFor(e,e.sp.name+" utilise "+SPL[d.id].name+" !",1800);
-    if(ok&&(assist||Math.hypot(tx-f[0]*22,ty-f[1]*22)<16)){ if(strike(e,t,SPL[d.id],{from:e,push:CONF.push,contact:true})&&d.after)d.after(e,t) }
+    const one=v=>{ if(strike(e,v,SPL[d.id],{from:e,push:CONF.push,contact:true})&&d.after)d.after(e,v) }, p=ok&&(assist||Math.hypot(tx-f[0]*22,ty-f[1]*22)<16);
+    if(p)one(t); meleeOthers(e,p?t:null,px,py,16,one);
   }};
 }
 // ---- capacités ----
@@ -3958,7 +3990,7 @@ function updateStreams(dt){
     S.nt-=dt;
     if(S.nt<=0){ S.nt=d.tick;
       let len=d.reach; for(let q=12;q<=d.reach;q+=6){ if(arenaShot({x:e.x+f[0]*q,y:e.y+f[1]*q,id:"~"+d.id})){len=q;break} } S.len=len;
-      if(alive(t)&&!t.tunnel){
+      for(const t of foesOf(e))if(alive(t)&&!t.tunnel){
         const dx=t.x-mx, dy=(t.y-t.sp.body)-my, along=dx*f[0]+dy*f[1], lat=Math.abs(dx*-f[1]+dy*f[0]);
         if(along>0&&along<len+t.sp.body*.5&&lat<d.width+(d.spread||0)*Math.max(0,along)/d.reach+t.sp.body*.5){
           const sp=Object.assign({},SPL[d.id],{power:d.tickPower});
@@ -4003,7 +4035,7 @@ function startRay(e,d){
   fx.push({k:"ray",d,x:ox,y:oy,sy:e.y+.6,f,len,t:0,life:.42,seed:Math.floor(rand(0,9999))});
   logFor(e,e.sp.name+" utilise "+SPL[d.id].name+" !",1600);
   if(d.noise)synNoise(d.noise[0],d.noise[1],d.noise[2],d.noise[3],d.noise[4]||1,"bandpass");
-  if(alive(t)&&!t.tunnel){
+  for(const t of foesOf(e))if(alive(t)&&!t.tunnel){
     const dx=t.x-e.x, dy=t.y-e.y, along=dx*f[0]+dy*f[1], perp=Math.abs(-dx*f[1]+dy*f[0]);
     if(along>6&&along<len+t.sp.body*.3&&perp<d.half+t.sp.body*.5){
       if(strike(e,t,SPL[d.id],{from:e,push:d.push||20})){ if(d.onHit)d.onHit(e,t); colorBurst(t.x,t.y-t.sp.body*.6,16,d.pal,40,150); rings.push({x:t.x,y:t.y,t:0,dur:.3,max:26,c:d.pal[2]}) }
@@ -4048,11 +4080,11 @@ function waveR(d,T){return d.r0+(d.reach-d.r0)*Math.min(1,T/(d.dur*.8))}
 function updateWaves(dt){
   fighters.forEach(e=>{const W=e.wv; if(!W)return; const d=W.d;
     if(!alive(e)||W.t>=d.dur){e.wv=null;return}
-    W.t+=dt; const f=W.f||(W.f=e.aim||FACE[e.dir]), t=foeOf(e);
-    if(!W.hit&&alive(t)&&!t.tunnel){
+    W.t+=dt; const f=W.f||(W.f=e.aim||FACE[e.dir]);
+    for(const t of foesOf(e)){ if((W.hs||(W.hs=[])).includes(t)||!alive(t)||t.tunnel)continue; // chaque adversaire est touché une fois
       const cx=e.x+f[0]*6, cy=e.y-e.sp.body*.5, dx=t.x-cx, dy=(t.y-t.sp.body*.5)-cy, dist=Math.hypot(dx,dy*1.15), r=waveR(d,W.t);
       if(dist<r+t.sp.body*.4&&dist>r-34&&(dx*f[0]+dy*f[1])/(dist||1)>=Math.cos(d.cone/2)){
-        W.hit=true; if(strike(e,t,SPL[d.id],{from:e,push:d.push||30,contact:true,shieldCost:20}) && d.onHit)d.onHit(e,t);
+        W.hs.push(t); if(strike(e,t,SPL[d.id],{from:e,push:d.push||30,contact:true,shieldCost:20}) && d.onHit)d.onHit(e,t);
       }
     }
   });
@@ -4485,6 +4517,81 @@ function botSwapDecide(e,dt){
   const cand=e.team[best], cf=cand.hp/cand.maxHp;
   if((hpf<.28&&cf>.55)||(cur<-.3&&cf>.5&&hpf>.3&&Math.random()<.5&&bs-(cur+hpf)>.5))startSwap(e,best);
 }
+
+/* ===== Mêlée générale (chacun pour soi, 3 ou 4 combattants, 2 Pokémon chacun) : le dernier debout gagne =====
+   Le moteur gère N combattants via foesOf/foeOf (c.js). Ici : départ, élimination, cibles des bots, HUD et fin de partie. */
+let FFA={n:4,out:[],endT:0};
+function ffaSpawn(i,n){ // en cercle autour du centre de l'arène, jamais collé à un obstacle
+  const cx=(AB.x0+AB.x1)/2, cy=(AB.y0+AB.y1)/2, a=-Math.PI*.75+i*2*Math.PI/n, P=[clampX(cx+Math.cos(a)*120),clampY(cy+Math.sin(a)*78)];
+  for(let it=0;it<6;it++)OBST.forEach(c=>{if(c.dead)return; const dx=P[0]-c.x, dy=P[1]-c.y, d=Math.hypot(dx,dy)||1, m=c.r+30; if(d<m){P[0]+=dx/d*(m-d); P[1]+=dy/d*(m-d)}});
+  return P;
+}
+function ffaBot(keys){ // un bot avec 2 Pokémon
+  const e=makeFighter(keys[0],0,0,true); initTeam(e,keys,keys.map(k=>SPECIES[k].kit)); return e;
+}
+function ffaStart(keys,roster){ // roster (en ligne) : liste de combattants déjà créés ; sinon : le joueur + des bots
+  matchMode="ffa"; endShown=false; score.me=0; score.foe=0; FFA.out=[]; FFA.endT=0;
+  if(roster){entities=roster}
+  else{
+    keys=keys.slice(0,2);
+    player=makeFighter(keys[0],0,0,false,kitOf(keys[0])); if(keys.length>1)initTeam(player,keys);
+    const pool=Object.keys(SPECIES).filter(k=>SPECIES[k].playable&&!keys.includes(k)).sort(()=>Math.random()-.5);
+    entities=[player]; for(let i=1;i<FFA.n;i++)entities.push(ffaBot(pool.splice(0,2)));
+  }
+  fighters=entities.filter(e=>e.fighter); foe=fighters.find(e=>e!==player)||player;
+  resetRound();
+  fighters.forEach(e=>{if(e.bot)botEquip(e,foeOf(e))});
+  if(typeof applyKit==="function")applyKit();
+  if(typeof showVersus==="function")showVersus(player.team?player.team.map(s=>s.key):[player.key],fighters.filter(e=>e!==player).map(e=>e.key),"TOI",fighters.length+" JOUEURS");
+  ffaHud();
+}
+function ffaOut(t,att){ // plus aucun Pokémon : le combattant est éliminé
+  t.out=true; t.ko=2.2; FFA.out.push(t);
+  const left=fighters.filter(e=>!e.out);
+  if(typeof showBanner==="function"){
+    if(t===player)showBanner(LANG==="en"?"ELIMINATED":"ÉLIMINÉ","lose");
+    else if(left.length>1)showLog((t.name||t.sp.name)+" est éliminé !",1600);
+  }
+  if(left.length<=1&&!NET.guest)FFA.endT=2.4;
+}
+function ffaRank(e){ // 1 = vainqueur
+  const i=FFA.out.indexOf(e); return i<0?1:fighters.length-i;
+}
+function ffaTick(dt){
+  if(matchMode!=="ffa"||endShown)return;
+  // les bots choisissent leur cible : la plus proche, avec une préférence pour la plus affaiblie
+  fighters.forEach(e=>{
+    if(!e.bot||e.out)return; e.tgtT=(e.tgtT||0)-dt; if(e.tgtT>0&&e.tgt&&!e.tgt.out&&alive(e.tgt))return; e.tgtT=rand(1.2,2.2);
+    let best=null,bs=1e9; for(const t of foesOf(e)){if(t.out||!alive(t))continue; const s=Math.hypot(t.x-e.x,t.y-e.y)*(.6+.4*t.hp/t.maxHp); if(s<bs){bs=s;best=t}} e.tgt=best;
+  });
+  if(FFA.endT>0){FFA.endT-=dt; if(FFA.endT<=0&&typeof showResult==="function")showResult()}
+  ffaHud();
+}
+FX_UPDATERS.push(ffaTick);
+// ---- HUD : liste des autres combattants (nom, PV, Pokémon restants) ----
+const ffaEl=document.createElement("div"); ffaEl.id="ffaList"; ffaEl.hidden=true; (document.getElementById("stage")||document.body).appendChild(ffaEl);
+{const st=document.createElement("style"); st.textContent='#ffaList{position:absolute;right:12px;top:118px;z-index:3;display:flex;flex-direction:column;gap:4px;pointer-events:none;font:700 12px "Pixelify Sans",system-ui,sans-serif;color:#fff}#ffaList .fr{display:flex;align-items:center;gap:6px;background:rgba(14,16,28,.78);border:2px solid #e8e8f0;border-radius:6px;padding:3px 6px;min-width:180px}#ffaList .fr.tg{border-color:#ffe45e}#ffaList .fr.out{opacity:.4}#ffaList img{width:24px;height:24px;image-rendering:pixelated}#ffaList u{flex:1;height:6px;background:#202838;display:block}#ffaList u s{display:block;height:100%;background:#5fd35f}#ffaList em{font-style:normal;color:#ffe45e}'; document.head.appendChild(st)}
+let ffaSig="";
+function ffaHud(){
+  const on=matchMode==="ffa"&&!menuOpen; ffaEl.hidden=!on; if(!on)return;
+  const rows=fighters.filter(e=>e!==player).map(e=>{const hp=e.out?0:Math.max(0,e.hp/e.maxHp), rest=e.team?teamAlive(e):(alive(e)?1:0);
+    return '<div class="fr'+(e===foe&&!e.out?' tg':'')+(e.out?' out':'')+'"><img alt="" src="'+(PORTRAITS[e.key]||"")+'"><span>'+(e.pname||e.sp.name)+'</span><u><s style="width:'+Math.round(hp*100)+'%"></s></u><em>'+(e.out?(LANG==="en"?"OUT":"OUT"):rest+"/"+(e.team?e.team.length:1))+'</em></div>'});
+  const sig=rows.join(""); if(sig!==ffaSig){ffaSig=sig; ffaEl.innerHTML=sig}
+}
+// ---- Fin de partie : classement ----
+setTimeout(()=>{const _sr=showResult; showResult=function(){
+  if(matchMode!=="ffa")return _sr.apply(this,arguments);
+  if(endShown)return; endShown=true; hideBanner();
+  const r=ffaRank(player), win=r===1, order=fighters.slice().sort((a,b)=>ffaRank(a)-ffaRank(b));
+  endEl.className=win?"win":"lose";
+  endEl.innerHTML='<div class="ebox"><h2>'+(win?"VICTOIRE":r+(r===1?"er":"e")+" / "+fighters.length)+'</h2><ol class="frank">'+order.map(e=>'<li'+(e===player?' class="me"':'')+'><img alt="" src="'+(PORTRAITS[e.key]||"")+'">'+(e===player?"Toi":(e.pname||e.sp.name))+'</li>').join("")+'</ol><div class="ebtn">'+(NET.on?"":'<button type="button" id="eRe">Rejouer</button>')+'<button type="button" id="eMenu">'+(NET.on?"Retour au salon":"Sélection d'équipe")+'</button></div></div>';
+  endEl.hidden=false; try{sfxUI(win?"ko":"click")}catch(_){}
+  const re=endEl.querySelector("#eRe"); if(re)re.onclick=()=>{hideResult(); startMatch(picks.slice(),"ffa")};
+  endEl.querySelector("#eMenu").onclick=()=>{hideResult(); openMenu()};
+}},0);
+{const st=document.createElement("style"); st.textContent='#endscr .frank{margin:0;padding:0 0 0 22px;text-align:left;color:#cfd8ff;font-size:15px}#endscr .frank li{margin:2px 0}#endscr .frank li.me{color:#ffe45e}#endscr .frank img{width:22px;height:22px;image-rendering:pixelated;vertical-align:middle;margin-right:6px}'; document.head.appendChild(st)}
+// ---- bouton « Mêlée » dans la sélection solo ----
+{const modes=document.querySelector("#menu .modes"); if(modes){const b=document.createElement("button"); b.type="button"; b.dataset.mode="ffa"; b.innerHTML='Mêlée<small>4 combattants, chacun pour soi</small>'; const after=modes.querySelector('[data-mode="duel"]'); modes.insertBefore(b,after?after.nextSibling:null); b.addEventListener("click",()=>{pickMode="ffa";refreshMenu()})}}
 
 // ---- Multijoueur en ligne : l'hôte fait autorité, l'invité joue en prédiction locale et se recale sur les instantanés ----
 // Le combat tourne chez les deux joueurs avec le même code. L'hôte reçoit les ordres de l'invité (déplacement, sort, bouclier)

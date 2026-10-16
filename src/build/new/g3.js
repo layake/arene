@@ -3,7 +3,10 @@ function toWorld(e){const r=stage.getBoundingClientRect(),d=window.devicePixelRa
 stage.addEventListener("contextmenu",e=>e.preventDefault());
 // Pointer l'ennemi transforme un ordre de déplacement en poursuite qui s'arrête à portée d'attaque.
 function hoverEnemy(){
-  const t=foe; if(!mouse||!t||!alive(t))return false;
+  if(isMulti()&&mouse){for(const x of foesOf(player))if(alive(x)&&!x.gone&&hoverOn(x)){foe=x;return true} return false}
+  return hoverOn(foe);
+}
+function hoverOn(t){ if(!mouse||!t||!alive(t))return false;
   const s=SHT(t), a=ANF(t), x0=t.x-a[0], y0=t.y-a[1];
   return mouse.wx>=x0+2&&mouse.wx<=x0+s.w-2&&mouse.wy>=y0+2&&mouse.wy<=y0+s.h;
 }
@@ -168,7 +171,7 @@ var bestOf=3; try{const bo=+localStorage.getItem("aceBo"); if(bo===1||bo===3||bo
 var endShown=false;
 let pick="garchomp", pickMode="train";
 try{const d=localStorage.getItem("aceDiff"); if(DIFFS[d])diff=d; const fp=localStorage.getItem("aceFoe"); if(fp==="rand"||(SPECIES[fp]&&SPECIES[fp].playable))foePick=fp}catch(_){}
-try{const k=localStorage.getItem("aceKey"); if(SPECIES[k]&&SPECIES[k].playable)pick=k; const m=localStorage.getItem("aceMode"); if(m==="duel"||m==="train")pickMode=m}catch(_){}
+try{const k=localStorage.getItem("aceKey"); if(SPECIES[k]&&SPECIES[k].playable)pick=k; const m=localStorage.getItem("aceMode"); if(m==="duel"||m==="train"||m==="ffa")pickMode=m}catch(_){}
 let picks=[];
 try{const t=JSON.parse(localStorage.getItem("aceTeam")||"[]"); if(Array.isArray(t))picks=t.filter((k,i)=>SPECIES[k]&&SPECIES[k].playable&&t.indexOf(k)===i).slice(0,3)}catch(_){}
 if(!picks.length)picks=[pick]; if(!picks.includes(pick))pick=picks[0];
@@ -249,7 +252,7 @@ function refreshMenu(){
   teamLineEl.innerHTML=[0,1,2].map(i=>{const k=picks[i]; return k?'<div class="tslot'+(k===pick?" on":"")+'" data-i="'+i+'"><b>'+(i+1)+'</b><img alt="" src="'+PORTRAITS[k]+'"><span>'+SPECIES[k].name+'</span><u data-rm="'+i+'" title="Retirer">×</u></div>':'<div class="tslot empty"><b>'+(i+1)+'</b><span>Choisir un Ace</span></div>'}).join("")+'<small>Ordre d\'entrée 1, 2, 3 · Tab : changer d\'Ace en combat</small>';
   document.querySelectorAll("#menu .modes button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===pickMode)));
   document.querySelectorAll("#menu .diffs button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.diff===diff)));
-  document.querySelector("#menu .diffs").hidden=pickMode!=="duel";
+  document.querySelector("#menu .diffs").hidden=pickMode!=="duel"&&pickMode!=="ffa";
   {const duel=pickMode==="duel", fl=document.querySelector("#menu .foes>span"), fs0=document.getElementById("foeSel"), as=document.getElementById("arenaSel"); if(fl)fl.hidden=!duel; if(fs0)fs0.hidden=!duel; if(as)as.value=ARENA_PICK}
   document.querySelector("#menu .rounds").hidden=pickMode!=="duel";
   document.querySelectorAll("#menu .rounds button").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.r===bestOf)));
@@ -258,9 +261,10 @@ function refreshMenu(){
   buildEquip();
   cardsEl.querySelectorAll(".ace").forEach(b=>{b.querySelector("ul").innerHTML=draftOf(b.dataset.key).map(id=>'<li><b style="background:'+TYPE_COL[SPL[id].type]+'"></b>'+SPL[id].name+'</li>').join("")});
   goBtn.disabled=!teamReady();
-  goBtn.textContent=teamReady()?"Combattre":(picks.length<(pickMode==="duel"?3:1)?"Sélectionne "+(pickMode==="duel"?3:1)+(pickMode==="duel"?" Aces":" Ace"):"Sélectionne 4 sorts");
+  goBtn.textContent=teamReady()?"Combattre":(picks.length<teamNeed()?"Sélectionne "+teamNeed()+(teamNeed()>1?" Aces":" Ace"):"Sélectionne 4 sorts");
 }
-const teamReady=()=>picks.length>=(pickMode==="duel"?3:1)&&picks.every(k=>draftOf(k).length===4);
+const teamNeed=()=>pickMode==="duel"?3:pickMode==="ffa"?2:1;
+const teamReady=()=>picks.length>=teamNeed()&&picks.every(k=>draftOf(k).length===4);
 function openMenu(){if(typeof hideBanner==="function")hideBanner(); if(NET.on){NET.toLobby();NET.tab("online")}musicSet("menu");setPause(false);menuOpen=true;menuEl.hidden=false;refreshMenu()}
 goBtn.addEventListener("click",()=>{
   if(!teamReady())return;
@@ -277,6 +281,7 @@ function frame(now){
   if(vsT>0&&!menuOpen){vsT-=dt; if(vsT<=0)hideVersus(); draw(); requestAnimationFrame(frame); return}
   if((paused&&!NET.on)||menuOpen){draw();requestAnimationFrame(frame);return}
   if(lastE){if(held)setMoveTarget(lastE,false);else mouse=toWorld(lastE)}
+  if(isMulti()){const T=foeOf(player); if(T&&T!==player)foe=T; fighters.forEach(x=>{if(x!==player)x.hover=false})}
   foe.hover=hoverEnemy(); stage.style.cursor=foe.hover?"crosshair":"default";
   player.wantShield=(keys.has("shield")||btnShield)&&player.ko<=0;
   NET.tick(dt);

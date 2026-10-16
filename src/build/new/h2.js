@@ -32,7 +32,7 @@ ACE2.flame={hit(e){
   fx.push({k:"flame",x:bx,y:by,sy:e.y+f[1]*14+.01,f,t:0,life:.5});
   for(let i=0;i<18;i++){const a=rand(-.4,.4),c=Math.cos(a),s=Math.sin(a),dx=f[0]*c-f[1]*s,dy=f[0]*s+f[1]*c,v=rand(60,150);spark(bx,by,dx*v,dy*v*.7-10,rand(.25,.45),FLAMEC[Math.floor(rand(0,5))],-40,Math.random()<.4?3:2)}
   logFor(e,e.sp.name+" utilise Lance-Flammes !",1600);
-  if(alive(t)&&!t.tunnel){
+  for(const t of foesOf(e))if(alive(t)&&!t.tunnel){
     const dx=t.x-bx, dy=(t.y-t.sp.body)-by, d=Math.hypot(dx,dy)||1, along=dx*f[0]+dy*f[1];
     if(d<FLAME.reach+t.sp.body*.5&&(along/d>=FLAME.cone||d<22)){
       if(strike(e,t,SPL.flame,{from:e,push:26,contact:true,shieldCost:20}))applyBurn(t,e);
@@ -69,7 +69,7 @@ ZONE2.heat=(z,i,dt)=>{
     rings.push({x:z.x,y:z.y,t:0,dur:.4,max:HEAT.r+12,c:"#ff9a30"}); rings.push({x:z.x,y:z.y,t:0,dur:.25,max:HEAT.r,c:"#ffffff"});
     fx.push({k:"pillar",x:z.x,y:z.y,sy:z.y+.5,top:70,w:HEAT.r*.4,t:0,life:.4,pal:["#a01808","#ff9a30","#ffffff"]});
     colorBurst(z.x,z.y,30,FLAMEC,50,170); shake=Math.max(shake,.15);
-    if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<HEAT.r){if(strike(z.o,t,SPL.heat,{from:{x:z.x,y:z.y},push:30}))applyBurn(t,z.o)}
+    for(const t of foesOf(z.o))if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<HEAT.r){if(strike(z.o,t,SPL.heat,{from:{x:z.x,y:z.y},push:30}))applyBurn(t,z.o)}
   }
   if(z.done){
     if(Math.random()<dt*16){const a=rand(0,Math.PI*2),r=rand(0,HEAT.r);spark(z.x+Math.cos(a)*r,z.y+Math.sin(a)*r*ISO,rand(-5,5),rand(-60,-25),rand(.35,.6),FLAMEC[Math.floor(rand(0,4))],-30,Math.random()<.4?3:2)}
@@ -104,9 +104,8 @@ ACE2.icepunch={hit(e){
   fx.push({k:"star",x:px,y:py,sy:e.y+f[1]*reach+.02,t:0,life:.32,r:12,col:"#d8f4f8"});
   colorBurst(px,py+8,12,ICEC,40,130);
   logFor(e,e.sp.name+" utilise Poing Glace !",1800);
-  if(ok&&(assist||Math.hypot(tx-f[0]*22,ty-f[1]*22)<16)){
-    if(strike(e,t,SPL.icepunch,{from:e,push:CONF.push,contact:true})){t.slow=Math.max(t.slow,1.4);pops.push({x:t.x,y:t.y-46,t:0,txt:"Ralenti"})}
-  }
+  const one=t=>{ if(strike(e,t,SPL.icepunch,{from:e,push:CONF.push,contact:true})){t.slow=Math.max(t.slow,1.4);pops.push({x:t.x,y:t.y-46,t:0,txt:"Ralenti"})} }, p=ok&&(assist||Math.hypot(tx-f[0]*22,ty-f[1]*22)<16);
+  if(p)one(t); meleeOthers(e,p?t:null,px,py,16,one);
 }};
 // ---- Avalanche : un bloc de glace tombe sur la zone ----
 ACE2.avalanche={hit(e){
@@ -120,7 +119,7 @@ ZONE2.aval=(z,i,dt)=>{
     rings.push({x:z.x,y:z.y,t:0,dur:.45,max:AVAL.r+16,c:"#d8f4f8"}); rings.push({x:z.x,y:z.y,t:0,dur:.28,max:AVAL.r,c:"#ffffff"});
     colorBurst(z.x,z.y,34,ICEC,50,190); shake=Math.max(shake,.26); hitstop=Math.max(hitstop,.04);
     for(let k=0;k<14;k++){const a=rand(0,Math.PI*2);spark(z.x+Math.cos(a)*5,z.y-4,Math.cos(a)*rand(30,100),rand(-170,-80),rand(.35,.6),ICEC[k%5],380,3)}
-    if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<AVAL.r){if(strike(z.o,t,SPL.avalanche,{from:{x:z.x,y:z.y},push:AVAL.push})){t.slow=Math.max(t.slow,AVAL.slowT);pops.push({x:t.x,y:t.y-46,t:0,txt:"Ralenti"})}}
+    for(const t of foesOf(z.o))if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<AVAL.r){if(strike(z.o,t,SPL.avalanche,{from:{x:z.x,y:z.y},push:AVAL.push})){t.slow=Math.max(t.slow,AVAL.slowT);pops.push({x:t.x,y:t.y-46,t:0,txt:"Ralenti"})}}
   }
   return z.t>AVAL.delay+.5;
 };
@@ -156,7 +155,7 @@ ZONE2.stomp=(z,i,dt)=>{
     colorBurst(z.x,z.y,36,["#d1a35c","#8a6030","#e8d8a0","#98d8d8","#f0e8c0"],60,190); shake=Math.max(shake,.3);
     fx.push({k:"cracks",x:z.x,y:z.y,sy:z.y-.5,t:0,life:1,rays:Array.from({length:8},(_,k)=>({a:k*Math.PI*2/8+rand(-.2,.2),len:STOMP.r*rand(.8,1.1),s:Math.floor(rand(0,9))}))});
     for(let k=0;k<12;k++){const a=rand(0,Math.PI*2),r=rand(8,STOMP.r*.8);spark(z.x+Math.cos(a)*r,z.y+Math.sin(a)*r*ISO,rand(-15,15),rand(-140,-60),rand(.35,.6),["#6a5030","#8a6a3e","#b8965f"][k%3],360,3)}
-    if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<STOMP.r)strike(z.o,t,SPL.stomp,{from:{x:z.x,y:z.y},push:STOMP.push,stun:STOMP.stun});
+    for(const t of foesOf(z.o))if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<STOMP.r)strike(z.o,t,SPL.stomp,{from:{x:z.x,y:z.y},push:STOMP.push,stun:STOMP.stun});
   }
   return z.t>STOMP.delay+.45;
 };

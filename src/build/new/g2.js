@@ -222,6 +222,7 @@ function drawBeam(b){
   ctx.globalAlpha=1;
 }
 function drawEntity(e){
+  if(e.gone)return; // éliminé en mêlée générale
   if(e.swapC&&!e.tunnel){drawSwap(e);return}
   if(e.tunnel){drawTunnelSprite(e);return}
   if(e.ko>0&&Math.floor(e.ko*12)%2)return;
@@ -376,6 +377,7 @@ function draw(){
   const order=entities.slice().sort((a,b)=>a.y-b.y);
   ctx.fillStyle="rgba(0,0,0,.32)";
   order.forEach(e=>{
+    if(e.gone)return;
     if(e.ko>0&&Math.floor(e.ko*12)%2)return;
     if(e.tunnel&&e.tunnel.phase==="dash")return;
     const gx=snap(e.x), gy=snap(e.y), [rx,ry]=e.sp.shadow;

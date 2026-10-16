@@ -8,7 +8,7 @@ function startRay(e,d){
   fx.push({k:"ray",d,x:ox,y:oy,sy:e.y+.6,f,len,t:0,life:.42,seed:Math.floor(rand(0,9999))});
   logFor(e,e.sp.name+" utilise "+SPL[d.id].name+" !",1600);
   if(d.noise)synNoise(d.noise[0],d.noise[1],d.noise[2],d.noise[3],d.noise[4]||1,"bandpass");
-  if(alive(t)&&!t.tunnel){
+  for(const t of foesOf(e))if(alive(t)&&!t.tunnel){
     const dx=t.x-e.x, dy=t.y-e.y, along=dx*f[0]+dy*f[1], perp=Math.abs(-dx*f[1]+dy*f[0]);
     if(along>6&&along<len+t.sp.body*.3&&perp<d.half+t.sp.body*.5){
       if(strike(e,t,SPL[d.id],{from:e,push:d.push||20})){ if(d.onHit)d.onHit(e,t); colorBurst(t.x,t.y-t.sp.body*.6,16,d.pal,40,150); rings.push({x:t.x,y:t.y,t:0,dur:.3,max:26,c:d.pal[2]}) }
@@ -53,11 +53,11 @@ function waveR(d,T){return d.r0+(d.reach-d.r0)*Math.min(1,T/(d.dur*.8))}
 function updateWaves(dt){
   fighters.forEach(e=>{const W=e.wv; if(!W)return; const d=W.d;
     if(!alive(e)||W.t>=d.dur){e.wv=null;return}
-    W.t+=dt; const f=W.f||(W.f=e.aim||FACE[e.dir]), t=foeOf(e);
-    if(!W.hit&&alive(t)&&!t.tunnel){
+    W.t+=dt; const f=W.f||(W.f=e.aim||FACE[e.dir]);
+    for(const t of foesOf(e)){ if((W.hs||(W.hs=[])).includes(t)||!alive(t)||t.tunnel)continue; // chaque adversaire est touché une fois
       const cx=e.x+f[0]*6, cy=e.y-e.sp.body*.5, dx=t.x-cx, dy=(t.y-t.sp.body*.5)-cy, dist=Math.hypot(dx,dy*1.15), r=waveR(d,W.t);
       if(dist<r+t.sp.body*.4&&dist>r-34&&(dx*f[0]+dy*f[1])/(dist||1)>=Math.cos(d.cone/2)){
-        W.hit=true; if(strike(e,t,SPL[d.id],{from:e,push:d.push||30,contact:true,shieldCost:20}) && d.onHit)d.onHit(e,t);
+        W.hs.push(t); if(strike(e,t,SPL[d.id],{from:e,push:d.push||30,contact:true,shieldCost:20}) && d.onHit)d.onHit(e,t);
       }
     }
   });

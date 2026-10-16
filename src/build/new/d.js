@@ -189,6 +189,7 @@ function knockOut(t,att){
   t.ko=1.6; t.kb=null; t.counter=null; t.rush=null; t.chan=null; t.tunnel=null; t.shieldOn=false;
   const more=teamKO(t);
   if(matchMode==="rush"&&!more){rushKO(t);return}
+  if(matchMode==="ffa"&&!more){ffaOut(t,att);return}
   if(!more&&matchMode==="duel"&&!NET.guest){if(t===player)score.foe++;else score.me++}
   if(!more&&matchMode==="duel"){t.ko=2.6; if(typeof showBanner==="function"){const over=typeof matchWon==="function"&&matchWon(); showBanner(over?(t===player?"DÉFAITE":"VICTOIRE"):(t===player?"ROUND PERDU":"ROUND GAGNÉ"),t===player?"lose":"win")}}
   showLog(t.sp.name+" est K.O. !",1600);
@@ -197,6 +198,7 @@ function updateKO(e,dt){
   if(e.ko<=0)return;
   e.ko-=dt;
   if(e.ko<=0){
+    if(e.out){e.ko=1e9; e.gone=true; return} // éliminé : il quitte l'arène
     if(e.team&&!NET.guest&&teamAlive(e)>0)teamEnter(e);
     else if(e.ai){e.x=clampX(player.x+rand(-110,110));e.y=clampY(player.y+rand(-70,70));e.hp=e.maxHp;e.hpShow=0;e.kb=null;setAnim(e,"idle");e.ai.wait=rand(.6,1.4);e.ai.tx=e.x;e.ai.ty=e.y}
     else if(matchMode==="rush"){if(e===foe)rushNext();else rushEnd(false)}
@@ -210,7 +212,10 @@ function updateKb(e,dt){
 }
 // Collision douce entre les deux combattants sur le plan du sol (une ellipse), adoucie pour que personne ne saute.
 function resolveCollision(dt){
-  const a=player,b=foe;
+  if(matchMode==="ffa"){const L=fighters.filter(e=>!e.gone); for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++)collidePair(L[i],L[j],dt); return}
+  collidePair(player,foe,dt);
+}
+function collidePair(a,b,dt){
   if(a.tunnel||b.tunnel||b.ko>0||a.ko>0)return;
   const sx=(a.x-b.x)/18, sy=(a.y-b.y)/7, L=Math.hypot(sx,sy);
   if(L>=1)return;

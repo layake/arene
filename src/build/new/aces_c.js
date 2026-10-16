@@ -126,12 +126,12 @@ function gHit(z,t,spell,x,y,C,mult){
   return ok;
 }
 ZONE2.gz=(z,i,dt)=>{
-  const C=GZ[z.g], sp=SPL[z.g], pal=gpal(z.g), t=foeOf(z.o), live=alive(t)&&!t.tunnel;
+  const C=GZ[z.g], sp=SPL[z.g], pal=gpal(z.g), t=foeOf(z.o), live=alive(t)&&!t.tunnel, TS=foesOf(z.o).filter(x=>alive(x)&&!x.tunnel); // TS : tous les adversaires touchables (multi)
   if(C.kind==="impacts"){
     let allDone=true;
     z.pts.forEach((p,pi)=>{
       if(p.f&&!(z.t<p.d))return;
-      if(z.t>=p.d){p.f=1; if(once(z.u+"i"+pi))gImpact(p.x,p.y,pal,C.style,C.r,false,z.g); if(gHost()&&live&&gdist(t.x-p.x,t.y-p.y)<C.r+t.sp.body*.3&&once(z.u+"h"+pi))gHit(z,t,sp,p.x,p.y,C)}
+      if(z.t>=p.d){p.f=1; if(once(z.u+"i"+pi))gImpact(p.x,p.y,pal,C.style,C.r,false,z.g); if(gHost())for(const v of TS)if(gdist(v.x-p.x,v.y-p.y)<C.r+v.sp.body*.3&&once(z.u+"h"+pi+"_"+fighters.indexOf(v)))gHit(z,v,sp,p.x,p.y,C)}
       else allDone=false;
     });
     return allDone&&z.t>Math.max(...z.pts.map(p=>p.d))+.45;
@@ -141,7 +141,7 @@ ZONE2.gz=(z,i,dt)=>{
     if(z.done&&once(z.u+"f"))gImpact(z.x,z.y,pal,C.style,C.r,true,z.g);
     if(z.done&&z.tk===undefined)z.tk=C.tick;
     if(z.done){
-      z.tk-=dt; const inside=live&&gdist(t.x-z.x,t.y-z.y)<C.r, own=alive(z.o)&&gdist(z.o.x-z.x,z.o.y-z.y)<C.r;
+      z.tk-=dt; const IN=TS.filter(v=>gdist(v.x-z.x,v.y-z.y)<C.r), inside=live&&gdist(t.x-z.x,t.y-z.y)<C.r, own=alive(z.o)&&gdist(z.o.x-z.x,z.o.y-z.y)<C.r;
       // particules d'ambiance
       const R=C.r, N=C.style==="snow"?40:C.style==="sand"?30:16;
       if(Math.random()<dt*N){const a=rand(0,Math.PI*2),r=Math.sqrt(Math.random())*R,px=z.x+Math.cos(a)*r,py=z.y+Math.sin(a)*r*ISO;
@@ -151,10 +151,10 @@ ZONE2.gz=(z,i,dt)=>{
         else if(C.style==="psyfield")spark(px,py,rand(-6,6),-rand(30,80),rand(.5,.9),PSYC[1+Math.floor(rand(0,3))],-20,2);
         else spark(px,py,rand(-8,8),-rand(20,60),rand(.5,.9),GRASSC[1+Math.floor(rand(0,3))],-10,2)}
       if(C.style==="leech"&&inside&&Math.random()<dt*14){const sx=t.x+rand(-6,6),sy=t.y-t.sp.body*.6,dx=z.o.x-sx,dy=(z.o.y-z.o.sp.body*.6)-sy,d=Math.hypot(dx,dy)||1;spark(sx,sy,dx/d*120,dy/d*120,Math.min(.6,d/120),GRASSC[2+Math.floor(rand(0,2))],0,2)}
-      if(inside&&C.slow&&gHost())t.slow=Math.max(t.slow,.3);
+      if(C.slow&&gHost())IN.forEach(v=>{v.slow=Math.max(v.slow,.3)});
       if(z.tk<=0){z.tk=C.tick;
         if(gHost()){
-          if(inside&&!t.shieldOn){const dm=Math.max(1,Math.round(calcDamage(z.o,t,sp)*C.dot)); applyDamage(t,z.o,{x:z.x,y:z.y},dm,{dot:true}); colorBurst(t.x,t.y-8,5,pal,10,50);
+          for(const t of IN)if(!t.shieldOn){const dm=Math.max(1,Math.round(calcDamage(z.o,t,sp)*C.dot)); applyDamage(t,z.o,{x:z.x,y:z.y},dm,{dot:true}); colorBurst(t.x,t.y-8,5,pal,10,50);
             if(C.drain&&alive(z.o)){const h=Math.max(1,Math.round(dm*C.drain));z.o.hp=Math.min(z.o.maxHp,z.o.hp+h);pops.push({x:z.o.x,y:z.o.y-z.o.sp.body-22,t:0,txt:"+"+h});colorBurst(z.o.x,z.o.y-12,6,pal,10,50)}}
           if(own&&C.healOwner){const h=Math.round(z.o.maxHp*C.healOwner);z.o.hp=Math.min(z.o.maxHp,z.o.hp+h);pops.push({x:z.o.x,y:z.o.y-z.o.sp.body-22,t:0,txt:"+"+h});colorBurst(z.o.x,z.o.y-12,8,pal,10,60)}
         }
@@ -165,18 +165,19 @@ ZONE2.gz=(z,i,dt)=>{
   if(C.kind==="mine"){
     if(z.done){if(once(z.u+"m"))gImpact(z.x,z.y,pal,C.style==="spikes"?"rock":C.style,C.r,true,z.g); return z.t>z.tt+.5}
     if(z.t>C.life)return true;
-    if(z.t>=.7&&live&&gdist(t.x-z.x,t.y-z.y)<C.r&&gHost()){
+    const mv=TS.find(v=>gdist(v.x-z.x,v.y-z.y)<C.r);
+    if(z.t>=.7&&mv&&gHost()){
       z.done=true; z.tt=z.t;
-      gHit(z,t,sp,z.x,z.y,C,1);
+      gHit(z,mv,sp,z.x,z.y,C,1);
     }
     return false;
   }
   if(C.kind==="wall"){
-    if(C.touch&&gHost()&&live&&alive(t)){
+    if(C.touch&&gHost()&&TS.length){
       z.tk=(z.tk===undefined?0:z.tk)-dt;
-      const near=z.c.some(c=>gdist(t.x-c.x,t.y-c.y)<C.cr+10);
-      if(C.touch==="burn"&&near&&!t.shieldOn){applyBurn(t,z.o)}
-      if(C.touch==="dmg"&&near&&z.tk<=0&&!t.shieldOn){z.tk=C.tick;applyDamage(t,z.o,{x:z.x,y:z.y},Math.max(1,Math.round(calcDamage(z.o,t,sp)*C.dot)),{dot:true});colorBurst(t.x,t.y-8,4,GRASSC,10,40)}
+      const NEAR=TS.filter(t=>!t.shieldOn&&z.c.some(c=>gdist(t.x-c.x,t.y-c.y)<C.cr+10));
+      if(C.touch==="burn")NEAR.forEach(t=>applyBurn(t,z.o));
+      if(C.touch==="dmg"&&NEAR.length&&z.tk<=0){z.tk=C.tick; NEAR.forEach(t=>{applyDamage(t,z.o,{x:z.x,y:z.y},Math.max(1,Math.round(calcDamage(z.o,t,sp)*C.dot)),{dot:true});colorBurst(t.x,t.y-8,4,GRASSC,10,40)})}
     }
     // poussière et énergie le long du mur
     if(Math.random()<dt*10){const c=z.c[Math.floor(Math.random()*z.c.length)];

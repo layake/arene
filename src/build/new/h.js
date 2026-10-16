@@ -22,9 +22,8 @@ ACE2.fpalm={hit(e){
   fx.push({k:"palm",x:px,y:py,sy:e.y+f[1]*reach+.02,f,t:0,life:.3});
   colorBurst(px,py+8,10,FIGHT,40,130);
   logFor(e,e.sp.name+" utilise Forte-Paume !",1800);
-  if(ok&&(assist||Math.hypot(tx-f[0]*22,ty-f[1]*22)<16)){
-    if(strike(e,t,SPL.fpalm,{from:e,push:CONF.push,contact:true})){t.slow=Math.max(t.slow,1.4);pops.push({x:t.x,y:t.y-46,t:0,txt:"Ralenti"});shake=Math.max(shake,.1)}
-  }
+  const one=t=>{ if(strike(e,t,SPL.fpalm,{from:e,push:CONF.push,contact:true})){t.slow=Math.max(t.slow,1.4);pops.push({x:t.x,y:t.y-46,t:0,txt:"Ralenti"});shake=Math.max(shake,.1)} }, p=ok&&(assist||Math.hypot(tx-f[0]*22,ty-f[1]*22)<16);
+  if(p)one(t); meleeOthers(e,p?t:null,px,py,16,one);
 }};
 // ---- Aurasphère / Sheauriken : projectiles ----
 ACE2.asph=ACE2.icebeam=ACE2.fwave={hit(e,id){fireBolt(e,id)}};
@@ -94,7 +93,7 @@ ZONE2.wpulse=(z,i,dt)=>{
     fx.push({k:"pillar",x:z.x,y:z.y,sy:z.y+.5,top:84,w:WP.r*.4,t:0,life:.42,pal:["#1a4aa0","#90c8ff","#ffffff"]});
     colorBurst(z.x,z.y,28,WATERC,50,170); shake=Math.max(shake,.14);
     for(let k=0;k<18;k++){const a=rand(0,Math.PI*2),r=rand(0,WP.r);spark(z.x+Math.cos(a)*r,z.y+Math.sin(a)*r*ISO,rand(-14,14),rand(-130,-50),rand(.4,.8),WATERC[k%5],260,k%3?2:3)}
-    if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<WP.r){
+    for(const t of foesOf(z.o))if(alive(t)&&!t.tunnel&&gdist(t.x-z.x,t.y-z.y)<WP.r){
       if(strike(z.o,t,SPL.wpulse,{from:{x:z.x,y:z.y},push:WP.push})){t.slow=Math.max(t.slow,WP.slowT);pops.push({x:t.x,y:t.y-46,t:0,txt:"Ralenti"})}
     }
   }

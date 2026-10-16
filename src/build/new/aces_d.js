@@ -42,7 +42,8 @@ function mkMelee(id,pal,sfx,after){
     fx.push({k:"claw",x:px,y:py,sy:e.y+f[1]*reach+.02,f,t:0,pal:[pal[0],pal[2],pal[3]]});
     colorBurst(px,py+8,14,pal,40,140); if(sfx)sfx(px,py,f);
     logFor(e,e.sp.name+" utilise "+SPL[id].name+" !",1800);
-    if(ok&&(assist||Math.hypot(tx-f[0]*22,ty-f[1]*22)<16)){ if(strike(e,t,SPL[id],{from:e,push:CONF.push,contact:true})&&after)after(e,t) }
+    const one=v=>{ if(strike(e,v,SPL[id],{from:e,push:CONF.push,contact:true})&&after)after(e,v) }, p=ok&&(assist||Math.hypot(tx-f[0]*22,ty-f[1]*22)<16);
+    if(p)one(t); meleeOthers(e,p?t:null,px,py,16,one);
   }};
 }
 mkMelee("wsteel",STEELC,(x,y,f)=>{for(let i=0;i<5;i++)spark(x,y-4,f[0]*rand(60,120),f[1]*rand(30,70)-rand(10,50),rand(.25,.5),i%2?"#ffffff":STEELC[1],0,2)});
