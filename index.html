@@ -351,6 +351,29 @@ img,canvas{image-rendering:pixelated}
 .lbvs{font-size:56px;color:#ffe45e;text-shadow:0 4px 0 #b8740a,4px 4px 0 #101830}
 .lbslot.ok{border-color:#5fd35f;box-shadow:0 0 0 3px #070c24,0 0 18px rgba(95,211,95,.55)}
 .lbslot .lbrdy{display:inline-block;margin-top:6px;padding:2px 14px;background:#5fd35f;color:#08220a;font-style:normal;font-weight:700;letter-spacing:.15em;text-transform:uppercase}
+
+.rounds{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;color:#9fb4ff;font:500 12px "Pixelify Sans",var(--display)}
+.rounds[hidden]{display:none}
+.rounds button{font:500 13px "Pixelify Sans",var(--display);color:#c9d6ff;background:rgba(7,12,36,.55);border:2px solid #4a68c8;border-radius:6px;padding:4px 14px;min-height:36px;cursor:pointer}
+.rounds button[aria-pressed=true]{color:#ffe45e;border-color:#ffe45e}
+#menu.tab-online .rounds{display:none!important}
+.mbox .bar{grid-template-columns:auto auto 1fr auto}
+.bar>.rounds{grid-column:3;grid-row:1;margin:0;justify-content:flex-end}
+.bar>.foes{grid-column:1/4;grid-row:2}
+.bar>.diffs{grid-column:2;grid-row:1}
+.bar>#go{grid-column:4;grid-row:1/3}
+#endscr{position:absolute;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:rgba(5,8,24,.72);font-family:"Pixelify Sans",var(--display)}
+#endscr[hidden]{display:none}
+#endscr .ebox{background:#0b1340;border:4px solid #ffe45e;box-shadow:0 0 0 4px #000,8px 8px 0 4px rgba(0,0,0,.5);padding:26px 46px;text-align:center;display:flex;flex-direction:column;gap:12px;animation:epop .35s steps(5) both}
+#endscr h2{margin:0;font-size:54px;color:#ffe45e;text-shadow:4px 4px 0 #000}
+#endscr.lose h2{color:#ff6a6a}
+#endscr .esc{font-size:44px;color:#fff;display:flex;gap:16px;justify-content:center;text-shadow:3px 3px 0 #000}
+#endscr .esc i{font-style:normal;color:#7f95e8}
+#endscr small{color:#9fb4ff;font-size:14px}
+#endscr .ebtn{display:flex;gap:14px;justify-content:center;margin-top:6px}
+#endscr button{font:600 18px "Pixelify Sans",var(--display);color:#ffe45e;background:#1b2a8a;border:3px solid #ffe45e;padding:8px 22px;cursor:pointer}
+#endscr button:hover{background:#2a3fc0}
+@keyframes epop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
 footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </style>
 
@@ -373,9 +396,9 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 <div id="bar">
 <button id="atk" class="slot dragon" type="button" aria-disabled="false"><span class="k">A</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#1a0f3d" stroke-width="1.4" stroke-linejoin="round"><path d="M4 4 L9 3 L15 27 L12 28 Z" fill="#f3eaff"/><path d="M11 4 L16 3 L22 27 L19 28 Z" fill="#f3eaff"/><path d="M18 4 L23 3 L29 27 L26 28 Z" fill="#f3eaff"/></svg><span class="c">10</span><span class="n">Draco-Griffe</span><span class="cd"></span><span class="t"></span></button><button id="pls" class="slot ground" type="button" aria-disabled="false"><span class="k">Z</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#2a1608" stroke-width="1.4"><circle cx="17" cy="17" r="9" fill="#7a4a22"/><ellipse cx="13" cy="13" rx="3.2" ry="2" fill="#c08a50" stroke="none"/><circle cx="5.5" cy="21" r="2.2" fill="#7a4a22"/><circle cx="27.5" cy="9" r="1.8" fill="#7a4a22"/><circle cx="6" cy="10" r="1.4" fill="#7a4a22"/></svg><span class="c">20</span><span class="n">Tir de Boue</span><span class="cd"></span><span class="t"></span></button><button id="tun" class="slot ground" type="button" aria-disabled="false"><span class="k">E</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#2a1608" stroke-width="1.4" stroke-linejoin="round"><path d="M3 27 Q16 3 29 27 Z" fill="#b98a4e"/><path d="M9 20 Q13 12 17 10" fill="none" stroke="#e3bd82" stroke-width="2" stroke-linecap="round"/><ellipse cx="16" cy="25" rx="6.5" ry="2.8" fill="#2a1608"/></svg><span class="c">25</span><span class="n">Tunnel</span><span class="cd"></span><span class="t"></span></button><button id="rsh" class="slot dragon" type="button" aria-disabled="false"><span class="k">R</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#1a0f3d" stroke-width="1.4" stroke-linejoin="round"><path d="M3 12 H16 V5 L29 16 L16 27 V20 H3 Z" fill="#f3eaff"/><path d="M6 15 H18 V11" fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round"/></svg><span class="c">50</span><span class="n">Draco-Charge</span><span class="cd"></span><span class="t"></span></button><span class="sep"></span><button id="shd" class="slot shield" type="button" aria-pressed="false" aria-disabled="false"><span class="k">Esp</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#0b2a40" stroke-width="1.4" stroke-linejoin="round"><path d="M16 3 L28 7 V16 C28 23 22 27 16 30 C10 27 4 23 4 16 V7 Z" fill="#d6f2ff"/><path d="M16 7 L24 10 V16 C24 21 20 24 16 26 Z" fill="#5cc0f0" stroke="none"/></svg><span class="n">Bouclier</span><span class="cd"></span><span class="t"></span></button>
 </div>
-<div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Choisis ton équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>Tortipousse, mannequin</small></button><button type="button" data-mode="duel" aria-pressed="false">Duel<small>contre l'autre Ace</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
+<div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Choisis ton équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>Tortipousse, mannequin</small></button><button type="button" data-mode="duel" aria-pressed="false">Duel<small>contre l'autre Ace</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="rounds" role="group" aria-label="Manches"><span>Manches</span><button type="button" data-r="1">1</button><button type="button" data-r="3" aria-pressed="true">3</button><button type="button" data-r="5">5</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
 </div>
-<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.21 · 16/10/2026</b></footer>
+<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.22 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -786,7 +809,7 @@ function pickFoe(key){
 }
 function startMatch(key,mode){musicSet("battle");
   const keys=Array.isArray(key)?key.slice(0,3):[key]; key=keys[0];
-  matchMode=mode; playerKey=key; score.me=0; score.foe=0;
+  endShown=false; matchMode=mode; playerKey=key; score.me=0; score.foe=0;
   player=makeFighter(key,START_A[0],START_A[1],false,kitOf(key));
   if(keys.length>1)initTeam(player,keys);
   if(mode==="duel"){
@@ -996,7 +1019,7 @@ function updateKO(e,dt){
   if(e.ko<=0){
     if(e.team&&!NET.guest&&teamAlive(e)>0)teamEnter(e);
     else if(e.ai){e.x=clampX(player.x+rand(-110,110));e.y=clampY(player.y+rand(-70,70));e.hp=e.maxHp;e.hpShow=0;e.kb=null;setAnim(e,"idle");e.ai.wait=rand(.6,1.4);e.ai.tx=e.x;e.ai.ty=e.y}
-    else if(!NET.guest)resetRound();
+    else if(!NET.guest){if(matchWon()&&typeof showResult==="function")showResult();else resetRound()}
   }
 }
 function updateKb(e,dt){
@@ -2355,6 +2378,8 @@ document.addEventListener("visibilitychange",()=>{if(document.hidden)setPause(tr
 addEventListener("blur",()=>{keys.clear();aiming=null});
 // ---- Choix de l'Ace ----
 const menuEl=document.getElementById("menu"), cardsEl=document.getElementById("cards"), goBtn=document.getElementById("go");
+var bestOf=3; try{const bo=+localStorage.getItem("aceBo"); if(bo===1||bo===3||bo===5)bestOf=bo}catch(_){}
+var endShown=false;
 let pick="garchomp", pickMode="train";
 try{const d=localStorage.getItem("aceDiff"); if(DIFFS[d])diff=d; const fp=localStorage.getItem("aceFoe"); if(fp==="rand"||(SPECIES[fp]&&SPECIES[fp].playable))foePick=fp}catch(_){}
 try{const k=localStorage.getItem("aceKey"); if(SPECIES[k]&&SPECIES[k].playable)pick=k; const m=localStorage.getItem("aceMode"); if(m==="duel"||m==="train")pickMode=m}catch(_){}
@@ -2420,6 +2445,7 @@ function buildMenu(){
   });
   document.querySelectorAll("#menu .modes button").forEach(b=>b.addEventListener("click",()=>{pickMode=b.dataset.mode;refreshMenu()}));
   document.querySelectorAll("#menu .diffs button").forEach(b=>b.addEventListener("click",()=>{diff=b.dataset.diff;refreshMenu()}));
+  document.querySelectorAll("#menu .rounds button").forEach(b=>b.addEventListener("click",()=>{bestOf=+b.dataset.r;try{localStorage.setItem("aceBo",bestOf)}catch(_){}refreshMenu()}));
   const fb=document.getElementById("foeBtns");
   [["rand","Aléatoire"]].concat(Object.keys(SPECIES).filter(k=>SPECIES[k].playable).map(k=>[k,SPECIES[k].name])).forEach(([k,n])=>{
     const x=document.createElement("button"); x.type="button"; x.dataset.foe=k; x.textContent=n;
@@ -2434,6 +2460,8 @@ function refreshMenu(){
   document.querySelectorAll("#menu .diffs button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.diff===diff)));
   document.querySelector("#menu .diffs").hidden=pickMode!=="duel";
   document.querySelector("#menu .foes").hidden=pickMode!=="duel";
+  document.querySelector("#menu .rounds").hidden=pickMode!=="duel";
+  document.querySelectorAll("#menu .rounds button").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.r===bestOf)));
   document.querySelectorAll("#foeBtns button").forEach(b=>{b.setAttribute("aria-pressed",String(b.dataset.foe===foePick));b.disabled=picks.includes(b.dataset.foe)})
   if(picks.includes(foePick)){foePick="rand"}
   buildEquip();
@@ -2453,6 +2481,7 @@ document.getElementById("menuBtn").addEventListener("click",openMenu);
 // ---- Boucle ----
 function frame(now){
   const dt=Math.min(.05,(now-last)/1000); last=now;
+  if(typeof endShown!=="undefined"&&endShown&&!menuOpen){draw(); requestAnimationFrame(frame); return}
   if(vsT>0&&!menuOpen){vsT-=dt; if(vsT<=0)hideVersus(); draw(); requestAnimationFrame(frame); return}
   if((paused&&!NET.on)||menuOpen){draw();requestAnimationFrame(frame);return}
   if(lastE){if(held)setMoveTarget(lastE,false);else mouse=toWorld(lastE)}
@@ -3225,7 +3254,7 @@ function onMsg(m){
 }
 // ---- Démarrage du match ----
 function begin(hostH,guestH,asHost){
-  musicSet("battle"); matchMode="duel"; score.me=0; score.foe=0; seq=0; lastSnapSeq=-1; castSeq=ackSeq=0; lastMv=""; lastSh=false;
+  bestOf=3; endShown=false; musicSet("battle"); matchMode="duel"; score.me=0; score.foe=0; seq=0; lastSnapSeq=-1; castSeq=ackSeq=0; lastMv=""; lastSh=false;
   const A=makeFighter(hostH.team[0].key,START_A[0],START_A[1],false,hostH.team[0].kit), B=makeFighter(guestH.team[0].key,START_B[0],START_B[1],false,guestH.team[0].kit);
   initTeam(A,hostH.team.map(x=>x.key),hostH.team.map(x=>x.kit)); initTeam(B,guestH.team.map(x=>x.key),guestH.team.map(x=>x.kit));
   entities=[A,B]; fighters=entities.slice();
@@ -3418,6 +3447,22 @@ addEventListener("keydown",e=>{if(!vsEl.hidden&&vsT<2.2&&(e.key==="Enter"||e.key
 var banEl=document.createElement("div"); banEl.id="roundban"; banEl.hidden=true; stageEl.appendChild(banEl);
 function showBanner(txt,cls){banEl.textContent=txt;banEl.className=cls||"";banEl.hidden=false;void banEl.offsetWidth;banEl.classList.add("in")}
 function hideBanner(){if(banEl)banEl.hidden=true}
+// --- fin de match ---
+function winsNeeded(){return (bestOf+1)/2}
+function matchWon(){return matchMode==="duel"&&(score.me>=winsNeeded()||score.foe>=winsNeeded())}
+var endEl=document.createElement("div"); endEl.id="endscr"; endEl.hidden=true; stageEl.appendChild(endEl);
+function hideResult(){endShown=false; endEl.hidden=true}
+function showResult(){
+  if(endShown)return; endShown=true; hideBanner();
+  const win=score.me>score.foe;
+  endEl.className=win?"win":"lose";
+  endEl.innerHTML='<div class="ebox"><h2>'+(win?"VICTOIRE !":"DÉFAITE")+'</h2><div class="esc"><b>'+score.me+'</b><i>-</i><b>'+score.foe+'</b></div><small>Match au meilleur de '+bestOf+'</small><div class="ebtn">'+(NET.on?"":'<button type="button" id="eRe">Rejouer</button>')+'<button type="button" id="eMenu">Menu</button></div></div>';
+  endEl.hidden=false; try{sfxUI(win?"ko":"click")}catch(_){}
+  const re=endEl.querySelector("#eRe"); if(re)re.onclick=()=>{hideResult(); startMatch(picks.slice(),matchMode)};
+  endEl.querySelector("#eMenu").onclick=()=>{hideResult(); openMenu()};
+}
+// invite : detecte la fin de match via le score
+setInterval(()=>{if(NET.guest&&NET.started&&!endShown&&matchWon()&&!menuOpen&&(!player||player.ko<=0.0001||true)){if(!window._endT)window._endT=setTimeout(()=>{window._endT=0;if(matchWon()&&!menuOpen)showResult()},2400)}},250);
 // affiche le titre au chargement
 showTitle();
 
