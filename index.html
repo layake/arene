@@ -438,7 +438,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Sélection d'équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>mannequin d'entraînement</small></button><button type="button" data-mode="duel" aria-pressed="false">Versus<small>contre un adversaire</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="rounds" role="group" aria-label="Rounds"><span>Rounds</span><button type="button" data-r="1">1</button><button type="button" data-r="3" aria-pressed="true">3</button><button type="button" data-r="5">5</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
 </div>
-<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.40 · 16/10/2026</b></footer>
+<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.0 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -3853,6 +3853,79 @@ defMelee({keep:true,id:"wsteel",fx:"wing",type:"steel",pal:["#606080","#a8a8c8",
   sparks:(x,y,f)=>{for(let i=0;i<5;i++)spark(x,y-4,f[0]*rand(60,120),f[1]*rand(30,70)-rand(10,50),rand(.25,.5),i%2?"#ffffff":STEELC[1],0,2)}});
 defMelee({keep:true,id:"blazekick",fx:"kick",type:"fire",pal:["#a01808","#e8481c","#ff9a30","#ffe070","#ffffff"],
   sparks:(x,y,f)=>{for(let i=0;i<7;i++)spark(x,y-4,f[0]*rand(30,90),-rand(40,110),rand(.4,.7),FLAMEC[1+i%3],-40,i%3?2:3)},after:(e,t)=>{if(Math.random()<.4)applyBurn(t,e)}});
+
+// ===== Archétype "jet continu" : un flux qui sort du Pokémon, suit la visée et touche à chaque tick =====
+// defStream({id,dur,tick,tickPower,reach,width,style,pal,burn,noise,...}) ; voir docs/AJOUTER_UNE_CAPACITE.md
+var STREAM_DEFS=[];
+const STREAM_STYLE={
+  // blobs de feu qui montent et s'étalent
+  fire:{n:20,flow:2,size:s=>Math.max(3,Math.round(8*(1-s*.55))),wob:s=>2+s*7,lift:s=>-s*s*9,cols:s=>s<.25?2:s<.6?1:0,core:s=>s<.3?4:s<.65?3:2},
+  // blobs d'eau mous qui retombent en arc, avec des gouttes d'écume
+  water:{n:22,flow:1.7,size:s=>Math.round(3+s*4),wob:s=>1+s*3,lift:s=>s*s*8,cols:s=>s<.3?2:s<.7?1:0,core:s=>s<.5?4:3}
+};
+function strmPoint(c,s,i,T){
+  const f=c.e.aim||FACE[c.e.dir], nx=-f[1], ny=f[0], S=STREAM_STYLE[c.d.style]||STREAM_STYLE.fire, grow=Math.min(1,T*7);
+  const d=6+s*c.d.reach*grow, w=Math.sin(T*13+i*1.9)*S.wob(s);
+  return {x:c.e.x+f[0]*(8+d)+nx*w, y:c.e.y-c.e.sp.body+f[1]*d*.8+ny*w*.8+S.lift(s), s, S};
+}
+function drawStream(c){
+  const S=STREAM_STYLE[c.d.style]||STREAM_STYLE.fire, T=c.t, P=c.d.pal, fade=T>c.d.dur-.12?Math.max(0,(c.d.dur-T)/.12):1;
+  ctx.globalAlpha=fade;
+  for(let i=0;i<S.n;i++){ // contour sombre derrière tout le flux
+    const s=(i/S.n+T*S.flow)%1, p=strmPoint(c,s,i,T), w=S.size(s)+1; ctx.fillStyle=P[0]; ctx.fillRect(Math.round(p.x)-(w>>1),Math.round(p.y)-(w>>1),w,w);
+  }
+  for(let i=0;i<S.n;i++){
+    const s=(i/S.n+T*S.flow)%1, p=strmPoint(c,s,i,T), w=S.size(s), x=Math.round(p.x), y=Math.round(p.y);
+    ctx.fillStyle=P[S.cols(s)]; ctx.fillRect(x-(w>>1),y-(w>>1),w,w);
+    if(w>3){ctx.fillStyle=P[S.core(s)]; ctx.fillRect(x-(w>>1)+1,y-(w>>1)+1,w-2,w-2)}
+    if(c.d.style==="water"&&w>4){ctx.fillStyle="#ffffff"; ctx.fillRect(x-(w>>1)+1,y-(w>>1)+1,2,1)}
+  }
+  ctx.globalAlpha=1;
+}
+{const _d0=drawFx; drawFx=function(c){return c.k==="strm"?drawStream(c):_d0(c)}}
+function startStream(e,d){
+  e.strm={d,t:0,nt:0,burned:false,on:true};
+  fx.push({k:"strm",e,d,s:e.strm,x:e.x,y:e.y,sy:e.y+.5,t:0,life:d.dur});
+  logFor(e,e.sp.name+" utilise "+SPL[d.id].name+" !",1600);
+  if(d.noise)synNoise(d.dur,d.noise[0],d.noise[1],d.noise[2],d.noise[3],"bandpass");
+}
+function updateStreams(dt){
+  fighters.forEach(e=>{
+    const S=e.strm; if(!S)return;
+    const d=S.d, t=foeOf(e);
+    if(!alive(e)||e.stun>0||e.tunnel||S.t>=d.dur){S.on=false;e.strm=null;return}
+    S.t+=dt; e.lock=Math.max(e.lock,dt*2.5); if(e.moveTarget)e.moveTarget=null;
+    aimAt(e,false); const f=e.aim||FACE[e.dir];
+    const mx=e.x+f[0]*10, my=e.y-e.sp.body+f[1]*8;
+    for(let k=0;k<2;k++){ if(Math.random()<dt*70) spark(mx+f[0]*rand(10,d.reach),my+f[1]*rand(10,d.reach)*.8,rand(-20,20)+f[0]*30,rand(-40,-5),rand(.2,.4),d.pal[Math.floor(rand(0,5))],d.style==="water"?220:-40,2) }
+    S.nt-=dt;
+    if(S.nt<=0){ S.nt=d.tick;
+      if(alive(t)&&!t.tunnel){
+        const dx=t.x-mx, dy=(t.y-t.sp.body)-my, along=dx*f[0]+dy*f[1], lat=Math.abs(dx*-f[1]+dy*f[0]);
+        if(along>0&&along<d.reach+t.sp.body*.5&&lat<d.width+t.sp.body*.5){
+          const sp=Object.assign({},SPL[d.id],{power:d.tickPower});
+          if(strike(e,t,sp,{from:e,dot:true,contact:true,shieldCost:6})){
+            colorBurst(t.x,t.y-t.sp.body*.6,4,d.pal,30,90);
+            if(!S.burned&&d.burn){S.burned=true;applyBurn(t,e)}
+            if(d.slow)t.slow=Math.max(t.slow||0,d.slow);
+          }
+        }
+      }
+    }
+  });
+}
+{const _u0=updateOrbs; updateOrbs=function(dt){_u0(dt);updateStreams(dt)}}
+// Déclare une capacité en jet continu. keep:true = ne remplace que le comportement/FX d'une capacité existante.
+function defStream(d){
+  STREAM_DEFS.push(d);
+  if(!d.keep){SPL[d.id]={name:d.name,type:d.type,cat:d.cat||"spec",power:d.power||d.tickPower*d.dur/d.tick,cost:d.cost||0,cd:d.cd,ground:false,pp0:0}; SFX_MAP[d.id]=d.sfx}
+  if(d.desc){DESC[d.id]=d.desc; if(d.en)I18N_EXTRA[d.desc]=d.en}
+  PREV[d.id]={k:"shot",len:()=>d.reach,hw:d.width,from:10};
+  ACE2[d.id]={hit(e){startStream(e,d)}};
+}
+defStream({keep:true,id:"flame",style:"fire",pal:FLAMEC,dur:1,tick:.125,tickPower:3,reach:84,width:11,burn:true,noise:[.38,2600,900,1.2],
+  desc:"Souffle un jet de flammes continu pendant 1 s, orientable à la visée. Brûle la cible.",
+  en:"Breathes a continuous jet of flames for 1 s that follows your aim. Burns the target."});
 
 // ===== Ronflex, Tyranocif, Zoroark, Étouraptor =====
 PORTRAITS.snorlax="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAADmVYSWZNTQAqAAAACAAAAAAAAADSU5MAAAUPSURBVHiczZgtlOM2FIVv9gwQFBQUFDRbsRqGrdmG1WzDGtawhRs4cKBhoGFYzSpoKFazCj4oNgW2FPkvmexv7zk5iWNZ+nz13pPszee//3nF/1hPv2pg15zR1jUAgAmB/Pi82O7dz0O6qjkd0NY1pJLIcg3BGZrTYbHtzEHfXtBUVTxmQkApCVEsd/CIfHuBuVzgnYNUElxl4JwDXKAb3LwL2FTV6GIiQlvXYPYAvd2CZdvZoNRZWNvBOzc6x4SA3m5HfTMh+v6FiP9zzmNf0/6fJHfoSEByB9u01zPkQMPFeVmCiAZnK+RlCQAjNwRnAJczB0KbACw46+G4GLVjA3DK05HAU3oQ5MgDcOBcgIjAOV8AxeC0vo4yGRTkwAVggf4GgJFzqZSSMJfewRRy7GBygSMPTg5IIDFx1BoDrpYHTIGVFhF4eiOxby7gnZk5+C7YuqqhUyIaj835KL7eJD6f2rS/oMAjuRuXGZVnE7Yx+BRyerw2cPh8jR6ug0QUP/c0hVqDvNXX9ynU5K7x9ZXtiQhMCJi6Gf3/TUudNQbANUOd7aD0NavT5ArHAGBtN/zTQSkZ41JwhrauIfJdjMMRYFoHY71aENkWjjx2miMTDJnOAABVbXA2ZjToLG5ti53m2Jc5zMXgWHcQ3PULg8oA28E1Z8giBzCZ4s40c5o068jBGoNcMZwPGfZlDr3VYJyBcYZ9meNUCFjbgWw774scHHmURe+y3mqcDxkc+dheKhlnZgbYF+gVkYO1HXaaoyw0hJKLzZYGDQrXsyEkAEAoGdsDAFfZaMkcAXrn4nI0VQrHFs6nEkricuprZIQckiK4N22/0zy2TZPlHQCYusFLeVgdMMTNW+CCGGeojjm4ELDGwNoOp0KsXr8v8+iiGqbZ1A0279+/fw3USw5y0cfU+ZCtTus9mUsfU3o7dy/VS9WgsT6O6Z3DE1vJ1KCwmqxltIsl4youxk5NwfzgVOi76/rvTDA01g+J2SHL9XIddOSvtY386tSEO54ml+AMueqzeklVbXqQyZg7zeMmxTsH6BXA0d06B7mywBeKoVCsr18PqCw0SmB20548zuaSFPJJoU7jMHVxTULfjqk1rSVKmPLAANxZi2/WxR+sYM4MMLiYqqNrYN+TuRi8VM3NNi9VM0suTx5d56J7/C0OBrXOg5x7E+RzQ9gfK+yOl1W4/bHCobLw5OOHnMOx7o3pn296wMUkSWORCYGqtsgEgwQAdy0501gyFwNHHnlRQHCG/XM765ucR1Pu+qVwMlNT91YBA2Sq1vm4BaKFZwsAkFLgfBAAOXQEAHPHpeYpbfxZD2Unde8m4BS2qi1QKBQqce3GJlXy1VMz1dajqu3MFOCBHXWArK0f3Pk+qq3H2RDq0xY7zdHZbnTjm98+fLj5ditkdDm4t6v647BZfcSpVB31CQUAz6WK67yzHXbPbdyZbz7+/vF1qd5Nwaadh4wDgFMR3grcBgL6WA7LXK7Y4g4phdx8+vOP15BNATRk007zGdx00Nb1U3RL0xUpVwyFlrNNxRTyUFlsPn358gpy152F7RZdu6c0Lls3n5FM9P1JKW6CTSF7wEHWmN41La+tHnmcvCf+drigWGYC3L7Mx/u1hRdCj0L1X4+BjQDTR0HgukKI4XWaT6v+ytZrzrW82jwMGJ5x9+X6iyDGWYQNWlqXvxVmSU+OPM6H7OELfwTMkjb//vX59Wsfhn6G/gNJ/eIlOwmueAAAAABJRU5ErkJggg==";
