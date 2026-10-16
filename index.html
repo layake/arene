@@ -1,4 +1,5 @@
-<title>Arène des Aces</title>
+<meta charset="utf-8">
+<title>Aces Arena</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Pixelify+Sans:wght@500;700&display=swap">
 <style>
@@ -409,11 +410,13 @@ body{padding:0!important;gap:0!important}
 .mbox .mv{height:30px;min-height:30px;font-size:12px}
 .mbox .mv span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .eqi{height:86px}
+
+.langrow{display:flex;gap:8px;align-items:center;justify-content:center;margin:8px 0;color:#9fb4ff;font:500 12px "Pixelify Sans",var(--display)}.langrow button{font:500 12px "Pixelify Sans",var(--display);color:#c9d6ff;background:rgba(7,12,36,.55);border:2px solid #4a68c8;border-radius:6px;padding:3px 10px;min-height:28px;cursor:pointer}.langrow button[aria-pressed="true"]{color:#ffe45e;border-color:#ffe45e}.langtop{position:absolute;right:16px;top:10px;margin:0;z-index:3}.langtop span{display:none}
 footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </style>
 
 <header>
-  <h1>Arène <span>des Aces</span></h1><span id="score"></span>
+  <h1>Aces <span>Arena</span></h1><span id="score"></span>
   <div class="tools"><button id="menuBtn" type="button">Menu</button><button id="pauseBtn" type="button" aria-pressed="false">Pause</button><button id="mode" type="button" title="Mode de lancer des sorts"></button><button id="helpBtn" type="button" aria-expanded="false" aria-controls="help">Commandes</button>
     <div id="help" hidden>
       <b>Clic droit</b> se déplacer (maintenir pour suivre)<br><b>Survoler l'ennemi</b> + clic droit : le poursuivre<br>
@@ -433,7 +436,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Sélection d'équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>mannequin d'entraînement</small></button><button type="button" data-mode="duel" aria-pressed="false">Versus<small>contre un adversaire</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="rounds" role="group" aria-label="Rounds"><span>Rounds</span><button type="button" data-r="1">1</button><button type="button" data-r="3" aria-pressed="true">3</button><button type="button" data-r="5">5</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
 </div>
-<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.32 · 16/10/2026</b></footer>
+<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.33 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -868,7 +871,7 @@ function makeDummy(x,y){
 }
 const START_A=[WORLD.w/2-55,WORLD.h/2+10], START_B=[WORLD.w/2+55,WORLD.h/2+20];
 function resetRound(){
-  if(typeof hideBanner==="function")hideBanner();
+  if(typeof hideBanner==="function")hideBanner(); if(typeof obstReset==="function")obstReset();
   if(matchMode==="duel"&&typeof introPending!=="undefined")introPending=true;
   entities.forEach((e,i)=>{
     if(e.team)resetTeam(e);
@@ -1047,6 +1050,7 @@ function strike(att,tgt,spell,o){
   o=o||{};
   if(!alive(tgt)||tgt.tunnel)return false;
   if(tgt.inv>0)return false;
+  if((o.contact||spell===SPL.gleam)&&typeof obstBlock==="function"&&obstBlock(att,tgt,spell))return false;
   if(tgt.shieldOn){blockHit(tgt,o.from||att,o.shieldCost||30,att,!!o.contact);return false}
   if(!o.pal)o.pal=TYPE_PAL[spell.type];
   const dm=Math.round(calcDamage(att,tgt,spell)*(o.mult||1));
@@ -1216,7 +1220,7 @@ function castAnim(e,id){
   lockAim(e); e.aim=aimAt(e,true)||FACE[e.dir]; e.cast=id; e.comboClaw=false; e.moveTarget=null; e.anim="idle"; e.altA=(e.sp.altAtk&&e.sp.altAtk[id])||null; setAnim(e,"attack");
 }
 function animHit(e){
-  const id=e.cast;
+  const id=e.cast; if(typeof obstMelee==="function")obstMelee(e,id);
   if(id&&!SPL[id].melee&&SPL[id].type){const P=TYPE_PAL[SPL[id].type]||FIRE; rings.push({x:e.x,y:e.y-e.sp.body,t:0,dur:.22,max:18,c:P[2]}); colorBurst(e.x,e.y-e.sp.body+8,10,P,40,120)}
   if(ACE2[id])ACE2[id].hit(e,id); else if(id==="mud"||id==="moon"||id==="fcannon"||id==="shball"||id==="tbolt"||id==="hypno")fireBolt(e,id); else if(id==="sbomb")dropSb(e); else if(id==="hex")dropHex(e); else if(id==="scl")waveHit(e,"scl"); else if(id==="fsight")dropFs(e); else if(id==="trap")dropTrap(e); else if(id==="sedge")dropEdge(e); else if(id==="ihead")ironHead(e); else if(id==="rslide")dropSlide(e); else if(id==="quake")dropQuake(e); else if(id==="psy")dropPsy(e); else if(id==="grav")dropGrav(e); else if(id==="conf")waveHit(e); else clawHit(e);
 }
@@ -1938,44 +1942,46 @@ function paintGround(A,fn){const W=A.w,H=A.h,cv2=mkCv(W,H),g=cv2.getContext("2d"
   for(let y=0;y<H;y++)for(let x=0;x<W;x++)u[y*W+x]=fn(x,y,sdAB(x+.5,y+.5,4));
   g.putImageData(im,0,0);return cv2}
 
-// ---------- sprites d'obstacles (base centrée en 16,36) ----------
-const OW=32,OH=44,OX=16,OY=36;
-function oSh(g,r){g.fillStyle="rgba(0,0,0,.3)";const ry=Math.round(r*ISO);for(let dy=-ry;dy<=ry;dy++){const w=Math.round(r*Math.sqrt(1-dy*dy/(ry*ry+.5)));g.fillRect(OX-w,OY+dy,w*2+1,1)}}
+// ---------- obstacles : sprites (base centrée en 24,60), points de vie, fissures par paliers ----------
+const OW=48,OH=72,OX=24,OY=60;
+function oSh(g,r){g.fillStyle="rgba(0,0,0,.26)";const ry=Math.round(r*ISO);for(let dy=-ry;dy<=ry;dy++){const w=Math.round(r*Math.sqrt(1-dy*dy/(ry*ry+.5)));g.fillRect(OX-w,OY+dy,w*2+1,1)}}
 const oR=(g,x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x,y,w,h)};
-function sprPillar(broken){const c=mkCv(OW,OH),g=c.getContext("2d"),L="#d6cdb6",M="#aaa18b",D="#7c7464",K="#4d473d";
-  oSh(g,11);
-  oR(g,7,32,18,4,M);oR(g,7,32,18,1,L);oR(g,7,35,18,1,K);
-  const top=broken?17:7;
-  oR(g,9,top,14,32-top,M);oR(g,9,top,3,32-top,L);oR(g,20,top,3,32-top,D);
-  for(let x=14;x<20;x+=3)oR(g,x,top,1,32-top,D);
-  for(let y=top+5;y<32;y+=7)oR(g,9,y,14,1,D);
-  if(!broken){oR(g,7,top-4,18,4,M);oR(g,7,top-4,18,1,L);oR(g,7,top,18,1,K);oR(g,7,top-4,2,4,L)}
-  else{for(let x=9;x<23;x++){const j=x%4===0?3:x%3===0?2:1;oR(g,x,top-j,1,j,x<12?L:x>19?D:M)}
-    oR(g,4,34,4,2,D);oR(g,25,33,3,2,M);oR(g,2,35,2,1,K);oR(g,27,35,3,1,D)}
-  return c}
-function sprRock(p,moss){const c=mkCv(OW,OH),g=c.getContext("2d");oSh(g,13);
-  const cx=OX,cy=OY-8;for(let dy=-8;dy<=8;dy++){const w=Math.round(12*Math.sqrt(1-dy*dy/72));
-    for(let dx=-w;dx<=w;dx++){const t=(dy+8)/16,n=h2(dx+20,dy+20,5);let col=t<.28?p[0]:t<.72?p[1]:p[2];if(dx<-w+3&&t<.6)col=p[0];if(n<.07)col=p[3];if(moss&&t<.3&&n>.35)col=moss;g.fillStyle=col;g.fillRect(cx+dx,cy+dy,1,1)}}
-  oR(g,cx-4,cy-3,3,1,p[0]);oR(g,cx+2,cy+2,4,1,p[3]);return c}
-function sprCactus(){const c=mkCv(OW,OH),g=c.getContext("2d"),M="#3f8f46",D="#2d6a35",L="#6cc070";oSh(g,9);
-  oR(g,13,10,6,26,M);oR(g,13,10,2,26,L);oR(g,17,10,2,26,D);oR(g,14,8,4,2,M);
-  oR(g,7,19,6,3,M);oR(g,7,13,3,9,M);oR(g,7,13,1,9,L);oR(g,9,13,1,9,D);
-  oR(g,19,24,6,3,M);oR(g,22,17,3,10,M);oR(g,22,17,1,10,L);oR(g,24,17,1,10,D);
-  oR(g,15,6,2,2,"#e8789a");oR(g,15,5,2,1,"#f6a8c0");
-  for(const [x,y] of [[14,14],[17,18],[15,24],[16,30],[8,15],[23,20],[14,34]])oR(g,x,y,1,1,"#d8f0c0");return c}
-function sprCrystal(){const c=mkCv(OW,OH),g=c.getContext("2d");oSh(g,12);
-  const spike=(cx,top,bot,hw)=>{for(let y=top;y<=bot;y++){const t=(y-top)/(bot-top),w=t<.3?Math.round(1+t/.3*hw):t>.85?Math.round(hw*(1-t)/.15)+1:hw;
-    for(let dx=-w;dx<=w;dx++){let col=dx<-w+1?"#eaf8ff":dx<0?"#bfe6fa":dx===0?"#ffffff":dx<w?"#78b8e8":"#4f90c8";if(y===bot||(Math.abs(dx)===w&&w>1))col=dx<0?"#9fd4f2":"#3f78b0";g.fillStyle=col;g.fillRect(cx+dx,y,1,1)}}};
-  spike(OX,5,35,7);spike(OX+8,22,35,4);spike(OX-8,26,35,3);
-  oR(g,OX-1,12,1,3,"#ffffff");oR(g,OX+9,28,1,2,"#ffffff");return c}
-function sprObsidian(){const c=mkCv(OW,OH),g=c.getContext("2d");
-  g.fillStyle="rgba(255,110,30,.28)";for(let dy=-4;dy<=4;dy++){const w=Math.round(14*Math.sqrt(1-dy*dy/17));g.fillRect(OX-w,OY+dy,w*2+1,1)}
-  oSh(g,10);
-  const spike=(cx,top,bot,hw)=>{for(let y=top;y<=bot;y++){const t=(y-top)/(bot-top),w=Math.max(0,Math.round(hw*Math.pow(t,.8)));
-    for(let dx=-w;dx<=w;dx++){let col=dx<-w+1?"#6a4a80":dx<0?"#3a2848":dx<w?"#241830":"#140c1c";if(dx===0&&t>.2&&t<.8)col="#4d3562";g.fillStyle=col;g.fillRect(cx+dx,y,1,1)}}};
-  spike(OX,4,35,6);spike(OX-8,20,35,3);spike(OX+8,24,35,3);
-  oR(g,OX-5,34,11,1,"#ff7a2a");oR(g,OX-2,33,1,1,"#ffd23a");oR(g,OX+3,33,1,1,"#ff7a2a");oR(g,OX,16,1,5,"#c4501a");oR(g,OX-1,21,1,2,"#ff7a2a");return c}
-
+function weather(g,box,col,stage){ // fissures (palier 1 et 2) et éclats manquants (palier 2)
+  if(stage<1)return; const [x0,y0,x1,y1]=box;
+  for(let i=0;i<stage*2+1;i++)crack(g,x0+2+h2(i,1,21)*(x1-x0-4),y0+4+h2(i,2,21)*(y1-y0)*.4,9+stage*8,col,i+stage*9,(x,y)=>g.getImageData(Math.round(x),Math.round(y),1,1).data[3]>200);
+  if(stage>=2)for(let i=0;i<4;i++){const w=3+Math.floor(h2(i,5,22)*4),h=2+Math.floor(h2(i,6,22)*4),x=i%2?x1-w+1:x0-1,y=y0+Math.floor(h2(i,8,22)*(y1-y0)*.6);g.clearRect(x,y,w,h)}
+}
+function spike(g,cx,top,bot,hw,cols){for(let y=top;y<=bot;y++){const t=(y-top)/(bot-top),w=t<.3?Math.round(1+t/.3*hw):t>.88?Math.round(hw*(1-t)/.12)+1:hw;
+  for(let dx=-w;dx<=w;dx++){let c=dx<-w+1?cols[0]:dx<0?cols[1]:dx===0?cols[2]:dx<w?cols[3]:cols[4];if(y===bot)c=dx<0?cols[1]:cols[4];g.fillStyle=c;g.fillRect(cx+dx,y,1,1)}}}
+const OBK={
+  pillar:{r:13,hp:170,deb:["#7c7464","#aaa18b","#d6cdb6","#ffffff","#4d473d"],crack:"#3a352d",draw(g,st,br){const L="#d6cdb6",M="#aaa18b",D="#7c7464",K="#4d473d";oSh(g,18);
+    oR(g,OX-14,OY-5,28,5,M);oR(g,OX-14,OY-5,28,1,L);oR(g,OX-14,OY-1,28,1,K);
+    const top=br?OY-30:OY-52;oR(g,OX-10,top,20,OY-5-top,M);oR(g,OX-10,top,4,OY-5-top,L);oR(g,OX+6,top,4,OY-5-top,D);
+    for(const x of [OX-3,OX+1])oR(g,x,top,1,OY-5-top,D);for(let y=top+8;y<OY-5;y+=10)oR(g,OX-10,y,20,1,D);
+    if(!br){oR(g,OX-14,top-6,28,6,M);oR(g,OX-14,top-6,28,1,L);oR(g,OX-14,top,28,1,K);oR(g,OX-14,top-6,3,6,L)}
+    else{for(let x=OX-10;x<OX+10;x++){const j=x%4===0?4:x%3===0?2:1;oR(g,x,top-j,1,j,x<OX-5?L:x>OX+5?D:M)}oR(g,OX-20,OY-3,5,2,D);oR(g,OX+15,OY-4,4,3,M);oR(g,OX-17,OY-1,3,1,K)}
+    weather(g,[OX-10,top,OX+10,OY-5],this.crack,st)}},
+  rock:{r:14,hp:190,deb:["#6e7876","#9aa3a0","#bcc4c0","#ffffff","#4f5958"],crack:"#2e3534",pal:["#bcc4c0","#9aa3a0","#6e7876","#4f5958"],moss:"#5b8c3a",draw(g,st){oSh(g,19);const p=this.pal,cy=OY-11;
+    for(let dy=-12;dy<=12;dy++){const w=Math.round(19*Math.sqrt(1-dy*dy/150));for(let dx=-w;dx<=w;dx++){const t=(dy+12)/24,n=h2(dx+30,dy+30,5);let c=t<.28?p[0]:t<.72?p[1]:p[2];if(dx<-w+4&&t<.6)c=p[0];if(n<.07)c=p[3];if(this.moss&&t<.3&&n>.35)c=this.moss;g.fillStyle=c;g.fillRect(OX+dx,cy+dy,1,1)}}
+    oR(g,OX-6,cy-4,5,1,p[0]);oR(g,OX+3,cy+3,6,1,p[3]);weather(g,[OX-18,cy-12,OX+18,cy+12],this.crack,st)}},
+  sandrock:{r:16,hp:190,deb:["#6e4222","#b9773a","#d8a064","#f2dca0","#8a5226"],crack:"#4a2c14",pal:["#d8a064","#b9773a","#8a5226","#6e4222"],moss:null,draw(g,st){OBK.rock.draw.call(this,g,st)}},
+  cactus:{r:10,hp:110,deb:["#2d6a35","#3f8f46","#6cc070","#e8789a","#d8f0c0"],crack:"#1c4a24",draw(g,st){const M="#3f8f46",D="#2d6a35",L="#6cc070";oSh(g,13);
+    oR(g,OX-5,OY-48,10,44,M);oR(g,OX-5,OY-48,3,44,L);oR(g,OX+3,OY-48,2,44,D);oR(g,OX-3,OY-51,6,3,M);
+    oR(g,OX-17,OY-26,12,4,M);oR(g,OX-17,OY-38,4,16,M);oR(g,OX-17,OY-38,1,16,L);oR(g,OX-14,OY-38,1,16,D);
+    oR(g,OX+5,OY-18,12,4,M);oR(g,OX+13,OY-30,4,16,M);oR(g,OX+13,OY-30,1,16,L);oR(g,OX+16,OY-30,1,16,D);
+    oR(g,OX-1,OY-55,3,3,"#e8789a");oR(g,OX-1,OY-56,3,1,"#f6a8c0");
+    for(const [x,y] of [[-3,-42],[2,-36],[-2,-28],[1,-20],[-3,-12],[-15,-34],[15,-26],[-1,-8]])oR(g,OX+x,OY+y,1,1,"#d8f0c0");
+    weather(g,[OX-17,OY-48,OX+17,OY-4],this.crack,st)}},
+  crystal:{r:11,hp:120,deb:["#4f90c8","#78b8e8","#bfe6fa","#ffffff","#3f78b0"],crack:"#2f5a88",draw(g,st){const C=["#eaf8ff","#bfe6fa","#ffffff","#78b8e8","#4f90c8"];oSh(g,15);
+    spike(g,OX,OY-52,OY-3,11,C);spike(g,OX+14,OY-30,OY-3,6,C);spike(g,OX-14,OY-24,OY-3,5,C);oR(g,OX-2,OY-40,1,5,"#ffffff");oR(g,OX+13,OY-22,1,3,"#ffffff");
+    weather(g,[OX-11,OY-50,OX+11,OY-4],this.crack,st)}},
+  obsidian:{r:11,hp:210,deb:["#140c1c","#3a2848","#6a4a80","#ff7a2a","#ffd23a"],crack:"#ff7a2a",draw(g,st){const C=["#6a4a80","#3a2848","#4d3562","#241830","#140c1c"];
+    g.fillStyle="rgba(255,110,30,.28)";for(let dy=-5;dy<=5;dy++){const w=Math.round(19*Math.sqrt(1-dy*dy/30));g.fillRect(OX-w,OY+dy,w*2+1,1)}
+    oSh(g,14);spike(g,OX,OY-54,OY-3,9,C);spike(g,OX-12,OY-34,OY-3,5,C);spike(g,OX+12,OY-30,OY-3,5,C);
+    oR(g,OX-8,OY-4,17,1,"#ff7a2a");oR(g,OX-2,OY-5,1,1,"#ffd23a");oR(g,OX+4,OY-5,1,1,"#ff7a2a");oR(g,OX,OY-30,1,6,"#c4501a");oR(g,OX-1,OY-24,1,3,"#ff7a2a");
+    weather(g,[OX-9,OY-50,OX+9,OY-4],this.crack,st)}},
+};
+function rubble(K){const c=mkCv(OW,OH),g=c.getContext("2d");oSh(g,K.r+3);for(let i=0;i<14;i++){const x=OX-K.r+h2(i,1,31)*K.r*2,y=OY-6+h2(i,2,31)*8,w=2+Math.floor(h2(i,3,31)*4);oR(g,Math.round(x),Math.round(y),w,2,K.deb[i%3]);oR(g,Math.round(x),Math.round(y),w,1,K.deb[(i+1)%4])}return c}
 // ---------- sols ----------
 function genColisee(A){
   const SAND=c32("#dcc38c"),SD=c32("#cdb27a"),SL=c32("#ecd9a6"),SE=c32("#c4aa72"),ST=[c32("#b9b09a"),c32("#aaa18b")],SH=c32("#d8cfb8"),SK=c32("#5e584c"),DARK=c32("#2a2622"),R0=c32("#8a8272"),R1=c32("#5e584c"),SEAT=c32("#a39b88");
@@ -2054,29 +2060,55 @@ const ARENAS={
 };
 const ARENA_IDS=["colisee","prairie","desert","glace","volcan"];
 const SPR_CACHE={};
-function obstSprite(k){return SPR_CACHE[k]||(SPR_CACHE[k]=k==="pillar"?sprPillar(false):k==="pillarB"?sprPillar(true):k==="rock"?sprRock(["#bcc4c0","#9aa3a0","#6e7876","#4f5958"],"#5b8c3a"):k==="sandrock"?sprRock(["#d8a064","#b9773a","#8a5226","#6e4222"],null):k==="cactus"?sprCactus():k==="crystal"?sprCrystal():sprObsidian())}
+function obstSprites(k){return SPR_CACHE[k]||(SPR_CACHE[k]=[0,1,2].map(st=>{const c=mkCv(OW,OH);OBK[k].draw.call(OBK[k],c.getContext("2d"),st,k==="pillarB");return c}).concat([rubble(OBK[k])]))}
 function setArena(id){
   const A=ARENAS[id]||ARENAS.colisee; ARENA_ID=A.id; WORLD.w=A.w; WORLD.h=A.h; Object.assign(AB,A.ab);
   ground=A.canvas||(A.canvas=A.gen(A));
   const cx=A.c?A.c[0]:(AB.x0+AB.x1)/2, cy=A.c?A.c[1]:(AB.y0+AB.y1)/2;
-  OBST.length=0; A.obst(cx,cy).forEach(o=>OBST.push({x:o[0],y:o[1],r:o[2],spr:obstSprite(o[3])}));
+  OBST.length=0; A.obst(cx,cy).forEach(o=>{const kk=o[3]==="pillarB"?"pillar":o[3],K=OBK[kk];
+    const spr=SPR_CACHE[o[3]]||(SPR_CACHE[o[3]]=[0,1,2].map(st=>{const c=mkCv(OW,OH);K.draw.call(K,c.getContext("2d"),st,o[3]==="pillarB");return c}).concat([rubble(K)]));
+    OBST.push({x:o[0],y:o[1],r:K.r,k:kk,hp:K.hp,max:K.hp,dead:false,hurtAt:0,spr})});
   START_A[0]=cx-55; START_A[1]=cy+10; START_B[0]=cx+55; START_B[1]=cy+20;
   if(!A.decoF&&A.deco)A.decoF=A.deco(A); arenaDeco=A.decoF||null;
+}
+// ---------- dégâts sur les obstacles ----------
+const obstStage=c=>c.dead?3:c.hp<c.max/3?2:c.hp<c.max*2/3?1:0;
+function obstChips(c,n,big){const K=OBK[c.k];colorBurst(c.x,c.y-16,n,K.deb,25,big?150:95);
+  for(let i=0;i<(big?14:4);i++){const a=rand(0,Math.PI*2);spark(c.x+Math.cos(a)*6,c.y-14,Math.cos(a)*rand(30,90),rand(-150,-60),rand(.35,.6),K.deb[i%5],380,3)}}
+function obstBreak(c){c.hp=0;c.dead=true;c.hurtAt=performance.now();obstChips(c,24,true);rings.push({x:c.x,y:c.y,t:0,dur:.35,max:c.r*2.6,c:OBK[c.k].deb[2]});shake=Math.max(shake,.2);
+  if(typeof sfx==="function")sfx(752,"fight",.8,.9+Math.random()*.15,c.x)}
+function obstDamage(c,dmg){
+  if(c.dead||NET.guest)return;
+  c.hp-=dmg; c.hurtAt=performance.now();
+  if(c.hp<=0)obstBreak(c); else{obstChips(c,6,false);if(typeof sfx==="function")sfx(735,"fight",.5,1.1+Math.random()*.2,c.x)}
+}
+function obstSet(i,h){const c=OBST[i]; if(!c)return; if(h<=0&&!c.dead){obstBreak(c)} else if(h<c.hp&&h>0){c.hurtAt=performance.now();obstChips(c,5,false)} c.hp=h; c.dead=h<=0}
+function obstReset(){OBST.forEach(c=>{c.hp=c.max;c.dead=false;c.hurtAt=0})}
+function obstMelee(e,id){ // un coup de mêlée visible devant le lanceur entame l'obstacle
+  const S=SPL[id]; if(!S||!S.melee||NET.guest)return; const f=e.aim||FACE[e.dir];
+  for(const c of OBST){if(c.dead)continue;const dx=c.x-e.x,dy=c.y-e.y;if(gdist(dx,dy)<c.r+34&&(f[0]*dx+f[1]*dy)/(Math.hypot(dx,dy)||1)>.35){obstDamage(c,Math.round((S.power||20)*1.1));break}}
+}
+function obstBlock(att,tgt,spell){ // un coup au contact ou un rayon est arrêté par un obstacle entre le lanceur et la cible
+  const ax=att.x,ay=att.y/ISO,bx=tgt.x,by=tgt.y/ISO,vx=bx-ax,vy=by-ay,L2=vx*vx+vy*vy||1;
+  for(const c of OBST){if(c.dead)continue;const px=c.x,py=c.y/ISO,t=clamp(((px-ax)*vx+(py-ay)*vy)/L2,0,1);
+    if(t>0&&t<1&&Math.hypot(ax+vx*t-px,ay+vy*t-py)<c.r*.9){obstDamage(c,Math.round(((spell&&spell.power)||15)*.9));return true}}
+  return false;
 }
 // ---------- collisions ----------
 function arenaFix(e){
   for(let k=0;k<2;k++){
     if(AB.rad>0){const r=AB.rad,cx=clamp(e.x,AB.x0+r,AB.x1-r),cy=clamp(e.y,AB.y0+r,AB.y1-r),dx=e.x-cx,dy=e.y-cy,d=Math.hypot(dx,dy);if(d>r){e.x=cx+dx/d*r;e.y=cy+dy/d*r}}
     if(e.tunnel||e.ko>0||!e.sp)continue;
-    for(const c of OBST){const min=c.r+e.sp.body*.3+2;let dx=e.x-c.x,dy=(e.y-c.y)/ISO,d=Math.hypot(dx,dy);
-      if(d<min){if(d<.01){dx=1;dy=0;d=1}e.x=c.x+dx/d*min;e.y=c.y+dy/d*min*ISO}}
+    OBST.forEach((c,i)=>{if(c.dead)return;const min=c.r+e.sp.body*.3+2;let dx=e.x-c.x,dy=(e.y-c.y)/ISO,d=Math.hypot(dx,dy);
+      if(d<min){if(d<.01){dx=1;dy=0;d=1}e.x=c.x+dx/d*min;e.y=c.y+dy/d*min*ISO;
+        const R=e.rush; if(R&&R.ph==="dash"){R.ho=R.ho||{}; if(!R.ho[i]){R.ho[i]=1;obstDamage(c,Math.round(((SPL[R.id]&&SPL[R.id].power)||40)*1.1))}}}});
     e.x=clampX(e.x); e.y=clampY(e.y);
   }
 }
 function arenaShot(o){ // vrai si le projectile quitte l'arène ou heurte un obstacle
   if(o.x<AB.x0-6||o.x>AB.x1+6||o.y<AB.y0-2||o.y>AB.y1)return true;
   if(AB.rad>0){const r=AB.rad+6,cx=clamp(o.x,AB.x0+AB.rad,AB.x1-AB.rad),cy=clamp(o.y,AB.y0+AB.rad,AB.y1-AB.rad);if(Math.hypot(o.x-cx,o.y-cy)>r)return true}
-  for(const c of OBST)if(gdist(o.x-c.x,o.y-c.y)<c.r+2){colorBurst(o.x,o.y-6,7,["#7c7464","#aaa18b","#d6cdb6","#ffffff","#4d473d"],20,80);return true}
+  for(const c of OBST)if(!c.dead&&gdist(o.x-c.x,o.y-c.y)<c.r+2){obstDamage(c,Math.max(10,(SPL[o.id]&&SPL[o.id].power)||12));return true}
   return false;
 }
 try{const s=localStorage.getItem("aceArena"); if(ARENAS[s])ARENA_PICK=s}catch(_){}
@@ -2466,7 +2498,7 @@ function draw(){
     for(let r=-ry+1;r<=ry-1;r++){const hw=Math.round(rx*Math.sqrt(1-(r*r)/(ry*ry+.5)));ctx.fillRect(Math.round(gx)-hw,Math.round(gy)+r,hw*2+1,1)}
   });
   // Sprites et effets partagent un ordre de profondeur : une griffe vers le haut est dessinée derrière son lanceur.
-  entities.map(e=>({k:e.y,d:()=>{drawEntity(e);drawTelegraph(e)}})).concat(fx.map(c=>({k:c.sy,d:()=>drawFx(c)}))).concat(orbs.map(o=>({k:o.y,d:()=>drawOrb(o)}))).concat(OBST.map(c=>({k:c.y,d:()=>ctx.drawImage(c.spr,Math.round(c.x)-16,Math.round(c.y)-36)}))).sort((a,b)=>a.k-b.k).forEach(i=>i.d());
+  entities.map(e=>({k:e.y,d:()=>{drawEntity(e);drawTelegraph(e)}})).concat(fx.map(c=>({k:c.sy,d:()=>drawFx(c)}))).concat(orbs.map(o=>({k:o.y,d:()=>drawOrb(o)}))).concat(OBST.map(c=>({k:c.dead?c.y-30:c.y,d:()=>{const sh=!c.dead&&performance.now()-c.hurtAt<160?(Math.floor(performance.now()/40)%2?1:-1):0;ctx.drawImage(c.spr[obstStage(c)],Math.round(c.x)-OX+sh,Math.round(c.y)-OY)}}))).sort((a,b)=>a.k-b.k).forEach(i=>i.d());
   beams.forEach(drawBeam);
   rings.forEach(drawRing);
   parts.forEach(q=>{ctx.globalAlpha=clamp(1-q.t/q.life,0,1);ctx.fillStyle=q.c;ctx.fillRect(Math.round(q.x),Math.round(q.y),q.s||2,q.s||2)});
@@ -3905,7 +3937,7 @@ function snapshot(){
   const idx=new Map(entities.map((e,i)=>[e,i]));
   player.aimPt=mouse?{wx:mouse.wx,wy:mouse.wy}:null; // l'invité voit où l'hôte vise
   const ents=entities.map(e=>{const o={}; for(const k in e){if(k==="sp"||k==="hover")continue; const r=enc(e[k],idx,0); if(r!==undefined)o[k]=r} o.x=rd(e.x);o.y=rd(e.y);o.anim=e.anim;o.frame=e.frame;o.tick=rd(e.tick);o.hit=e.hit; return o});
-  return {t:"snap",n:++seq,ack:ackSeq,sc:[score.me,score.foe],E:ents,O:enc(orbs,idx,0),Z:enc(zones,idx,0)};
+  return {t:"snap",n:++seq,ack:ackSeq,sc:[score.me,score.foe],E:ents,O:enc(orbs,idx,0),Z:enc(zones,idx,0),B:OBST.map(c=>Math.round(c.hp))};
 }
 const pending=()=>castSeq>ackSeq&&performance.now()-castAt<500;
 function applyEnt(e,s,own,pend){
@@ -3937,7 +3969,7 @@ function applySnap(m){
   entities.forEach((e,i)=>applyEnt(e,m.E[i],e===player,pend&&e===player));
   const keep=arr=>pend?arr.filter(o=>o.o===player):[];
   const mix=(dst,src)=>{const loc=keep(dst), h=dec(src).filter(o=>!(pend&&o.o===player)); dst.length=0; dst.push(...h,...loc)};
-  mix(orbs,m.O); mix(zones,m.Z);
+  mix(orbs,m.O); mix(zones,m.Z); if(m.B)m.B.forEach((h,i)=>obstSet(i,h));
 }
 // ---- Ordres de l'invité (côté hôte) ----
 function onGuestInput(m){
@@ -4189,7 +4221,7 @@ const stageEl=document.getElementById("stage");
 })();
 // --- ecran titre ---
 var titleEl=document.createElement("div"); titleEl.id="title"; titleEl.hidden=true;
-titleEl.innerHTML='<canvas id="tcv"></canvas><div class="tbox"><div class="tpre">Combat 3 contre 3</div><h1><span>ARÈNE</span><b>DES ACES</b></h1><div class="tbtns"><button type="button" id="tPlay">Jouer</button><button type="button" id="tOnline">En ligne</button><button type="button" id="tHelp">Commandes</button></div></div><div class="tfoot">Entrée : jouer<span id="tVer"></span></div>';
+titleEl.innerHTML='<canvas id="tcv"></canvas><div class="tbox"><div class="tpre">Combat 3 contre 3</div><h1><span>ACES</span><b>ARENA</b></h1><div class="tbtns"><button type="button" id="tPlay">Jouer</button></div></div><div class="tfoot">Entrée : jouer<span id="tVer"></span></div>';
 stageEl.appendChild(titleEl);
 const tcv=titleEl.querySelector("#tcv"), tctx2=tcv.getContext("2d");
 const T_SKY=["#1b2368","#26338a","#3a4fb0","#5c6fd0","#8d8ae0","#d98fb0","#f0a478"];
@@ -4224,8 +4256,7 @@ function leaveTitle(tab){
   titleEl.hidden=true; menuEl.hidden=false; menuOpen=true; if(NET&&NET.tab)NET.tab(tab||"solo"); refreshMenu(); try{sfxUI("click")}catch(_){}
 }
 titleEl.querySelector("#tPlay").addEventListener("click",()=>leaveTitle("solo"));
-titleEl.querySelector("#tOnline").addEventListener("click",()=>leaveTitle("online"));
-titleEl.querySelector("#tHelp").addEventListener("click",()=>{const b=document.getElementById("helpBtn")||[...document.querySelectorAll("button")].find(x=>/Commandes/.test(x.textContent)&&!titleEl.contains(x)); if(b)b.click()});
+if(titleEl.querySelector("#tHelp"))titleEl.querySelector("#tHelp").addEventListener("click",()=>{const b=document.getElementById("helpBtn")||[...document.querySelectorAll("button")].find(x=>/Commandes/.test(x.textContent)&&!titleEl.contains(x)); if(b)b.click()});
 addEventListener("keydown",e=>{if(!titleEl.hidden&&(e.key==="Enter"||e.key===" ")){e.preventDefault();e.stopPropagation();leaveTitle("solo")}},true);
 addEventListener("resize",()=>{if(!titleEl.hidden)titleResize()});
 // retour a l'accueil depuis le menu
@@ -4256,11 +4287,10 @@ function showResult(){
   if(endShown)return; endShown=true; hideBanner();
   const win=score.me>score.foe;
   endEl.className=win?"win":"lose";
-  endEl.innerHTML='<div class="ebox"><h2>'+(win?"VICTOIRE":"DÉFAITE")+'</h2><div class="esc"><b>'+score.me+'</b><i>-</i><b>'+score.foe+'</b></div><small>'+(bestOf===1?'Match en 1 round':'Premier à '+winsNeeded()+' rounds')+'</small><div class="ebtn">'+(NET.on?"":'<button type="button" id="eRe">Revanche</button>')+'<button type="button" id="eMenu">'+(NET.on?"Retour au salon":"Sélection d\'équipe")+'</button>'+(NET.on?"":'<button type="button" id="eHome">Menu principal</button>')+'</div></div>';
+  endEl.innerHTML='<div class="ebox"><h2>'+(win?"VICTOIRE":"DÉFAITE")+'</h2><div class="esc"><b>'+score.me+'</b><i>-</i><b>'+score.foe+'</b></div><small>'+(bestOf===1?'Match en 1 round':'Premier à '+winsNeeded()+' rounds')+'</small><div class="ebtn">'+(NET.on?"":'<button type="button" id="eRe">Revanche</button>')+'<button type="button" id="eMenu">'+(NET.on?"Retour au salon":"Sélection d\'équipe")+'</button>'+'</div></div>';
   endEl.hidden=false; try{sfxUI(win?"ko":"click")}catch(_){}
   const re=endEl.querySelector("#eRe"); if(re)re.onclick=()=>{hideResult(); startMatch(picks.slice(),matchMode)};
   endEl.querySelector("#eMenu").onclick=()=>{hideResult(); openMenu()};
-  const hm=endEl.querySelector("#eHome"); if(hm)hm.onclick=()=>{hideResult(); showTitle()};
 }
 // invite : detecte la fin de match via le score
 setInterval(()=>{if(NET.guest&&NET.started&&!endShown&&matchWon()&&!menuOpen&&(!player||player.ko<=0.0001||true)){if(!window._endT)window._endT=setTimeout(()=>{window._endT=0;if(matchWon()&&!menuOpen)showResult()},2400)}},250);
@@ -4270,11 +4300,12 @@ var _credit=document.querySelector("footer").innerHTML;
 var _pb=document.querySelector("#pause .pbox");
 (function(){
   const wrap=document.createElement("div"); wrap.className="pmenu";
-  wrap.innerHTML='<button type="button" id="pCast"></button><button type="button" id="pMenu">Menu principal</button>';
+  wrap.innerHTML='<button type="button" id="pCast"></button><button type="button" id="pMenu">Sélection d\'équipe</button>';
   _pb.insertBefore(wrap,_pb.querySelector(".vols"));
   const cast=wrap.querySelector("#pCast"), lab=()=>{cast.textContent=document.getElementById("mode").textContent};
   cast.onclick=()=>{document.getElementById("mode").click();lab()}; lab();
-  wrap.querySelector("#pMenu").onclick=()=>{_helpEl.hidden=true;hideResult();setPause(false);if(NET.on)NET.leave();showTitle()};
+  wrap.querySelector("#pMenu").onclick=()=>{_helpEl.hidden=true;hideResult();setPause(false);openMenu()};
+  setInterval(()=>{const l=NET.on?"Retour au salon":"Sélection d'équipe"; const p=wrap.querySelector("#pMenu"); if(p.__l!==l){p.__l=l;p.textContent=l}},300);
     const t=document.createElement("div"); t.className="credit tcredit"; t.innerHTML=_credit; titleEl.appendChild(t);
   const g=document.createElement("button"); g.id="gear"; g.type="button"; g.title="Pause (Échap)"; g.textContent="II"; g.onclick=()=>setPause(true); stageEl.appendChild(g);
   setInterval(()=>{g.hidden=menuOpen||!titleEl.hidden||endShown||vsT>0||paused},200);
@@ -4293,5 +4324,132 @@ function countdownTick(dt){
 }
 // affiche le titre au chargement
 showTitle();
+
+// ---- Langue : le code reste en français, une couche de traduction (DOM + texte canvas) bascule en anglais ----
+var LANG="fr"; try{const l=localStorage.getItem("aceLang"); LANG=l==="en"||l==="fr"?l:((navigator.language||"").toLowerCase().startsWith("fr")?"fr":"en")}catch(_){}
+const EN={
+// noms des Aces
+"Carchacrok":"Garchomp","Galeking":"Aggron","Ectoplasma":"Gengar","Tortipousse":"Turtwig","Amphinobi":"Greninja","Dracaufeu":"Charizard","Mammochon":"Mamoswine","Jungko":"Sceptile","Pingoléon":"Empoleon","Braségali":"Blaziken",
+// types et catégories
+"Feu":"Fire","Eau":"Water","Électrik":"Electric","Plante":"Grass","Glace":"Ice","Combat":"Fighting","Sol":"Ground","Vol":"Flying","Psy":"Psychic","Insecte":"Bug","Roche":"Rock","Spectre":"Ghost","Ténèbres":"Dark","Acier":"Steel","Fée":"Fairy","Physique":"Physical","Spécial":"Special","Statut":"Status",
+// statistiques
+"PV":"HP","Atq":"Atk","Déf":"Def","Atq. Spé":"Sp. Atk","Déf. Spé":"Sp. Def","Vit":"Speed","Atq. Spé ++":"Sp. Atk ++","Atq. Spé et Déf. Spé +":"Sp. Atk and Sp. Def +","Atq. et Vit. +":"Atk and Speed +","Défense +":"Defense +","Défenses +":"Defenses +","Défenses -":"Defenses -",
+// noms des sorts
+"Draco-Griffe":"Dragon Claw","Tir de Boue":"Mud Shot","Tunnel":"Dig","Draco-Charge":"Dragon Rush","Choc Mental":"Confusion","Pouvoir Lunaire":"Moonblast","Psyko":"Psychic","Éclat Magique":"Dazzling Gleam","Gravité":"Gravity","Plénitude":"Calm Mind","Tête de Fer":"Iron Head","Éboulement":"Rock Slide","Séisme":"Earthquake","Métal Burst":"Metal Burst","Danse-Lames":"Swords Dance","Mur de Fer":"Iron Defense","Téléport":"Teleport","Prescience":"Future Sight","Piège de Roc":"Stealth Rock","Luminocanon":"Flash Cannon","Lame de Roc":"Stone Edge","Griffe Ombre":"Shadow Claw","Ball'Ombre":"Shadow Ball","Bomb Beurk":"Sludge Bomb","Ombre Portée":"Shadow Sneak","Hypnose":"Hypnosis","Machination":"Nasty Plot","Tonnerre":"Thunderbolt","Charge":"Tackle","Forte-Paume":"Force Palm","Aurasphère":"Aura Sphere","Riposte":"Counter","Sheauriken":"Water Shuriken","Coup Bas":"Sucker Punch","Vibraqua":"Water Pulse","Laser Glace":"Ice Beam","Onde Fée":"Fairy Wind","Clonage":"Substitute","Lance-Flammes":"Flamethrower","Canicule":"Heat Wave","Danse Draco":"Dragon Dance","Poing Glace":"Ice Punch","Piétinement":"Stomp","Mur de Glace":"Ice Wall","Lame-Feuille":"Leaf Blade","Balle Graine":"Bullet Seed","Giga-Sangsue":"Giga Drain","Vive-Attaque":"Quick Attack","Frappe Psy":"Psystrike","Régénération":"Recover","Tempête de Sable":"Sandstorm","Draco-Météore":"Draco Meteor","Champ Psychique":"Psychic Terrain","Mur Lumière":"Light Screen","Rempart de Roc":"Rock Wall","Picots d'Acier":"Steel Spikes","Mains d'Ombre":"Shadow Hands","Marque Funeste":"Doom Mark","Vague d'Aura":"Aura Wave","Mine d'Aura":"Aura Mine","Vague Déferlante":"Tidal Wave","Pics Toxik":"Toxic Spikes","Mur de Flammes":"Flame Wall","Pluie de Braises":"Ember Rain","Pointes de Glace":"Ice Spikes","Vampigraine":"Leech Seed","Ronces":"Thorn Wall","Barrière":"Barrier","Éclat Psy":"Psy Burst","Aile d'Acier":"Steel Wing","Hydrocanon":"Hydro Cannon","Tourbillon":"Whirlpool","Mur d'Acier":"Steel Wall","Pied Brûleur":"Blaze Kick","Pied Voltige":"High Jump Kick","Boost Flamme":"Flame Boost","Cercle de Feu":"Fire Ring","Mine de Braises":"Ember Mine",
+// arènes
+"Colisée":"Colosseum","Prairie":"Meadow","Désert":"Desert","Lac gelé":"Frozen Lake","Volcan":"Volcano",
+// interface
+"Jouer":"Play","Entrée : jouer":"Enter: play","Combat 3 contre 3":"3 vs 3 battle","Menu":"Menu","Pause":"Pause","Pause (Échap)":"Pause (Esc)","Reprendre":"Resume","Commandes":"Controls","Échap ou P pour reprendre":"Esc or P to resume","Volume":"Volume","Général":"Master","Musique":"Music","Interface":"Interface","Visée (touche T)":"Aim (T key)","Manuelle":"Manual","Assistée":"Assisted","Verrouillée":"Locked",
+"Manuelle : tu vises toi-même. Assistée : le sort cible l'ennemi si le curseur est proche. Verrouillée : tous les sorts ciblent l'ennemi.":"Manual: you aim yourself. Assisted: the spell targets the enemy if the cursor is close. Locked: every spell targets the enemy.",
+"Sélection d'équipe":"Team select","Solo":"Solo","En ligne":"Online","Multijoueur":"Multiplayer","Créer un salon":"Create room","Rejoindre":"Join","Salon":"Room","Copier":"Copy","Prêt":"Ready","Quitter le salon":"Leave room","Retour au salon":"Back to lobby","Entraînement":"Training","mannequin d'entraînement":"training dummy","Versus":"Versus","contre un adversaire":"against an opponent","Facile":"Easy","Normal":"Normal","Difficile":"Hard","Rounds":"Rounds","Adversaire":"Opponent","Aléatoire":"Random","Arène":"Arena","Combattre":"Fight","Réinitialiser":"Reset","← Accueil":"← Home","Retour":"Back","Revanche":"Rematch","Choix de l'Ace":"Ace select","Mode":"Mode","Mode de jeu":"Game mode","Mode de lancer des sorts":"Spell cast mode","Difficulté":"Difficulty","Code du salon":"Room code","CODE":"CODE","Sorts":"Moves","Bouclier":"Shield","Esp":"Space","Espace":"Space","Échap":"Esc","Clic gauche":"Left click","Clic droit":"Right click","clic gauche":"left click","se déplacer":"move","se déplacer (maintenir pour suivre)":"move (hold to follow)","Survoler l'ennemi":"Hover the enemy","+ clic droit : le poursuivre":"+ right click: chase him","bouclier (maintenir)":"shield (hold)","lance le sort visé ·":"casts the aimed spell ·","ou":"or","annule":"cancel","sorts,":"spells,","pour lancer":"to cast","Langue":"Language","Français":"Français","choix de l'hôte":"host's choice",
+"Le mode de lancer (clic, rapide, visée) se change avec le bouton à côté.":"The cast mode (click, quick, aim) is changed with the button next to it.",
+"Sorts : lancer instantané":"Spells: instant cast","Sorts : relâcher pour lancer":"Spells: release to cast","Sorts : visée au clic":"Spells: click to aim",
+"Flash (F) : blink vers le curseur":"Flash (F): blink toward the cursor","Survoler l'ennemi + clic droit : le poursuivre":"Hover the enemy + right click: chase him",
+"Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé.":"Sprites: PMDCollab SpriteCollab (CC BY-NC 4.0), originals CHUNSOFT. Pokémon © Nintendo / Game Freak. Private use.",
+"Sélectionne ton équipe puis valide avec Prêt.":"Pick your team, then confirm with Ready.","Sélectionne 4 sorts. Les plus puissants ont un temps de recharge plus long.":"Select 4 moves. The most powerful ones have a longer cooldown.","4 sorts maximum : retire-en un d'abord.":"4 moves maximum: remove one first.","Pas assez de PP !":"Not enough PP!",
+"Choisit son Ace…":"Choosing an Ace…","En attente":"Waiting","En attente…":"Waiting…","Choisir un Ace":"Pick an Ace","Retirer":"Remove",
+"Ordre d'entrée 1, 2, 3 · Tab : changer d'Ace en combat":"Entry order 1, 2, 3 · Tab: switch Ace in battle",
+"Connecté":"Connected","Connexion…":"Connecting…","Connexion perdue":"Connection lost","Serveur injoignable":"Server unreachable","Bibliothèque PeerJS injoignable":"PeerJS library unreachable","Code copié":"Code copied","Salon quitté":"Room left","Saisis le code du salon (4 lettres)":"Enter the room code (4 letters)",
+"L'adversaire a quitté le salon":"The opponent left the room","L'adversaire a quitté le salon. Le salon reste ouvert.":"The opponent left the room. The room stays open.","L'adversaire est de retour. Valide ton équipe avec Prêt.":"The opponent is back. Confirm your team with Ready.","Équipe de l'adversaire invalide":"Invalid opponent team",
+// combat
+"COMBAT !":"FIGHT!","VICTOIRE":"VICTORY","DÉFAITE":"DEFEAT","ROUND GAGNÉ":"ROUND WON","ROUND PERDU":"ROUND LOST","Bloqué":"Blocked","Brûlé":"Burned","Clonage !":"Substitute!","Endormi":"Asleep","Ralenti":"Slowed","Renvoyé !":"Reflected!","Riposte !":"Counter!","Réveillé":"Woke up","Métal Burst !":"Metal Burst!","Super efficace !":"Super effective!","Très efficace !!":"Very effective!!","Pas très efficace":"Not very effective","Bouclier brisé, étourdi !":"Shield broken, stunned!","x1,6 !":"x1.6!","Éclat Magique annulé":"Dazzling Gleam cancelled","Poison":"Poison","Étourdi":"Stunned","Gelé":"Frozen",
+// descriptions des sorts
+"Barrière psychique 3 s : renvoie les projectiles ennemis vers leur lanceur.":"Psychic barrier for 3 s: sends enemy projectiles back to their caster.",
+"Blizzard 4 s sur une grande zone : dégâts et ralentissement.":"Blizzard for 4 s over a wide area: damage and slow.",
+"Bonus d'Atq. Spé et de Déf. Spé pendant 8 s.":"Sp. Atk and Sp. Def boost for 8 s.","Bonus d'Attaque et de Vitesse pendant 8 s.":"Attack and Speed boost for 8 s.","Bonus de Défense et Déf. Spé pendant 8 s.":"Defense and Sp. Def boost for 8 s.","Bonus de Défense pendant 8 s.":"Defense boost for 8 s.","Bonus de Vitesse pendant 6 s.":"Speed boost for 6 s.","Gros bonus d'Atq. Spé pendant 8 s.":"Big Sp. Atk boost for 8 s.",
+"Canalise sur place, puis rayon long qui traverse tout et étourdit.":"Channels in place, then a long beam that pierces everything and stuns.",
+"Canalise, puis charge longue qui étourdit le premier touché. Interrompue si on est touché pendant la canalisation.":"Channels, then a long charge that stuns the first target hit. Interrupted if you are hit while channeling.",
+"Cinq météores s'abattent au hasard autour de la zone visée. Chacun touche séparément.":"Five meteors fall at random around the targeted area. Each one hits separately.",
+"Coup d'aile devant soi, large et rapide.":"Wing strike in front of you, wide and fast.","Coup de lame devant soi. Très rapide.":"Blade strike in front of you. Very fast.","Coup de pied enflammé devant soi. Peut brûler.":"Flaming kick in front of you. May burn.","Coup de poing glacé devant soi : rapide, ralentit la cible 1,4 s.":"Icy punch in front of you: fast, slows the target for 1.4 s.",
+"Deux cercles de flammes autour de toi, le second plus large. Brûle et repousse.":"Two rings of flames around you, the second wider. Burns and knocks back.","Deux ondes d'aura s'étendent autour de toi, la seconde plus large. Repousse.":"Two aura waves spread around you, the second wider. Knocks back.",
+"Esquive éclair dans la direction visée (intouchable 0,3 s), laisse un clone et remet Coup Bas à zéro.":"Lightning dodge toward the aimed direction (untouchable for 0.3 s), leaves a clone and resets Sucker Punch.",
+"Fonce en jet d'eau à travers l'adversaire et le repousse.":"Dashes as a water jet through the opponent and knocks them back.","Fonce sous terre (intouchable) et surgit pour frapper autour du trou. Remet le corps à corps à zéro.":"Burrows underground (untouchable) and pops out to strike around the hole. Resets melee cooldowns.","Fonce à travers l'adversaire sur une courte distance.":"Dashes through the opponent over a short distance.","Fonce à travers l'adversaire. Dégâts x1,6 s'il est en train de lancer un sort.":"Dashes through the opponent. Damage x1.6 if they are casting a spell.","Fonce à travers l'ombre sur une courte distance et frappe le premier touché.":"Dashes through the shadows over a short distance and strikes the first target hit.","Fonce, puis 3 coups en rafale (armure pendant la rafale). Baisse tes défenses 4 s. Un bouclier arrête la rafale.":"Dashes, then 3 rapid hits (armor during the flurry). Lowers your defenses for 4 s. A shield stops the flurry.",
+"Frappe de la paume devant soi : rapide, ralentit la cible 1,4 s.":"Palm strike in front of you: fast, slows the target for 1.4 s.","Graines 6 s sur la zone visée : drainent l'ennemi et te rendent des PV.":"Seeds for 6 s on the targeted area: drain the enemy and restore your HP.",
+"Ligne de pointes qui jaillit après un court délai.":"A line of spikes that bursts out after a short delay.","Marque posée au sol : empoisonne et ralentit l'ennemi qui la touche.":"Mark set on the ground: poisons and slows the enemy who touches it.","Mine d'aura : explose au contact et projette l'ennemi au loin.":"Aura mine: explodes on contact and sends the enemy flying.","Mine de braises : explose au contact, brûle et étourdit brièvement.":"Ember mine: explodes on contact, burns and briefly stuns.",
+"Mur d'acier 4 s : bloque projectiles et déplacements de tous.":"Steel wall for 4 s: blocks projectiles and movement for everyone.","Mur de flammes 4 s : enflamme qui le traverse. Ne bloque pas.":"Flame wall for 4 s: sets fire to whoever crosses it. Does not block.","Mur de lumière 4,5 s : arrête les projectiles ennemis. Tu peux passer.":"Light wall for 4.5 s: stops enemy projectiles. You can walk through.","Mur de ronces 5 s : bloque l'ennemi et le blesse au contact.":"Thorn wall for 5 s: blocks the enemy and hurts on contact.",
+"Onde centrée sur soi, forte poussée et étourdissement.":"Wave centered on you, strong knockback and stun.","Onde féerique en ligne droite. Counter naturel de Carchacrok (Dragon).":"Fairy wave in a straight line. Natural counter to Garchomp (Dragon).","Onde psychique devant soi, légèrement plus longue que les griffes.":"Psychic wave in front of you, slightly longer than the claws.","Orbe féerique en ligne droite.":"Fairy orb in a straight line.","Orbe lent : endort la cible 1,4 s. Un coup la réveille.":"Slow orb: puts the target to sleep for 1.4 s. Any hit wakes it.",
+"Petit élan et coup au front qui étourdit.":"Short run-up and a headbutt that stuns.","Pics empoisonnés : poison 4 s et ralentissement au contact.":"Poison spikes: poison for 4 s and slow on contact.","Piège invisible à moitié : étourdit et ralentit le premier qui marche dessus. Un seul à la fois.":"Half-hidden trap: stuns and slows the first one to step on it. Only one at a time.","Piétine le sol : onde autour de soi qui repousse et étourdit brièvement. Pas besoin de viser.":"Stomps the ground: a wave around you that knocks back and briefly stuns. No aiming needed.",
+"Pointes de glace : gèlent un instant l'ennemi qui marche dessus.":"Ice spikes: briefly freeze the enemy who steps on them.","Pose un piège qui reste 9 s. Le premier qui marche dessus est blessé et ralenti. Un seul à la fois.":"Sets a trap that lasts 9 s. The first one to step on it is hurt and slowed. Only one at a time.","Posture de 1,2 s : le prochain coup reçu, même à distance, est rendu à 160 %.":"1.2 s stance: the next hit received, even from range, is returned at 160%.","Posture de riposte : le prochain coup reçu est rendu à 150 %.":"Counter stance: the next hit received is returned at 150%.",
+"Projectile d'acier rapide et précis.":"Fast and accurate steel projectile.","Projectile de boue en ligne droite.":"Mud projectile in a straight line.","Projectile lobé : explose sur la zone visée puis laisse une flaque qui empoisonne 3 s.":"Lobbed projectile: explodes on the targeted area then leaves a puddle that poisons for 3 s.",
+"Quatre ondes en croix, puis un éclat central plus fort. Repousse.":"Four waves in a cross, then a stronger central burst. Knocks back.","Rayon de glace rapide. Counter naturel de Carchacrok (Dragon/Sol).":"Fast ice beam. Natural counter to Garchomp (Dragon/Ground).","Rend 30 % des PV max. Longue recharge.":"Restores 30% of max HP. Long cooldown.",
+"S'envole puis plonge sur la cible. Intouchable pendant l'élan.":"Takes off then dives onto the target. Untouchable during the run-up.","Saut et coup de pied très puissant. Si le coup rate, il se blesse.":"Jump and a very powerful kick. If it misses, he hurts himself.","Se téléporte à l'endroit visé (portée 130). Aucun dégât.":"Teleports to the targeted spot (range 130). No damage.","Sept braises tombent autour de la zone visée. Chaque touche enflamme.":"Seven embers fall around the targeted area. Each one that hits sets fire.",
+"Souffle un cône de flammes court devant soi. Brûle la cible 3 s.":"Blows a short cone of flames in front of you. Burns the target for 3 s.","Sphère d'aura rapide qui infléchit sa course vers la cible. Difficile à esquiver de face.":"Fast aura sphere that bends toward the target. Hard to dodge head on.","Sphère d'ombre en ligne droite.":"Shadow sphere in a straight line.","Spore aspirante en ligne droite : rend la moitié des dégâts infligés en PV.":"Draining spore in a straight line: restores half the damage dealt as HP.",
+"Tempête de sable sur la zone visée 4,5 s : dégâts et gros ralentissement.":"Sandstorm on the targeted area for 4.5 s: damage and heavy slow.","Terrain psychique 5 s : ralentit l'ennemi et te soigne tant que tu y restes.":"Psychic terrain for 5 s: slows the enemy and heals you while you stay in it.","Tourbillon d'eau 4 s sur la zone visée : dégâts et gros ralentissement.":"Water whirlpool for 4 s on the targeted area: damage and heavy slow.",
+"Trois griffures devant soi. Rapide, enchaîne après Tunnel.":"Three slashes in front of you. Fast, chains after Dig.","Trois gros rochers 5 s : bloquent tout, projectiles et déplacements.":"Three big rocks for 5 s: block everything, projectiles and movement.","Trois mains d'ombre jaillissent en triangle autour de la zone visée et ralentissent.":"Three shadow hands burst out in a triangle around the targeted area and slow.","Trois shurikens d'eau en éventail. Chacun touche séparément.":"Three water shurikens in a fan. Each one hits separately.",
+"Un bloc de glace s'écrase sur la zone visée après un court délai : dégâts, recul et ralentissement.":"An ice block crashes onto the targeted area after a short delay: damage, knockback and slow.","Une vague déferle en ligne vers la cible : six impacts qui ralentissent.":"A wave rolls in a line toward the target: six slowing impacts.",
+"Zone d'eau qui jaillit après un court délai : dégâts et ralentit 1,8 s.":"Water zone that bursts out after a short delay: damage and slows for 1.8 s.","Zone visée qui explose après un court délai.":"Targeted area that explodes after a short delay.","Zone visée qui explose puis reste en feu 2,6 s : brûle ceux qui y restent.":"Targeted area that explodes then stays on fire for 2.6 s: burns anyone who stays.","Zone visée qui n'explose qu'après 1,5 s : il faut anticiper l'adversaire.":"Targeted area that only explodes after 1.5 s: you must predict the opponent.","Zone visée, dégâts x1,6 si la cible est empoisonnée, ralentie, étourdie ou endormie.":"Targeted area, damage x1.6 if the target is poisoned, slowed, stunned or asleep.",
+"Éclair rapide en ligne droite.":"Fast lightning bolt in a straight line.","Énorme jet d'eau lent en ligne droite. Dégâts très élevés, ralentit.":"Huge slow water jet in a straight line. Very high damage, slows.","Énorme onde psychique en ligne droite. Très forte, longue recharge.":"Huge psychic wave in a straight line. Very strong, long cooldown."
+};
+// motifs pour les textes dynamiques
+const PAT=[
+ [/^(.+) utilise (.+) !$/,"$1 uses $2!"],[/^(.+) est K\.O\. !$/,"$1 fainted!"],[/^(.+) entre en jeu !$/,"$1 enters the battle!"],[/^(.+) annulée?$/,"$1 cancelled"],
+ [/^Premier à (\d+) rounds?$/,"First to $1 rounds"],[/^Match en 1 round$/,"1-round match"],[/^Sélectionne (\d) Aces?$/,"Select $1 Aces"],[/^Sélectionne (\d) sorts?$/,"Select $1 moves"],
+ [/^Donne-lui le code (\w+)$/,"Give him the code $1"],[/^Arène avec (.+)$/,"Arena with $1"],[/^Visée : (.+)$/,"Aim: $1"],[/^: (.+)$/,": $1"],[/^(.+) \((.+), (physique|spécial|statut)\)$/,"$1 ($2, $3)"],
+ [/^(Physique|Spécial|Statut) · (.+?)(?: · Puiss\. (\d+))? · Recharge (.+) s$/,"$1 · $2 · Power $3 · Cooldown $4 s"]
+];
+Object.assign(EN,{"TOI":"YOU","ADVERSAIRE":"OPPONENT","Toi":"You","BOT FACILE":"BOT EASY","BOT NORMAL":"BOT NORMAL","BOT DIFFICILE":"BOT HARD","Hôte":"Host","physique":"physical","spécial":"special","statut":"status","Puiss.":"Power","Clic droit sur l'ennemi":"Right click on the enemy","le poursuivre":"chase him","se déplacer (maintenir pour suivre)":"move (hold to follow)","changer d'Ace (0,5 s)":"switch Ace (0.5 s)","Flash, téléportation vers le curseur (recharge 12 s)":"Flash, teleport to the cursor (12 s cooldown)","lancer le sort ·":"cast the spell ·","Le mode de lancer se règle dans le menu Pause.":"The cast mode is set in the Pause menu.","Tab":"Tab","annuler":"cancel","Changer d'Ace (Tab)":"Switch Ace (Tab)"});
+let _names=null; const names=()=>_names||(_names=[].concat(Object.values(SPL).map(s=>s.name),Object.values(SPECIES).map(s=>s.name)).filter(n=>EN[n]&&EN[n]!==n).sort((a,b)=>b.length-a.length));
+const L_=/[\p{L}]/u;
+const _tc=new Map();
+function tr(s){
+  if(LANG!=="en"||typeof s!=="string"||!s)return s;
+  if(_tc.has(s))return _tc.get(s);
+  const m=s.match(/^(\s*)([\s\S]*?)(\s*)$/); const core=m[2]; let out=core;
+  if(core){
+    if(EN[core]!==undefined)out=EN[core];
+    else{
+      let hit=false;
+      for(const [re,rep] of PAT){if(re.test(core)){out=core.replace(re,(...a)=>rep.replace(/\$(\d)/g,(_,i)=>tr(a[+i])));hit=true;break}}
+      if(!hit){ // remplace les noms connus à l'intérieur d'une phrase
+        out=core;
+        for(const n of names()){let i=out.indexOf(n);while(i>=0){const b=out[i-1],a=out[i+n.length];if(!(b&&L_.test(b))&&!(a&&L_.test(a))){out=out.slice(0,i)+EN[n]+out.slice(i+n.length);i=out.indexOf(n,i+EN[n].length)}else i=out.indexOf(n,i+1)}}
+      }
+    }
+  }
+  out=out.replace(/(\d),(\d)/g,'$1.$2'); const r=m[1]+out+m[3]; if(_tc.size>4000)_tc.clear(); _tc.set(s,r); return r;
+}
+// --- texte dessiné sur les canvas ---
+(function(){const P=CanvasRenderingContext2D.prototype,f=P.fillText,st=P.strokeText;
+  P.fillText=function(t,...a){return f.call(this,LANG==="en"?tr(String(t)):t,...a)};
+  P.strokeText=function(t,...a){return st.call(this,LANG==="en"?tr(String(t)):t,...a)};
+})();
+// --- DOM : chaque noeud garde son texte français d'origine (__o) ---
+const ATTRS=["title","aria-label","placeholder"];
+function doText(n){
+  if(n.__t!==undefined&&n.nodeValue===n.__t)return;
+  n.__o=n.nodeValue; let t=tr(n.__o); if(t==="Fighting"&&n.parentElement&&n.parentElement.tagName==="LABEL")t="Battle"; n.__t=t; if(t!==n.nodeValue)n.nodeValue=t;
+}
+function doEl(el){
+  for(const a of ATTRS){if(!el.hasAttribute||!el.hasAttribute(a))continue;const v=el.getAttribute(a); el.__a=el.__a||{};
+    if(el.__a[a]&&el.__a[a][1]===v)continue; const t=tr(v); el.__a[a]=[v,t]; if(t!==v)el.setAttribute(a,t)}
+}
+function walk(root){
+  if(root.nodeType===3){doText(root);return}
+  if(root.nodeType!==1)return;
+  if(root.tagName==="SCRIPT"||root.tagName==="STYLE")return;
+  doEl(root);
+  for(let c=root.firstChild;c;c=c.nextSibling)walk(c);
+}
+function retranslateAll(){
+  const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT|NodeFilter.SHOW_ELEMENT);
+  let n; while((n=w.nextNode())){
+    if(n.nodeType===3){ const o=(n.__o!==undefined&&n.nodeValue===n.__t)?n.__o:n.nodeValue; n.__o=o; let t=tr(o); if(t==="Fighting"&&n.parentElement&&n.parentElement.tagName==="LABEL")t="Battle"; n.__t=t; if(t!==n.nodeValue)n.nodeValue=t }
+    else if(n.__a){for(const a in n.__a){const [o,t]=n.__a[a];if(n.getAttribute(a)===t){const nt=tr(o);n.__a[a]=[o,nt];n.setAttribute(a,nt)}}}
+    else doEl(n);
+  }
+  document.title=tr("Aces Arena"); document.documentElement.lang=LANG;
+}
+function setLang(l){LANG=l; try{localStorage.setItem("aceLang",l)}catch(_){} _tc.clear(); retranslateAll(); document.querySelectorAll(".langbtn").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.l===l)));
+  try{if(typeof refreshMenu==="function")refreshMenu()}catch(_){}}
+(function(){
+  let busy=false;
+  const mo=new MutationObserver(ms=>{if(busy||LANG!=="en")return;busy=true;try{for(const m of ms){if(m.type==="characterData")doText(m.target);else if(m.type==="attributes")doEl(m.target);else m.addedNodes.forEach(walk)}}finally{busy=false}});
+  mo.observe(document.body,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:ATTRS});
+  // sélecteur de langue : dans les options (pause) et en haut de la sélection d'équipe
+  const mk=()=>{const d=document.createElement("div");d.className="langrow";d.innerHTML='<span>Langue</span><button type="button" class="langbtn" data-l="fr">Français</button><button type="button" class="langbtn" data-l="en">English</button>';d.querySelectorAll("button").forEach(b=>{b.setAttribute("aria-pressed",String(b.dataset.l===LANG));b.onclick=e=>{e.stopPropagation();setLang(b.dataset.l)}});return d};
+  const pb=document.querySelector("#pause .pbox"); if(pb){const v=pb.querySelector(".vols"); pb.insertBefore(mk(),v||null)}
+  const mb=document.querySelector("#menu .mbox"); if(mb){const d=mk();d.classList.add("langtop");mb.appendChild(d)}
+  if(LANG==="en")retranslateAll();
+})();
 
 </script>
