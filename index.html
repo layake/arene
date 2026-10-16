@@ -450,7 +450,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Sélection d'équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>mannequin d'entraînement</small></button><button type="button" data-mode="duel" aria-pressed="false">Versus<small>contre un adversaire</small></button><button type="button" data-mode="rush" aria-pressed="false">Marathon<small>Tous les Pokémon d'affilée, au chrono</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="rounds" role="group" aria-label="Rounds"><span>Rounds</span><button type="button" data-r="1">1</button><button type="button" data-r="3" aria-pressed="true">3</button><button type="button" data-r="5">5</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
 </div>
-<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.74 · 16/10/2026</b></footer>
+<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.75 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -1665,6 +1665,8 @@ function fireBeam(e){
 // Lance un sort par son identifiant
 function cast(e,id){
   if(e.counter||e.ko>0||vsT>0)return;
+  if(id==="taunt"){if(NET.guest&&e===player)NET.sendCast(id); startTaunt(e); return}
+  if(e.taunt)e.taunt=null; // toute action interrompt la danse
   if(id==="swap"){if(NET.guest&&e===player){NET.sendCast(id);return}startSwap(e);return}
   if(id==="flash"){if(NET.guest&&e===player)NET.sendCast(id);castFlash(e);return}
   if(!e.kit.includes(id))return;
@@ -2494,6 +2496,7 @@ function draw(){
   ctx.globalAlpha=1;
   fighters.forEach(e=>{if(e.tunnel&&e.tunnel.phase==="dash")drawMound(e.x,e.y,1)});
   if(marker)drawMarker(marker);
+  if(typeof drawRings==="function")drawRings();
   zones.forEach(drawZone); fighters.forEach(drawFlashMark);
   glows.forEach(g=>{
     const u=g.t/g.life, hw=Math.round(8*(1-.35*u)), a=(1-u)*.65, x=Math.round(g.x), y=Math.round(g.y);
@@ -2589,6 +2592,7 @@ function draw(){
     ctx.strokeStyle="#1a1405"; ctx.strokeText(q.txt,sx,sy); ctx.fillStyle=q.col||"#ffd24a"; ctx.fillText(q.txt,sx,sy);
   });
   ctx.globalAlpha=1;
+  if(typeof drawTags==="function")drawTags();
 }
 function resize(){
   const r=stage.getBoundingClientRect(), d=window.devicePixelRatio||1;
@@ -2625,7 +2629,7 @@ stage.addEventListener("pointermove",e=>{lastE=ptrXY(e)});
 ["pointerup","pointercancel"].forEach(t=>stage.addEventListener(t,()=>{held=false}));
 // ---- Barre de sorts : les 4 emplacements prennent le kit de l'Ace choisi ----
 // ---- Touches configurables (menu Pause) : on retient la touche physique (e.code), affichée selon la disposition du clavier ----
-const BIND_DEF={s0:"KeyQ",s1:"KeyW",s2:"KeyE",s3:"KeyR",shield:"Space",swap:"Tab",flash:"KeyF",aim:"KeyT"};
+const BIND_DEF={s0:"KeyQ",s1:"KeyW",s2:"KeyE",s3:"KeyR",shield:"Space",swap:"Tab",flash:"KeyF",aim:"KeyT",taunt:"KeyG"};
 const BIND=Object.assign({},BIND_DEF); try{const b=JSON.parse(localStorage.getItem("aceKeys")||"{}"); for(const k in BIND_DEF)if(typeof b[k]==="string")BIND[k]=b[k]}catch(_){}
 const KEY_LBL={};
 if(/^fr/i.test(navigator.language||""))Object.assign(KEY_LBL,{KeyQ:"A",KeyW:"Z",KeyA:"Q",KeyZ:"W",Semicolon:"M",KeyM:","}); // AZERTY par défaut en français
@@ -2686,7 +2690,7 @@ function hudTile(t,e,pts,show){
   const p=show?String(pts):""; if(t.pips.dataset.v!==p){t.pips.dataset.v=p;t.pips.textContent=show?"Rounds "+pts:""}
 }
 function hudUpdate(){
-  const duel=matchMode==="duel"; hudEl.style.display=(menuOpen||!player||!foe)?"none":"";
+  const duel=matchMode==="duel"; hudEl.style.display=(menuOpen||!player||!foe||matchMode==="ffa")?"none":"";
   if(!player||!foe)return;
   hudTile(HT.me,player,score.me,duel); hudTile(HT.foe,foe,score.foe,duel);
   hudDim();
@@ -2736,6 +2740,7 @@ addEventListener("keydown",e=>{const k=e.key.toLowerCase();
   if(e.code===BIND.shield){e.preventDefault();keys.add("shield");return}
   if(e.code===BIND.swap){e.preventDefault();if(!e.repeat&&player.ko<=0)cast(player,"swap");return}
   if(k==="tab"){e.preventDefault();return}
+  if(e.code===BIND.taunt){e.preventDefault();if(!e.repeat&&player.ko<=0)cast(player,"taunt");return}
   if(e.code===BIND.flash){e.preventDefault();if(!e.repeat&&player.ko<=0)cast(player,"flash");return}
   const s=slotOf(e); if(s!==undefined){e.preventDefault();if(!e.repeat)pressSpell(s);return}
   if(["arrowup","arrowdown","arrowleft","arrowright"].includes(k))e.preventDefault();
@@ -4538,7 +4543,7 @@ function ffaStart(keys,roster){ // roster (en ligne) : liste de combattants déj
     const pool=Object.keys(SPECIES).filter(k=>SPECIES[k].playable&&!keys.includes(k)).sort(()=>Math.random()-.5);
     entities=[player]; for(let i=1;i<FFA.n;i++)entities.push(ffaBot(pool.splice(0,2)));
   }
-  fighters=entities.filter(e=>e.fighter); foe=fighters.find(e=>e!==player)||player;
+  fighters=entities.filter(e=>e.fighter); foe=fighters.find(e=>e!==player)||player; fighters.forEach((e,i)=>{e.col=FFA_COL[i%4]});
   resetRound();
   fighters.forEach(e=>{if(e.bot)botEquip(e,foeOf(e))});
   if(typeof applyKit==="function")applyKit();
@@ -4568,14 +4573,17 @@ function ffaTick(dt){
   ffaHud();
 }
 FX_UPDATERS.push(ffaTick);
-// ---- HUD : liste des autres combattants (nom, PV, Pokémon restants) ----
-const ffaEl=document.createElement("div"); ffaEl.id="ffaList"; ffaEl.hidden=true; (document.getElementById("stage")||document.body).appendChild(ffaEl);
-{const st=document.createElement("style"); st.textContent='#ffaList{position:absolute;right:12px;top:118px;z-index:3;display:flex;flex-direction:column;gap:4px;pointer-events:none;font:700 12px "Pixelify Sans",system-ui,sans-serif;color:#fff}#ffaList .fr{display:flex;align-items:center;gap:6px;background:rgba(14,16,28,.78);border:2px solid #e8e8f0;border-radius:6px;padding:3px 6px;min-width:180px}#ffaList .fr.tg{border-color:#ffe45e}#ffaList .fr.out{opacity:.4}#ffaList img{width:24px;height:24px;image-rendering:pixelated}#ffaList u{flex:1;height:6px;background:#202838;display:block}#ffaList u s{display:block;height:100%;background:#5fd35f}#ffaList em{font-style:normal;color:#ffe45e}'; document.head.appendChild(st)}
+// ---- HUD de la mêlée : une barre en haut, un panneau par joueur (couleur, pseudo, Pokémon actif, PV, Pokémon restants) ----
+const FFA_COL=["#4aa8ff","#ff5a4a","#5fd35f","#ffd23c"];
+const ffaEl=document.createElement("div"); ffaEl.id="ffaBar"; ffaEl.hidden=true; (document.getElementById("stage")||document.body).appendChild(ffaEl);
+{const st=document.createElement("style"); st.textContent='#ffaBar{position:absolute;left:50%;top:40px;transform:translateX(-50%);z-index:3;display:flex;gap:8px;pointer-events:none;font:700 12px "Pixelify Sans",system-ui,sans-serif;color:#fff}#ffaBar .fp{display:flex;gap:6px;align-items:center;background:rgba(14,16,28,.82);border:3px solid var(--c);border-radius:6px;padding:4px 7px;width:178px;box-shadow:0 2px 0 #000a}#ffaBar .fp.me{box-shadow:0 0 0 2px #fff,0 2px 0 #000a}#ffaBar .fp.out{opacity:.35;filter:grayscale(1)}#ffaBar .fp.tg{outline:2px dashed #ffe45e;outline-offset:2px}#ffaBar img{width:34px;height:34px;image-rendering:pixelated;background:#0b1340;border:2px solid var(--c)}#ffaBar .fi{flex:1;min-width:0}#ffaBar .fn{display:flex;justify-content:space-between;gap:4px;white-space:nowrap}#ffaBar .fn b{overflow:hidden;text-overflow:ellipsis;color:var(--c)}#ffaBar .fn em{font-style:normal;color:#cfd8ff;font-size:11px}#ffaBar u{display:block;height:7px;background:#202838;margin-top:3px;border:1px solid #000}#ffaBar u s{display:block;height:100%}#ffaBar .fd{display:flex;gap:3px;margin-top:3px}#ffaBar .fd i{width:8px;height:8px;border-radius:50%;background:var(--c);border:1px solid #000}#ffaBar .fd i.x{background:#333}@media(max-width:900px){#ffaBar .fp{width:140px}}'; document.head.appendChild(st)}
 let ffaSig="";
+const ffaCol=e=>e.col||FFA_COL[fighters.indexOf(e)%4];
+const ffaName=e=>e===player?(playerName()||(LANG==="en"?"You":"Toi")):(e.pname||(e.bot?"Bot "+e.sp.name:e.sp.name));
 function ffaHud(){
   const on=matchMode==="ffa"&&!menuOpen; ffaEl.hidden=!on; if(!on)return;
-  const rows=fighters.filter(e=>e!==player).map(e=>{const hp=e.out?0:Math.max(0,e.hp/e.maxHp), rest=e.team?teamAlive(e):(alive(e)?1:0);
-    return '<div class="fr'+(e===foe&&!e.out?' tg':'')+(e.out?' out':'')+'"><img alt="" src="'+(PORTRAITS[e.key]||"")+'"><span>'+(e.pname||e.sp.name)+'</span><u><s style="width:'+Math.round(hp*100)+'%"></s></u><em>'+(e.out?(LANG==="en"?"OUT":"OUT"):rest+"/"+(e.team?e.team.length:1))+'</em></div>'});
+  const rows=fighters.map(e=>{const hp=e.out?0:Math.max(0,e.hp/e.maxHp), c=hp>.5?"#5fd35f":hp>.2?"#f0c030":"#e84040", T=e.team||[{dead:!alive(e)}];
+    return '<div class="fp'+(e===player?' me':'')+(e.out?' out':'')+(e===foe&&e!==player&&!e.out?' tg':'')+'" style="--c:'+ffaCol(e)+'"><img alt="" src="'+(PORTRAITS[e.key]||"")+'"><div class="fi"><div class="fn"><b>'+ffaName(e).replace(/[<>&]/g,"")+'</b><em>'+(e.out?"OUT":e.sp.name)+'</em></div><u><s style="width:'+Math.round(hp*100)+'%;background:'+c+'"></s></u><div class="fd">'+T.map(s=>'<i'+(s.dead?' class="x"':'')+'></i>').join("")+'</div></div></div>'});
   const sig=rows.join(""); if(sig!==ffaSig){ffaSig=sig; ffaEl.innerHTML=sig}
 }
 // ---- Fin de partie : classement ----
@@ -4584,7 +4592,7 @@ setTimeout(()=>{const _sr=showResult; showResult=function(){
   if(endShown)return; endShown=true; hideBanner();
   const r=ffaRank(player), win=r===1, order=fighters.slice().sort((a,b)=>ffaRank(a)-ffaRank(b));
   endEl.className=win?"win":"lose";
-  endEl.innerHTML='<div class="ebox"><h2>'+(win?"VICTOIRE":(LANG==="en"?r+(["","st","nd","rd"][r]||"th"):r+"e")+" / "+fighters.length)+'</h2><ol class="frank">'+order.map(e=>'<li'+(e===player?' class="me"':'')+'><img alt="" src="'+(PORTRAITS[e.key]||"")+'">'+(e===player?"Toi":(e.pname||e.sp.name))+'</li>').join("")+'</ol><div class="ebtn">'+(NET.on?"":'<button type="button" id="eRe">Rejouer</button>')+'<button type="button" id="eMenu">'+(NET.on?"Retour au salon":"Sélection d'équipe")+'</button></div></div>';
+  endEl.innerHTML='<div class="ebox"><h2>'+(win?"VICTOIRE":(LANG==="en"?r+(["","st","nd","rd"][r]||"th"):r+"e")+" / "+fighters.length)+'</h2><ol class="frank">'+order.map(e=>'<li'+(e===player?' class="me"':'')+'><img alt="" src="'+(PORTRAITS[e.key]||"")+'">'+ffaName(e)+'</li>').join("")+'</ol><div class="ebtn">'+(NET.on?"":'<button type="button" id="eRe">Rejouer</button>')+'<button type="button" id="eMenu">'+(NET.on?"Retour au salon":"Sélection d'équipe")+'</button></div></div>';
   endEl.hidden=false; try{sfxUI(win?"ko":"click")}catch(_){}
   const re=endEl.querySelector("#eRe"); if(re)re.onclick=()=>{hideResult(); startMatch(picks.slice(),"ffa")};
   endEl.querySelector("#eMenu").onclick=()=>{hideResult(); openMenu()};
@@ -4592,6 +4600,44 @@ setTimeout(()=>{const _sr=showResult; showResult=function(){
 {const st=document.createElement("style"); st.textContent='#endscr .frank{margin:0;padding:0 0 0 22px;text-align:left;color:#cfd8ff;font-size:15px}#endscr .frank li{margin:2px 0}#endscr .frank li.me{color:#ffe45e}#endscr .frank img{width:22px;height:22px;image-rendering:pixelated;vertical-align:middle;margin-right:6px}'; document.head.appendChild(st)}
 // ---- bouton « Mêlée » dans la sélection solo ----
 {const modes=document.querySelector("#menu .modes"); if(modes){const b=document.createElement("button"); b.type="button"; b.dataset.mode="ffa"; b.innerHTML='Mêlée<small>4 combattants, chacun pour soi</small>'; const after=modes.querySelector('[data-mode="duel"]'); modes.insertBefore(b,after?after.nextSibling:null); b.addEventListener("click",()=>{pickMode="ffa";refreshMenu()})}}
+
+/* ===== Danse (taunt), pseudos au-dessus des Pokémon et cercles de couleur au sol ===== */
+const TAUNT={dur:2.2,cd:3};
+function startTaunt(e){
+  if(!e||e.ko>0||e.stun>0||e.rush||e.chan||e.tunnel||e.swapC||e.flashC||(e.anim==="attack"&&!e.hit)||(e.tauntCd||0)>0)return;
+  e.taunt={t:0}; e.moveTarget=null; e.shieldOn=false; e.tauntCd=TAUNT.cd; if(e===player)marker=null;
+  rings.push({x:e.x,y:e.y,t:0,dur:.35,max:20,c:"#ffe45e"});
+}
+function tauntTick(dt){
+  fighters.forEach(e=>{
+    if(e.tauntCd>0)e.tauntCd=Math.max(0,e.tauntCd-dt);
+    const T=e.taunt; if(!T)return;
+    if(e.ko>0||e.stun>0||e.moveTarget||e.rush||e.chan||e.tunnel||(e.anim==="attack"&&!e.hit)){e.taunt=null;return}
+    T.t+=dt; if(T.t>=TAUNT.dur){e.taunt=null;return}
+    const step=Math.floor(T.t/.14); if(step!==T.s){T.s=step; e.dir=(e.dir+1)%8; if(e.anim!=="idle")setAnim(e,"idle")} // il tourne sur lui-même
+    if(Math.random()<dt*5)pops.push({x:e.x+rand(-10,10),y:e.y-e.sp.body-14,t:0,txt:Math.random()<.5?"♪":"♫",col:["#ffe45e","#ff8ec4","#7fe0ff"][Math.floor(rand(0,3))]});
+    if(Math.random()<dt*3)rings.push({x:e.x,y:e.y,t:0,dur:.4,max:16,c:"#ffe45e"});
+  });
+}
+FX_UPDATERS.push(tauntTick);
+// cercle de couleur sous chaque joueur en mêlée
+function drawRings(){
+  if(matchMode!=="ffa")return;
+  fighters.forEach(e=>{ if(e.gone||e.out)return; const c=e.col||"#fff", x=Math.round(e.x), y=Math.round(e.y), R=Math.round(e.sp.body*.9)+4, ry=Math.max(2,Math.round(R*ISO));
+    ctx.globalAlpha=.85; ellipseLine(x,y+1,R,ry,c); if(e===player){ctx.globalAlpha=.4; ellipseLine(x,y+1,R+2,ry+1,c)} ctx.globalAlpha=1 });
+}
+// pseudo au-dessus de chaque Pokémon (mêlée, et en ligne)
+function drawTags(){
+  const show=matchMode==="ffa"||NET.on; if(!show)return;
+  ctx.save(); ctx.textAlign="center"; ctx.font="700 "+Math.max(11,Math.round(PX*3.2))+"px 'Pixelify Sans',monospace"; ctx.lineWidth=Math.max(3,Math.round(PX*.9)); ctx.lineJoin="round";
+  fighters.forEach(e=>{ if(e.gone||e.out||e.tunnel)return;
+    const name=matchMode==="ffa"&&typeof ffaName==="function"?ffaName(e):(e===player?(playerName()||(LANG==="en"?"You":"Toi")):(e.pname||"")); if(!name)return;
+    const sx=(e.x-cam.x)*PX, sy=(e.y-e.sp.body*2-16-cam.y)*PX;
+    ctx.strokeStyle="#0b0d18"; ctx.strokeText(name,sx,sy); ctx.fillStyle=e.col||(e===player?"#7fe0ff":"#ff8a8a"); ctx.fillText(name,sx,sy) });
+  ctx.restore();
+}
+// pseudo du joueur (Paramètres) ; sinon celui du classé
+function playerName(){ try{const n=(localStorage.getItem("aceName")||"").trim(); if(n)return n.slice(0,16)}catch(_){} return (typeof RK!=="undefined"&&RK.prof&&RK.prof.name)||"" }
 
 // ---- Multijoueur en ligne : l'hôte fait autorité, l'invité joue en prédiction locale et se recale sur les instantanés ----
 // Le combat tourne chez les deux joueurs avec le même code. L'hôte reçoit les ordres de l'invité (déplacement, sort, bouclier)
@@ -4698,7 +4744,7 @@ function onGuestInput(m){
   else if(m.t==="sh"){ g.wantShield=!!m.v&&g.ko<=0 }
   else if(m.t==="cast"){
     ackSeq=Math.max(ackSeq,m.seq);
-    if(g.ko>0||!SPL[m.id])return;
+    if(g.ko>0||(!SPL[m.id]&&m.id!=="taunt"))return;
     g.aimPt={wx:m.wx,wy:m.wy}; g.aimMode=["off","assist","lock"].includes(m.am)?m.am:"assist"; cast(g,m.id);
   }
   else if(m.t==="cancel"){ if(g.rush&&g.rush.ph==="chan")cancelRush(g,false);else if(g.chan)cancelChan(g,false) }
@@ -4765,7 +4811,7 @@ function openRoom(code){inLobby=true;roomCode=code;peerHere=false;myReady=oppRea
 function lobbyOn(){oppVerOk=false;peerHere=true;myReady=oppReady=false;oppHello=oppPick=null;say("");refreshLobby();sendPick(true); if(NET.rk)setTimeout(autoReady,600)}
 function autoReady(){ // combat classé : pas de salon à valider, chacun se déclare prêt tout de suite
   if(!NET.rk||!inLobby||myReady||NET.started||!peerHere)return;
-  myReady=true; myHello=mineHello(); relay({t:"ready",on:true,team:myHello.team,v:GV}); refreshLobby(); maybeStart();
+  myReady=true; myHello=mineHello(); relay({t:"ready",on:true,team:myHello.team,v:GV,name:playerName()}); refreshLobby(); maybeStart();
 }
 function peerGone(){
   if(NET.rk&&NET.rankedEvent)NET.rankedEvent("peergone",NET.started);
@@ -4780,7 +4826,7 @@ btnR.addEventListener("click",()=>{
   if(!myReady&&!saveKit())return;
   if(!myReady&&!oppVerOk&&peerHere){say(verMsg());return}
   myReady=!myReady; myHello=mineHello();
-  relay({t:"ready",on:myReady,team:myHello.team,v:GV});
+  relay({t:"ready",on:myReady,team:myHello.team,v:GV,name:playerName()});
   refreshLobby(); maybeStart();
 });
 // Retour au salon sans quitter la connexion : l'autre joueur est prévenu et revient aussi.
@@ -4803,7 +4849,7 @@ function onMsg(m){
     if(m.v!==GV){oppVerOk=false; say(verMsg(m.v)); if(NET.rk&&NET.rankedEvent)NET.rankedEvent("badteam"); return}
     oppVerOk=true;
     if(!validTeam(m.team)){if(NET.rk&&NET.rankedEvent)NET.rankedEvent("badteam");return}
-    oppPick={team:m.team,key:m.team[0].key,kit:m.team[0].kit};
+    oppPick={team:m.team,key:m.team[0].key,kit:m.team[0].kit,name:String(m.name||"").replace(/[<>&]/g,"").slice(0,16)};
     if(m.t==="ready"){oppReady=!!m.on; if(m.on)oppHello=oppPick}
     refreshLobby(); maybeStart();
   }
@@ -4818,6 +4864,7 @@ function begin(hostH,guestH,asHost){
   bestOf=3; endShown=false; musicSet("battle"); matchMode="duel"; score.me=0; score.foe=0; seq=0; lastSnapSeq=-1; castSeq=ackSeq=0; lastMv=""; lastSh=false;
   const A=makeFighter(hostH.team[0].key,START_A[0],START_A[1],false,hostH.team[0].kit), B=makeFighter(guestH.team[0].key,START_B[0],START_B[1],false,guestH.team[0].kit);
   initTeam(A,hostH.team.map(x=>x.key),hostH.team.map(x=>x.kit)); initTeam(B,guestH.team.map(x=>x.key),guestH.team.map(x=>x.kit));
+  A.pname=hostH.name||""; B.pname=guestH.name||"";
   entities=[A,B]; fighters=entities.slice();
   if(asHost){player=A;foe=B;B.remote=true}else{player=B;foe=A;A.remote=true}
   playerKey=player.key; resetRound();
@@ -4829,7 +4876,7 @@ function begin(hostH,guestH,asHost){
 function beginHost(){
   myHello=mineHello(); const h=myHello, g=oppHello;
   if(!h||!g||!validTeam(g.team)){say("Équipe de l'adversaire invalide");if(NET.rk&&NET.rankedEvent)NET.rankedEvent("badteam");return}
-  const arena=NET.rk?"colisee":ARENA_PICK; setArena(arena); relay({t:"start",h:{team:h.team},g:{team:g.team},a:arena});
+  const arena=NET.rk?"colisee":ARENA_PICK; setArena(arena); relay({t:"start",h:{team:h.team,name:playerName()},g:{team:g.team,name:g.name||""},a:arena}); h.name=playerName();
   begin(h,g,true);
 }
 function beginGuest(m){ if(!oppVerOk){say(verMsg());return} if(!m.h||!validTeam(m.h.team)||!validTeam(m.g&&m.g.team))return; setArena(ARENAS[m.a]?m.a:"colisee"); begin(m.h,m.g,false) }
@@ -4944,7 +4991,7 @@ NET.saveKit=saveKit;
 NET.teamOk=()=>{try{return validTeam(teamPicks())}catch(_){return false}};
 NET.rankedKick=()=>{ // combat classé : on renvoie "prêt" tant que le match n'a pas démarré (message perdu, hôte lent)
   if(!NET.rk||NET.started||!peerHere||!inLobby)return;
-  myReady=true; myHello=mineHello(); relay({t:"ready",on:true,team:myHello.team,v:GV}); maybeStart();
+  myReady=true; myHello=mineHello(); relay({t:"ready",on:true,team:myHello.team,v:GV,name:playerName()}); maybeStart();
 };
 NET.rankedStart=function(info){
   NET.leave(); NET.rk={matchId:info.matchId,code:info.code,role:info.role}; role=info.role; myHello=mineHello(); mode="peer";
@@ -5292,7 +5339,7 @@ const say=t=>{const m=document.getElementById("ffaMsg"); if(m)m.textContent=t||"
 const myTeam=()=>picks.slice(0,2).map(k=>({key:k,kit:draftOf(k).slice()}));
 const validKit=(key,kit)=>Array.isArray(kit)&&kit.length===4&&kit.every(id=>SPECIES[key]&&SPECIES[key].pool.includes(id))&&new Set(kit).size===4;
 const validTeam=t=>Array.isArray(t)&&t.length===2&&t[0].key!==t[1].key&&t.every(x=>x&&SPECIES[x.key]&&SPECIES[x.key].playable&&validKit(x.key,x.kit));
-const myName=()=>(typeof RK!=="undefined"&&RK.prof&&RK.prof.name)||((LANG==="en"?"Player ":"Joueur ")+(M.slot+1));
+const myName=()=>playerName()||(typeof RK!=="undefined"&&RK.prof&&RK.prof.name)||((LANG==="en"?"Player ":"Joueur ")+(M.slot+1));
 function render(){
   const L=LANG==="en"; let h='<h3>'+(L?"Online brawl (3-4 players, free-for-all, 2 Pokémon each)":"Mêlée en ligne (3-4 joueurs, chacun pour soi, 2 Pokémon chacun)")+'</h3>';
   if(!M.role){
@@ -5368,7 +5415,7 @@ function onHostMsg(slot,m){
   const g=entities[slot]; if(!g||g.out)return;
   if(m.t==="mv"){ if(g.ko<=0&&g.stun<=0)g.moveTarget=m.c?{x:m.x,y:m.y,chase:true}:{x:clampX(m.x),y:clampY(m.y)} }
   else if(m.t==="sh"){ g.wantShield=!!m.v&&g.ko<=0 }
-  else if(m.t==="cast"){ M.ackSeq[slot]=Math.max(M.ackSeq[slot]||0,m.seq); if(g.ko>0||!(SPL[m.id]||m.id==="swap"||m.id==="flash"))return;
+  else if(m.t==="cast"){ M.ackSeq[slot]=Math.max(M.ackSeq[slot]||0,m.seq); if(g.ko>0||!(SPL[m.id]||m.id==="swap"||m.id==="flash"||m.id==="taunt"))return;
     g.aimPt={wx:m.wx,wy:m.wy}; g.aimMode=["off","assist","lock"].includes(m.am)?m.am:"assist"; cast(g,m.id) }
   else if(m.t==="cancel"){ if(g.rush&&g.rush.ph==="chan")cancelRush(g,false);else if(g.chan)cancelChan(g,false) }
   else if(m.t==="hold"){ g.holdKey=!!m.v }
@@ -5505,17 +5552,17 @@ setInterval(()=>{if(PL.on&&!plWant()){PL.rel=true; try{document.exitPointerLock(
 
 /* ===== Menu Paramètres : touches, son, langue, visée, souris. Ouvrable depuis l'accueil, la sélection d'équipe et la pause ===== */
 (function(){
-const ACTIONS=[["s0","Sort 1"],["s1","Sort 2"],["s2","Sort 3"],["s3","Sort 4"],["shield","Bouclier (maintenir)"],["swap","Changer d'Ace"],["flash","Flash"],["aim","Mode de visée"]];
+const ACTIONS=[["s0","Sort 1"],["s1","Sort 2"],["s2","Sort 3"],["s3","Sort 4"],["shield","Bouclier (maintenir)"],["swap","Changer d'Ace"],["flash","Flash"],["aim","Mode de visée"],["taunt","Danser (taunt)"]];
 const RESERVED=new Set(["Escape","KeyP"]);
 const ov=document.createElement("div"); ov.id="settings"; ov.hidden=true; ov.setAttribute("role","dialog"); ov.setAttribute("aria-label","Paramètres");
 ov.innerHTML='<div class="sbox"><h2>Paramètres</h2><button type="button" class="sclose" id="sClose">Fermer</button>'+
-  '<section id="sGen"><h3>Général</h3></section>'+
+  '<section id="sGen"><h3>Général</h3><label class="srow"><span>Pseudo</span> <input id="sName" maxlength="16" autocomplete="off" spellcheck="false" placeholder="Ton pseudo"></label></section>'+
   '<section id="sSnd"></section>'+
   '<section id="sPlay"><h3>Jeu</h3><label class="srow"><input type="checkbox" id="sLock"> <span>Bloquer la souris dans la fenêtre pendant le combat</span></label></section>'+
   '<section id="sKeys"><h3>Touches</h3><div class="kgrid"></div><button type="button" id="sKeyReset">Touches par défaut</button><p class="shint">Clique sur une action puis appuie sur la nouvelle touche. Échap annule. Échap et P restent réservés à la pause.</p></section></div>';
 document.body.appendChild(ov);
 const st=document.createElement("style");
-st.textContent='#settings{position:fixed;inset:0;z-index:200;background:rgba(5,8,24,.78);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:16px;box-sizing:border-box;font-family:"Pixelify Sans",var(--display)}#settings[hidden]{display:none}#settings .sbox{position:relative;width:min(680px,100%);background:linear-gradient(#1f3290,#0f1b55);border:3px solid #e6eeff;border-radius:8px;box-shadow:0 0 0 2px #070c24,inset 0 0 0 2px #4a68c8;padding:14px 22px 18px;color:#fff;margin:auto 0}#settings h2{margin:0 0 6px;text-align:center;font-size:26px}#settings h3{margin:14px 0 6px;color:#ffe45e;font-size:16px;border-bottom:2px solid #4a68c8;padding-bottom:3px}#settings .sclose{position:absolute;right:14px;top:12px}#settings button{font:inherit;color:#ffe45e;background:#1b2a8a;border:2px solid #ffe45e;padding:4px 12px;cursor:pointer}#settings .kgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px}#settings .krow{display:flex;justify-content:space-between;align-items:center;gap:8px;background:rgba(7,12,36,.55);border:2px solid #4a68c8;padding:4px 8px}#settings .krow b{min-width:72px;text-align:center;color:#fff;background:#0b1340;border:2px solid #7f95e8;padding:2px 8px}#settings .krow.wait b{color:#ffe45e;border-color:#ffe45e;animation:sblink .6s steps(2) infinite}@keyframes sblink{50%{opacity:.4}}#settings .srow{display:flex;gap:8px;align-items:center;cursor:pointer}#settings .shint{font-size:12px;color:#9fb4ff;margin:6px 0 0}#settings #sKeyReset{margin-top:8px}#settings .vols,#settings .langrow,#settings .pmenu{margin:0}#sOpen,#tSet,#pSet{cursor:pointer}#menu #sOpen{position:absolute;left:120px;top:12px;z-index:2;font:500 13px "Pixelify Sans",monospace;color:#c9d6ff;background:rgba(7,12,36,.55);border:2px solid #4a68c8;padding:4px 10px}@media(max-width:640px){#settings .kgrid{grid-template-columns:1fr}}';
+st.textContent='#settings{position:fixed;inset:0;z-index:200;background:rgba(5,8,24,.78);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:16px;box-sizing:border-box;font-family:"Pixelify Sans",var(--display)}#settings[hidden]{display:none}#settings .sbox{position:relative;width:min(680px,100%);background:linear-gradient(#1f3290,#0f1b55);border:3px solid #e6eeff;border-radius:8px;box-shadow:0 0 0 2px #070c24,inset 0 0 0 2px #4a68c8;padding:14px 22px 18px;color:#fff;margin:auto 0}#settings h2{margin:0 0 6px;text-align:center;font-size:26px}#settings h3{margin:14px 0 6px;color:#ffe45e;font-size:16px;border-bottom:2px solid #4a68c8;padding-bottom:3px}#settings .sclose{position:absolute;right:14px;top:12px}#settings button{font:inherit;color:#ffe45e;background:#1b2a8a;border:2px solid #ffe45e;padding:4px 12px;cursor:pointer}#settings .kgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px}#settings .krow{display:flex;justify-content:space-between;align-items:center;gap:8px;background:rgba(7,12,36,.55);border:2px solid #4a68c8;padding:4px 8px}#settings .krow b{min-width:72px;text-align:center;color:#fff;background:#0b1340;border:2px solid #7f95e8;padding:2px 8px}#settings .krow.wait b{color:#ffe45e;border-color:#ffe45e;animation:sblink .6s steps(2) infinite}@keyframes sblink{50%{opacity:.4}}#settings .srow{display:flex;gap:8px;align-items:center;cursor:pointer}#settings #sName{font:inherit;padding:4px 8px;background:#050a28;color:#fff;border:2px solid #7f95e8;width:200px}#settings .shint{font-size:12px;color:#9fb4ff;margin:6px 0 0}#settings #sKeyReset{margin-top:8px}#settings .vols,#settings .langrow,#settings .pmenu{margin:0}#sOpen,#tSet,#pSet{cursor:pointer}#menu #sOpen{position:absolute;left:120px;top:12px;z-index:2;font:500 13px "Pixelify Sans",monospace;color:#c9d6ff;background:rgba(7,12,36,.55);border:2px solid #4a68c8;padding:4px 10px}@media(max-width:640px){#settings .kgrid{grid-template-columns:1fr}}';
 document.head.appendChild(st);
 const $=s=>ov.querySelector(s);
 // on déplace les réglages existants de la pause (ils gardent leurs écouteurs) ; fait au premier affichage, quand tout est construit
@@ -5532,6 +5579,8 @@ if(pb){const b=document.createElement("button"); b.type="button"; b.id="pSet"; b
 {const tb=document.querySelector("#title .tbtns"); if(tb){const b=document.createElement("button"); b.type="button"; b.id="tSet"; b.textContent="Paramètres"; tb.appendChild(b); b.onclick=e=>{e.stopPropagation();openSettings()}}}
 {const mb=document.querySelector("#menu .mbox"); if(mb){const b=document.createElement("button"); b.type="button"; b.id="sOpen"; b.textContent="⚙ Paramètres"; mb.insertBefore(b,mb.firstChild); b.onclick=()=>openSettings()}}
 // souris
+try{$("#sName").value=localStorage.getItem("aceName")||""}catch(_){}
+$("#sName").oninput=e=>{const v=e.target.value.replace(/[<>&]/g,"").slice(0,16); try{localStorage.setItem("aceName",v)}catch(_){}};
 $("#sLock").checked=PL_ON(); $("#sLock").onchange=e=>{try{localStorage.setItem("aceLock",e.target.checked?"1":"0")}catch(_){}};
 // touches
 let waiting=null;
@@ -5545,6 +5594,7 @@ $("#sKeyReset").onclick=()=>{Object.assign(BIND,BIND_DEF); waiting=null; saveKey
 addEventListener("keydown",e=>{
   if(ov.hidden)return;
   e.stopImmediatePropagation(); // le jeu ne reçoit rien tant que le menu est ouvert
+  if(!waiting&&e.target&&e.target.tagName==="INPUT"&&e.target.type!=="checkbox"){if(e.key==="Escape")closeSettings(); return} // on peut taper son pseudo
   if(e.code==="Tab"&&!waiting)return; // navigation clavier dans le menu
   e.preventDefault();
   if(!waiting){if(e.key==="Escape")closeSettings();return}
@@ -5597,6 +5647,7 @@ const EN={
 "* ajusté pour l'équilibrage":"* adjusted for balance",
 "Paramètres":"Settings","⚙ Paramètres":"⚙ Settings","Fermer":"Close","Général":"General","Son":"Sound","Jeu":"Game","Touches":"Keys","Bloquer la souris dans la fenêtre pendant le combat":"Lock the mouse in the window during fights","Touches par défaut":"Default keys","Clique sur une action puis appuie sur la nouvelle touche. Échap annule. Échap et P restent réservés à la pause.":"Click an action then press the new key. Esc cancels. Esc and P stay reserved for pause.","Sort 1":"Move 1","Sort 2":"Move 2","Sort 3":"Move 3","Sort 4":"Move 4","Bouclier (maintenir)":"Shield (hold)","Changer d'Ace":"Switch Ace","Mode de visée":"Aim mode","Espace":"Space","Maj":"Shift","Verr. Maj":"Caps Lock",
 "Mêlée":"Brawl","4 combattants, chacun pour soi":"4 fighters, free-for-all","JOUEURS":"PLAYERS",
+"Danser (taunt)":"Dance (taunt)","Pseudo":"Name","Ton pseudo":"Your name",
 "Jeu prévu pour ordinateur : souris + clavier":"Made for computer: mouse + keyboard",
 "Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code.":"Unofficial, non-commercial fan game, not affiliated with Nintendo, Game Freak, Creatures or The Pokémon Company. Pokémon and its characters © Nintendo / Creatures / Game Freak. Sprites: PMDCollab SpriteCollab (CC BY-NC 4.0), originals Chunsoft. Sound effects: Pokémon Mystery Dungeon © Chunsoft / The Pokémon Company; music generated by code.",
 "Sélectionne ton équipe puis valide avec Prêt.":"Pick your team, then confirm with Ready.","Sélectionne 4 sorts. Les plus puissants ont un temps de recharge plus long.":"Select 4 moves. The most powerful ones have a longer cooldown.","4 sorts maximum : retire-en un d'abord.":"4 moves maximum: remove one first.","Pas assez de PP !":"Not enough PP!",

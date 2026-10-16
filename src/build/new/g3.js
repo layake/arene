@@ -27,7 +27,7 @@ stage.addEventListener("pointermove",e=>{lastE=ptrXY(e)});
 ["pointerup","pointercancel"].forEach(t=>stage.addEventListener(t,()=>{held=false}));
 // ---- Barre de sorts : les 4 emplacements prennent le kit de l'Ace choisi ----
 // ---- Touches configurables (menu Pause) : on retient la touche physique (e.code), affichée selon la disposition du clavier ----
-const BIND_DEF={s0:"KeyQ",s1:"KeyW",s2:"KeyE",s3:"KeyR",shield:"Space",swap:"Tab",flash:"KeyF",aim:"KeyT"};
+const BIND_DEF={s0:"KeyQ",s1:"KeyW",s2:"KeyE",s3:"KeyR",shield:"Space",swap:"Tab",flash:"KeyF",aim:"KeyT",taunt:"KeyG"};
 const BIND=Object.assign({},BIND_DEF); try{const b=JSON.parse(localStorage.getItem("aceKeys")||"{}"); for(const k in BIND_DEF)if(typeof b[k]==="string")BIND[k]=b[k]}catch(_){}
 const KEY_LBL={};
 if(/^fr/i.test(navigator.language||""))Object.assign(KEY_LBL,{KeyQ:"A",KeyW:"Z",KeyA:"Q",KeyZ:"W",Semicolon:"M",KeyM:","}); // AZERTY par défaut en français
@@ -88,7 +88,7 @@ function hudTile(t,e,pts,show){
   const p=show?String(pts):""; if(t.pips.dataset.v!==p){t.pips.dataset.v=p;t.pips.textContent=show?"Rounds "+pts:""}
 }
 function hudUpdate(){
-  const duel=matchMode==="duel"; hudEl.style.display=(menuOpen||!player||!foe)?"none":"";
+  const duel=matchMode==="duel"; hudEl.style.display=(menuOpen||!player||!foe||matchMode==="ffa")?"none":"";
   if(!player||!foe)return;
   hudTile(HT.me,player,score.me,duel); hudTile(HT.foe,foe,score.foe,duel);
   hudDim();
@@ -138,6 +138,7 @@ addEventListener("keydown",e=>{const k=e.key.toLowerCase();
   if(e.code===BIND.shield){e.preventDefault();keys.add("shield");return}
   if(e.code===BIND.swap){e.preventDefault();if(!e.repeat&&player.ko<=0)cast(player,"swap");return}
   if(k==="tab"){e.preventDefault();return}
+  if(e.code===BIND.taunt){e.preventDefault();if(!e.repeat&&player.ko<=0)cast(player,"taunt");return}
   if(e.code===BIND.flash){e.preventDefault();if(!e.repeat&&player.ko<=0)cast(player,"flash");return}
   const s=slotOf(e); if(s!==undefined){e.preventDefault();if(!e.repeat)pressSpell(s);return}
   if(["arrowup","arrowdown","arrowleft","arrowright"].includes(k))e.preventDefault();

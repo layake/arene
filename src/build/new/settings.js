@@ -1,16 +1,16 @@
 /* ===== Menu Paramètres : touches, son, langue, visée, souris. Ouvrable depuis l'accueil, la sélection d'équipe et la pause ===== */
 (function(){
-const ACTIONS=[["s0","Sort 1"],["s1","Sort 2"],["s2","Sort 3"],["s3","Sort 4"],["shield","Bouclier (maintenir)"],["swap","Changer d'Ace"],["flash","Flash"],["aim","Mode de visée"]];
+const ACTIONS=[["s0","Sort 1"],["s1","Sort 2"],["s2","Sort 3"],["s3","Sort 4"],["shield","Bouclier (maintenir)"],["swap","Changer d'Ace"],["flash","Flash"],["aim","Mode de visée"],["taunt","Danser (taunt)"]];
 const RESERVED=new Set(["Escape","KeyP"]);
 const ov=document.createElement("div"); ov.id="settings"; ov.hidden=true; ov.setAttribute("role","dialog"); ov.setAttribute("aria-label","Paramètres");
 ov.innerHTML='<div class="sbox"><h2>Paramètres</h2><button type="button" class="sclose" id="sClose">Fermer</button>'+
-  '<section id="sGen"><h3>Général</h3></section>'+
+  '<section id="sGen"><h3>Général</h3><label class="srow"><span>Pseudo</span> <input id="sName" maxlength="16" autocomplete="off" spellcheck="false" placeholder="Ton pseudo"></label></section>'+
   '<section id="sSnd"></section>'+
   '<section id="sPlay"><h3>Jeu</h3><label class="srow"><input type="checkbox" id="sLock"> <span>Bloquer la souris dans la fenêtre pendant le combat</span></label></section>'+
   '<section id="sKeys"><h3>Touches</h3><div class="kgrid"></div><button type="button" id="sKeyReset">Touches par défaut</button><p class="shint">Clique sur une action puis appuie sur la nouvelle touche. Échap annule. Échap et P restent réservés à la pause.</p></section></div>';
 document.body.appendChild(ov);
 const st=document.createElement("style");
-st.textContent='#settings{position:fixed;inset:0;z-index:200;background:rgba(5,8,24,.78);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:16px;box-sizing:border-box;font-family:"Pixelify Sans",var(--display)}#settings[hidden]{display:none}#settings .sbox{position:relative;width:min(680px,100%);background:linear-gradient(#1f3290,#0f1b55);border:3px solid #e6eeff;border-radius:8px;box-shadow:0 0 0 2px #070c24,inset 0 0 0 2px #4a68c8;padding:14px 22px 18px;color:#fff;margin:auto 0}#settings h2{margin:0 0 6px;text-align:center;font-size:26px}#settings h3{margin:14px 0 6px;color:#ffe45e;font-size:16px;border-bottom:2px solid #4a68c8;padding-bottom:3px}#settings .sclose{position:absolute;right:14px;top:12px}#settings button{font:inherit;color:#ffe45e;background:#1b2a8a;border:2px solid #ffe45e;padding:4px 12px;cursor:pointer}#settings .kgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px}#settings .krow{display:flex;justify-content:space-between;align-items:center;gap:8px;background:rgba(7,12,36,.55);border:2px solid #4a68c8;padding:4px 8px}#settings .krow b{min-width:72px;text-align:center;color:#fff;background:#0b1340;border:2px solid #7f95e8;padding:2px 8px}#settings .krow.wait b{color:#ffe45e;border-color:#ffe45e;animation:sblink .6s steps(2) infinite}@keyframes sblink{50%{opacity:.4}}#settings .srow{display:flex;gap:8px;align-items:center;cursor:pointer}#settings .shint{font-size:12px;color:#9fb4ff;margin:6px 0 0}#settings #sKeyReset{margin-top:8px}#settings .vols,#settings .langrow,#settings .pmenu{margin:0}#sOpen,#tSet,#pSet{cursor:pointer}#menu #sOpen{position:absolute;left:120px;top:12px;z-index:2;font:500 13px "Pixelify Sans",monospace;color:#c9d6ff;background:rgba(7,12,36,.55);border:2px solid #4a68c8;padding:4px 10px}@media(max-width:640px){#settings .kgrid{grid-template-columns:1fr}}';
+st.textContent='#settings{position:fixed;inset:0;z-index:200;background:rgba(5,8,24,.78);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:16px;box-sizing:border-box;font-family:"Pixelify Sans",var(--display)}#settings[hidden]{display:none}#settings .sbox{position:relative;width:min(680px,100%);background:linear-gradient(#1f3290,#0f1b55);border:3px solid #e6eeff;border-radius:8px;box-shadow:0 0 0 2px #070c24,inset 0 0 0 2px #4a68c8;padding:14px 22px 18px;color:#fff;margin:auto 0}#settings h2{margin:0 0 6px;text-align:center;font-size:26px}#settings h3{margin:14px 0 6px;color:#ffe45e;font-size:16px;border-bottom:2px solid #4a68c8;padding-bottom:3px}#settings .sclose{position:absolute;right:14px;top:12px}#settings button{font:inherit;color:#ffe45e;background:#1b2a8a;border:2px solid #ffe45e;padding:4px 12px;cursor:pointer}#settings .kgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px}#settings .krow{display:flex;justify-content:space-between;align-items:center;gap:8px;background:rgba(7,12,36,.55);border:2px solid #4a68c8;padding:4px 8px}#settings .krow b{min-width:72px;text-align:center;color:#fff;background:#0b1340;border:2px solid #7f95e8;padding:2px 8px}#settings .krow.wait b{color:#ffe45e;border-color:#ffe45e;animation:sblink .6s steps(2) infinite}@keyframes sblink{50%{opacity:.4}}#settings .srow{display:flex;gap:8px;align-items:center;cursor:pointer}#settings #sName{font:inherit;padding:4px 8px;background:#050a28;color:#fff;border:2px solid #7f95e8;width:200px}#settings .shint{font-size:12px;color:#9fb4ff;margin:6px 0 0}#settings #sKeyReset{margin-top:8px}#settings .vols,#settings .langrow,#settings .pmenu{margin:0}#sOpen,#tSet,#pSet{cursor:pointer}#menu #sOpen{position:absolute;left:120px;top:12px;z-index:2;font:500 13px "Pixelify Sans",monospace;color:#c9d6ff;background:rgba(7,12,36,.55);border:2px solid #4a68c8;padding:4px 10px}@media(max-width:640px){#settings .kgrid{grid-template-columns:1fr}}';
 document.head.appendChild(st);
 const $=s=>ov.querySelector(s);
 // on déplace les réglages existants de la pause (ils gardent leurs écouteurs) ; fait au premier affichage, quand tout est construit
@@ -27,6 +27,8 @@ if(pb){const b=document.createElement("button"); b.type="button"; b.id="pSet"; b
 {const tb=document.querySelector("#title .tbtns"); if(tb){const b=document.createElement("button"); b.type="button"; b.id="tSet"; b.textContent="Paramètres"; tb.appendChild(b); b.onclick=e=>{e.stopPropagation();openSettings()}}}
 {const mb=document.querySelector("#menu .mbox"); if(mb){const b=document.createElement("button"); b.type="button"; b.id="sOpen"; b.textContent="⚙ Paramètres"; mb.insertBefore(b,mb.firstChild); b.onclick=()=>openSettings()}}
 // souris
+try{$("#sName").value=localStorage.getItem("aceName")||""}catch(_){}
+$("#sName").oninput=e=>{const v=e.target.value.replace(/[<>&]/g,"").slice(0,16); try{localStorage.setItem("aceName",v)}catch(_){}};
 $("#sLock").checked=PL_ON(); $("#sLock").onchange=e=>{try{localStorage.setItem("aceLock",e.target.checked?"1":"0")}catch(_){}};
 // touches
 let waiting=null;
@@ -40,6 +42,7 @@ $("#sKeyReset").onclick=()=>{Object.assign(BIND,BIND_DEF); waiting=null; saveKey
 addEventListener("keydown",e=>{
   if(ov.hidden)return;
   e.stopImmediatePropagation(); // le jeu ne reçoit rien tant que le menu est ouvert
+  if(!waiting&&e.target&&e.target.tagName==="INPUT"&&e.target.type!=="checkbox"){if(e.key==="Escape")closeSettings(); return} // on peut taper son pseudo
   if(e.code==="Tab"&&!waiting)return; // navigation clavier dans le menu
   e.preventDefault();
   if(!waiting){if(e.key==="Escape")closeSettings();return}

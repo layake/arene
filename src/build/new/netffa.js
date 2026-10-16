@@ -18,7 +18,7 @@ const say=t=>{const m=document.getElementById("ffaMsg"); if(m)m.textContent=t||"
 const myTeam=()=>picks.slice(0,2).map(k=>({key:k,kit:draftOf(k).slice()}));
 const validKit=(key,kit)=>Array.isArray(kit)&&kit.length===4&&kit.every(id=>SPECIES[key]&&SPECIES[key].pool.includes(id))&&new Set(kit).size===4;
 const validTeam=t=>Array.isArray(t)&&t.length===2&&t[0].key!==t[1].key&&t.every(x=>x&&SPECIES[x.key]&&SPECIES[x.key].playable&&validKit(x.key,x.kit));
-const myName=()=>(typeof RK!=="undefined"&&RK.prof&&RK.prof.name)||((LANG==="en"?"Player ":"Joueur ")+(M.slot+1));
+const myName=()=>playerName()||(typeof RK!=="undefined"&&RK.prof&&RK.prof.name)||((LANG==="en"?"Player ":"Joueur ")+(M.slot+1));
 function render(){
   const L=LANG==="en"; let h='<h3>'+(L?"Online brawl (3-4 players, free-for-all, 2 Pokémon each)":"Mêlée en ligne (3-4 joueurs, chacun pour soi, 2 Pokémon chacun)")+'</h3>';
   if(!M.role){
@@ -94,7 +94,7 @@ function onHostMsg(slot,m){
   const g=entities[slot]; if(!g||g.out)return;
   if(m.t==="mv"){ if(g.ko<=0&&g.stun<=0)g.moveTarget=m.c?{x:m.x,y:m.y,chase:true}:{x:clampX(m.x),y:clampY(m.y)} }
   else if(m.t==="sh"){ g.wantShield=!!m.v&&g.ko<=0 }
-  else if(m.t==="cast"){ M.ackSeq[slot]=Math.max(M.ackSeq[slot]||0,m.seq); if(g.ko>0||!(SPL[m.id]||m.id==="swap"||m.id==="flash"))return;
+  else if(m.t==="cast"){ M.ackSeq[slot]=Math.max(M.ackSeq[slot]||0,m.seq); if(g.ko>0||!(SPL[m.id]||m.id==="swap"||m.id==="flash"||m.id==="taunt"))return;
     g.aimPt={wx:m.wx,wy:m.wy}; g.aimMode=["off","assist","lock"].includes(m.am)?m.am:"assist"; cast(g,m.id) }
   else if(m.t==="cancel"){ if(g.rush&&g.rush.ph==="chan")cancelRush(g,false);else if(g.chan)cancelChan(g,false) }
   else if(m.t==="hold"){ g.holdKey=!!m.v }

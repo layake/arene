@@ -301,6 +301,7 @@ function draw(){
   ctx.globalAlpha=1;
   fighters.forEach(e=>{if(e.tunnel&&e.tunnel.phase==="dash")drawMound(e.x,e.y,1)});
   if(marker)drawMarker(marker);
+  if(typeof drawRings==="function")drawRings();
   zones.forEach(drawZone); fighters.forEach(drawFlashMark);
   glows.forEach(g=>{
     const u=g.t/g.life, hw=Math.round(8*(1-.35*u)), a=(1-u)*.65, x=Math.round(g.x), y=Math.round(g.y);
@@ -396,6 +397,7 @@ function draw(){
     ctx.strokeStyle="#1a1405"; ctx.strokeText(q.txt,sx,sy); ctx.fillStyle=q.col||"#ffd24a"; ctx.fillText(q.txt,sx,sy);
   });
   ctx.globalAlpha=1;
+  if(typeof drawTags==="function")drawTags();
 }
 function resize(){
   const r=stage.getBoundingClientRect(), d=window.devicePixelRatio||1;

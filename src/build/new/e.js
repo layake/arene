@@ -414,6 +414,8 @@ function fireBeam(e){
 // Lance un sort par son identifiant
 function cast(e,id){
   if(e.counter||e.ko>0||vsT>0)return;
+  if(id==="taunt"){if(NET.guest&&e===player)NET.sendCast(id); startTaunt(e); return}
+  if(e.taunt)e.taunt=null; // toute action interrompt la danse
   if(id==="swap"){if(NET.guest&&e===player){NET.sendCast(id);return}startSwap(e);return}
   if(id==="flash"){if(NET.guest&&e===player)NET.sendCast(id);castFlash(e);return}
   if(!e.kit.includes(id))return;

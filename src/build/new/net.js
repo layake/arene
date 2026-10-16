@@ -103,7 +103,7 @@ function onGuestInput(m){
   else if(m.t==="sh"){ g.wantShield=!!m.v&&g.ko<=0 }
   else if(m.t==="cast"){
     ackSeq=Math.max(ackSeq,m.seq);
-    if(g.ko>0||!SPL[m.id])return;
+    if(g.ko>0||(!SPL[m.id]&&m.id!=="taunt"))return;
     g.aimPt={wx:m.wx,wy:m.wy}; g.aimMode=["off","assist","lock"].includes(m.am)?m.am:"assist"; cast(g,m.id);
   }
   else if(m.t==="cancel"){ if(g.rush&&g.rush.ph==="chan")cancelRush(g,false);else if(g.chan)cancelChan(g,false) }
@@ -170,7 +170,7 @@ function openRoom(code){inLobby=true;roomCode=code;peerHere=false;myReady=oppRea
 function lobbyOn(){oppVerOk=false;peerHere=true;myReady=oppReady=false;oppHello=oppPick=null;say("");refreshLobby();sendPick(true); if(NET.rk)setTimeout(autoReady,600)}
 function autoReady(){ // combat classé : pas de salon à valider, chacun se déclare prêt tout de suite
   if(!NET.rk||!inLobby||myReady||NET.started||!peerHere)return;
-  myReady=true; myHello=mineHello(); relay({t:"ready",on:true,team:myHello.team,v:GV}); refreshLobby(); maybeStart();
+  myReady=true; myHello=mineHello(); relay({t:"ready",on:true,team:myHello.team,v:GV,name:playerName()}); refreshLobby(); maybeStart();
 }
 function peerGone(){
   if(NET.rk&&NET.rankedEvent)NET.rankedEvent("peergone",NET.started);
@@ -185,7 +185,7 @@ btnR.addEventListener("click",()=>{
   if(!myReady&&!saveKit())return;
   if(!myReady&&!oppVerOk&&peerHere){say(verMsg());return}
   myReady=!myReady; myHello=mineHello();
-  relay({t:"ready",on:myReady,team:myHello.team,v:GV});
+  relay({t:"ready",on:myReady,team:myHello.team,v:GV,name:playerName()});
   refreshLobby(); maybeStart();
 });
 // Retour au salon sans quitter la connexion : l'autre joueur est prévenu et revient aussi.
@@ -208,7 +208,7 @@ function onMsg(m){
     if(m.v!==GV){oppVerOk=false; say(verMsg(m.v)); if(NET.rk&&NET.rankedEvent)NET.rankedEvent("badteam"); return}
     oppVerOk=true;
     if(!validTeam(m.team)){if(NET.rk&&NET.rankedEvent)NET.rankedEvent("badteam");return}
-    oppPick={team:m.team,key:m.team[0].key,kit:m.team[0].kit};
+    oppPick={team:m.team,key:m.team[0].key,kit:m.team[0].kit,name:String(m.name||"").replace(/[<>&]/g,"").slice(0,16)};
     if(m.t==="ready"){oppReady=!!m.on; if(m.on)oppHello=oppPick}
     refreshLobby(); maybeStart();
   }
@@ -223,6 +223,7 @@ function begin(hostH,guestH,asHost){
   bestOf=3; endShown=false; musicSet("battle"); matchMode="duel"; score.me=0; score.foe=0; seq=0; lastSnapSeq=-1; castSeq=ackSeq=0; lastMv=""; lastSh=false;
   const A=makeFighter(hostH.team[0].key,START_A[0],START_A[1],false,hostH.team[0].kit), B=makeFighter(guestH.team[0].key,START_B[0],START_B[1],false,guestH.team[0].kit);
   initTeam(A,hostH.team.map(x=>x.key),hostH.team.map(x=>x.kit)); initTeam(B,guestH.team.map(x=>x.key),guestH.team.map(x=>x.kit));
+  A.pname=hostH.name||""; B.pname=guestH.name||"";
   entities=[A,B]; fighters=entities.slice();
   if(asHost){player=A;foe=B;B.remote=true}else{player=B;foe=A;A.remote=true}
   playerKey=player.key; resetRound();
@@ -234,7 +235,7 @@ function begin(hostH,guestH,asHost){
 function beginHost(){
   myHello=mineHello(); const h=myHello, g=oppHello;
   if(!h||!g||!validTeam(g.team)){say("Équipe de l'adversaire invalide");if(NET.rk&&NET.rankedEvent)NET.rankedEvent("badteam");return}
-  const arena=NET.rk?"colisee":ARENA_PICK; setArena(arena); relay({t:"start",h:{team:h.team},g:{team:g.team},a:arena});
+  const arena=NET.rk?"colisee":ARENA_PICK; setArena(arena); relay({t:"start",h:{team:h.team,name:playerName()},g:{team:g.team,name:g.name||""},a:arena}); h.name=playerName();
   begin(h,g,true);
 }
 function beginGuest(m){ if(!oppVerOk){say(verMsg());return} if(!m.h||!validTeam(m.h.team)||!validTeam(m.g&&m.g.team))return; setArena(ARENAS[m.a]?m.a:"colisee"); begin(m.h,m.g,false) }
@@ -349,7 +350,7 @@ NET.saveKit=saveKit;
 NET.teamOk=()=>{try{return validTeam(teamPicks())}catch(_){return false}};
 NET.rankedKick=()=>{ // combat classé : on renvoie "prêt" tant que le match n'a pas démarré (message perdu, hôte lent)
   if(!NET.rk||NET.started||!peerHere||!inLobby)return;
-  myReady=true; myHello=mineHello(); relay({t:"ready",on:true,team:myHello.team,v:GV}); maybeStart();
+  myReady=true; myHello=mineHello(); relay({t:"ready",on:true,team:myHello.team,v:GV,name:playerName()}); maybeStart();
 };
 NET.rankedStart=function(info){
   NET.leave(); NET.rk={matchId:info.matchId,code:info.code,role:info.role}; role=info.role; myHello=mineHello(); mode="peer";
