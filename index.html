@@ -232,6 +232,22 @@ canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelate
 #fhud .bench i.dead u{display:none}
 @media(max-width:560px){#fhud .bench i{width:18px;height:18px}}
 #swapb{min-width:44px}
+/* ===== Style tout pixel ===== */
+*{border-radius:0!important}
+html,body,button,input,select,#fhud,#teamLine,.lbm{font-family:"Pixelify Sans","Chakra Petch",monospace!important;-webkit-font-smoothing:none;font-smooth:never}
+img,canvas{image-rendering:pixelated}
+#fhud .ht{border:3px solid #e8e8f0;box-shadow:3px 0 0 #000,-3px 0 0 #000,0 3px 0 #000,0 -3px 0 #000,0 6px 0 #0008;letter-spacing:.5px}
+#fhud .hn b{font-size:15px;text-shadow:1px 1px 0 #000}
+#fhud .hty u{font-size:10px;padding:1px 4px;border:1px solid #0008}
+#fhud .hbar{border:3px solid #000;height:16px;background:#202436}
+#fhud .hbar::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 5px,rgba(0,0,0,.35) 5px 6px);pointer-events:none}
+#fhud .hbar .fl{box-shadow:inset 0 4px 0 rgba(255,255,255,.28);transition:width .2s steps(5),background 0s}
+#fhud .hbar .gh{transition:width .6s steps(8) .35s}
+#fhud .hbar em{font-size:11px;text-shadow:1px 1px 0 #000;z-index:1}
+#fhud .hp-pt{border-width:3px}
+#fhud .bench i{border-width:2px}
+.slot{box-shadow:0 0 0 2px #000,0 4px 0 2px #000a}
+@media(max-width:560px){#fhud .ht{border-width:2px;box-shadow:2px 0 0 #000,-2px 0 0 #000,0 2px 0 #000,0 -2px 0 #000}#fhud .hbar{height:14px}}
 footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </style>
 
@@ -256,7 +272,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Choisis ton équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>Tortipousse, mannequin</small></button><button type="button" data-mode="duel" aria-pressed="false">Duel<small>contre l'autre Ace</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div>
 </div>
-<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.18 · 16/10/2026</b></footer>
+<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.19 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -2076,7 +2092,7 @@ function draw(){
   parts.forEach(q=>{ctx.globalAlpha=clamp(1-q.t/q.life,0,1);ctx.fillStyle=q.c;ctx.fillRect(Math.round(q.x),Math.round(q.y),q.s||2,q.s||2)});
   ctx.globalAlpha=1;
   // chiffres de dégâts : texte d'interface dessiné en espace écran
-  ctx.setTransform(1,0,0,1,0,0); ctx.textAlign="center"; ctx.font="700 "+Math.round(PX*5)+"px 'Chakra Petch',monospace"; ctx.lineWidth=Math.round(PX*1.2); ctx.lineJoin="round";
+  ctx.setTransform(1,0,0,1,0,0); ctx.textAlign="center"; ctx.font="700 "+Math.round(PX*5)+"px 'Pixelify Sans','Chakra Petch',monospace"; ctx.lineWidth=Math.round(PX*1.2); ctx.lineJoin="round";
   pops.forEach(q=>{
     const sx=(q.x-cam.x)*PX, sy=(q.y-q.t*16-cam.y)*PX; ctx.globalAlpha=clamp(1.6-q.t*1.6,0,1);
     ctx.strokeStyle="#1a1405"; ctx.strokeText(q.txt,sx,sy); ctx.fillStyle=q.col||"#ffd24a"; ctx.fillText(q.txt,sx,sy);
