@@ -214,6 +214,24 @@ canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelate
 @media(max-width:560px){#fhud{padding:3px;gap:4px}#fhud .ht{max-width:49%;padding:3px;gap:4px}#fhud .hp-pt{width:34px;height:34px}#fhud .hn b{font-size:11px}#fhud .hty{display:none}#fhud .hbar{height:12px}}
 #fhud .pips{font-size:11px;color:#ffd23c}
 #fhud .pbar{display:none!important}.slot .c{display:none}
+.ace{position:relative}
+.ace .tn{position:absolute;top:6px;left:8px;min-width:22px;height:22px;border-radius:50%;background:#ffe45e;color:#101830;font:700 14px/22px "Pixelify Sans",system-ui,sans-serif;text-align:center;box-shadow:0 0 0 2px #070c24;opacity:0}
+.ace[aria-pressed=true] .tn{opacity:1}
+.ace.focus{border-color:#fff}
+#teamLine{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 8px;font:600 13px system-ui,sans-serif;color:#dfe8ff}
+#teamLine .tl{background:#1a2a66;border:1px solid #4a68c8;border-radius:4px;padding:2px 8px}
+#teamLine .tl.empty{opacity:.5;border-style:dashed}
+#teamLine small{flex-basis:100%;opacity:.7;font-weight:400}
+.lbm{display:flex;align-items:center;gap:8px;margin:4px 0;font:600 14px system-ui,sans-serif}.lbm img{width:36px;height:36px;image-rendering:pixelated;background:#1a2a66;border-radius:4px}.lbm b{color:#ffe45e}
+#fhud .bench{display:flex;gap:3px}#fhud .foe .bench{justify-content:flex-end}
+#fhud .bench i{position:relative;width:22px;height:22px;border:1px solid #5a6088;border-radius:3px;background:#2a2e48;overflow:hidden;opacity:.75}
+#fhud .bench i.on{border-color:#ffe45e;opacity:1}
+#fhud .bench i.dead{filter:grayscale(1);opacity:.35}
+#fhud .bench img{width:100%;height:100%;image-rendering:pixelated;display:block}
+#fhud .bench u{position:absolute;left:0;bottom:0;height:3px;background:#5fd35f}
+#fhud .bench i.dead u{display:none}
+@media(max-width:560px){#fhud .bench i{width:18px;height:18px}}
+#swapb{min-width:44px}
 footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </style>
 
@@ -236,9 +254,9 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 <div id="bar">
 <button id="atk" class="slot dragon" type="button" aria-disabled="false"><span class="k">A</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#1a0f3d" stroke-width="1.4" stroke-linejoin="round"><path d="M4 4 L9 3 L15 27 L12 28 Z" fill="#f3eaff"/><path d="M11 4 L16 3 L22 27 L19 28 Z" fill="#f3eaff"/><path d="M18 4 L23 3 L29 27 L26 28 Z" fill="#f3eaff"/></svg><span class="c">10</span><span class="n">Draco-Griffe</span><span class="cd"></span><span class="t"></span></button><button id="pls" class="slot ground" type="button" aria-disabled="false"><span class="k">Z</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#2a1608" stroke-width="1.4"><circle cx="17" cy="17" r="9" fill="#7a4a22"/><ellipse cx="13" cy="13" rx="3.2" ry="2" fill="#c08a50" stroke="none"/><circle cx="5.5" cy="21" r="2.2" fill="#7a4a22"/><circle cx="27.5" cy="9" r="1.8" fill="#7a4a22"/><circle cx="6" cy="10" r="1.4" fill="#7a4a22"/></svg><span class="c">20</span><span class="n">Tir de Boue</span><span class="cd"></span><span class="t"></span></button><button id="tun" class="slot ground" type="button" aria-disabled="false"><span class="k">E</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#2a1608" stroke-width="1.4" stroke-linejoin="round"><path d="M3 27 Q16 3 29 27 Z" fill="#b98a4e"/><path d="M9 20 Q13 12 17 10" fill="none" stroke="#e3bd82" stroke-width="2" stroke-linecap="round"/><ellipse cx="16" cy="25" rx="6.5" ry="2.8" fill="#2a1608"/></svg><span class="c">25</span><span class="n">Tunnel</span><span class="cd"></span><span class="t"></span></button><button id="rsh" class="slot dragon" type="button" aria-disabled="false"><span class="k">R</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#1a0f3d" stroke-width="1.4" stroke-linejoin="round"><path d="M3 12 H16 V5 L29 16 L16 27 V20 H3 Z" fill="#f3eaff"/><path d="M6 15 H18 V11" fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round"/></svg><span class="c">50</span><span class="n">Draco-Charge</span><span class="cd"></span><span class="t"></span></button><span class="sep"></span><button id="shd" class="slot shield" type="button" aria-pressed="false" aria-disabled="false"><span class="k">Esp</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#0b2a40" stroke-width="1.4" stroke-linejoin="round"><path d="M16 3 L28 7 V16 C28 23 22 27 16 30 C10 27 4 23 4 16 V7 Z" fill="#d6f2ff"/><path d="M16 7 L24 10 V16 C24 21 20 24 16 26 Z" fill="#5cc0f0" stroke="none"/></svg><span class="n">Bouclier</span><span class="cd"></span><span class="t"></span></button>
 </div>
-<div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Choisis ton Ace</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>Tortipousse, mannequin</small></button><button type="button" data-mode="duel" aria-pressed="false">Duel<small>contre l'autre Ace</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div>
+<div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Choisis ton équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>Tortipousse, mannequin</small></button><button type="button" data-mode="duel" aria-pressed="false">Duel<small>contre l'autre Ace</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div>
 </div>
-<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.16 · 16/10/2026</b></footer>
+<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.17 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -372,7 +390,7 @@ function typeMult(atkType,defTypes){
   return m;
 }
 // Stats au niveau 50, IV 31, EV 0, nature neutre (formule officielle). PV réduits pour garder des combats courts.
-const LV=50, IV=31, HP_SCALE=0.9, DMG_EXP=.5;
+const LV=50, IV=31, HP_SCALE=1.3, DMG_EXP=.5;
 const calcStat=(b,hp)=>Math.floor((2*b+IV)*LV/100)+(hp?LV+10:5);
 const statsOf=b=>({hp:calcStat(b.hp,true),atk:calcStat(b.atk),def:calcStat(b.def),spa:calcStat(b.spa),spd:calcStat(b.spd),spe:calcStat(b.spe)});
 // Catalogue de sorts : type, catégorie (phys = Atq/Déf, spec = Atq.Spé/Déf.Spé), puissance, coût en PP, recharge.
@@ -449,6 +467,7 @@ Object.assign(SPECIES,{
 
 // ===== Dracaufeu (Feu/Vol, Piqueur) et Mammochon (Glace/Sol, Briseur) =====
 Object.assign(SPL,{
+  swap:{name:"Swap",type:"normal",cat:"status",power:0,cost:0,cd:1.5,self:true,ground:false},
   flash:{name:"Flash",type:"normal",cat:"status",power:0,cost:0,cd:12,self:true,ground:false},
   flame:{name:"Lance-Flammes",type:"fire",cat:"spec",power:18,cost:15,cd:2.5,ground:false},
   fly:{name:"Vol",type:"flying",cat:"phys",power:32,cost:25,cd:5.5,ground:true},
@@ -631,6 +650,7 @@ function makeDummy(x,y){
 const START_A=[WORLD.w/2-55,WORLD.h/2+10], START_B=[WORLD.w/2+55,WORLD.h/2+20];
 function resetRound(){
   entities.forEach((e,i)=>{
+    if(e.team)resetTeam(e);
     const s=i===0?START_A:START_B; e.x=s[0]; e.y=s[1]; e.hp=e.maxHp; e.hpShow=0; e.ko=0; e.kb=null; e.stun=0; e.dizzy=false; e.flash=0; e.lock=0; e.hit=false; e.run=false;
     e.lx=e.x; e.ly=e.y; setAnim(e,"idle");
     if(e.fighter){e.pp=PP_MAX; e.shieldE=100; e.shieldOn=false; e.shieldBroken=false; e.tunnel=null; e.rush=null; e.chan=null; e.counter=null; e.bf={}; e.slow=0; e.burn=0; e.inv=0; e.psn=0; e.flashC=null; e.sleep=false; e.cd={}; e.comboT=0; e.moveTarget=null; e.cast=null; e.dir=i===0?2:6}
@@ -645,9 +665,18 @@ function pickFoe(key){
   return SPECIES[foePick]&&SPECIES[foePick].playable&&foePick!==key?foePick:others[Math.floor(Math.random()*others.length)];
 }
 function startMatch(key,mode){musicSet("battle");
+  const keys=Array.isArray(key)?key.slice(0,3):[key]; key=keys[0];
   matchMode=mode; playerKey=key; score.me=0; score.foe=0;
   player=makeFighter(key,START_A[0],START_A[1],false,kitOf(key));
-  if(mode==="duel"){const other=pickFoe(key); foe=makeFighter(other,START_B[0],START_B[1],true)}
+  if(keys.length>1)initTeam(player,keys);
+  if(mode==="duel"){
+    const others=Object.keys(SPECIES).filter(k=>SPECIES[k].playable&&!keys.includes(k)), pool=others.slice(), fk=[];
+    const first=SPECIES[foePick]&&SPECIES[foePick].playable&&!keys.includes(foePick)?foePick:null;
+    if(first){fk.push(first);pool.splice(pool.indexOf(first),1)}
+    while(fk.length<keys.length&&pool.length)fk.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
+    foe=makeFighter(fk[0]||pickFoe(key),START_B[0],START_B[1],true);
+    if(keys.length>1&&fk.length>1)initTeam(foe,fk,fk.map(k=>SPECIES[k].kit));
+  }
   else foe=makeDummy(START_B[0],START_B[1]);
   entities=[player,foe]; fighters=entities.filter(e=>e.fighter);
   resetRound(); player.dir=2; foe.dir=6;
@@ -835,14 +864,16 @@ function applyDamage(t,att,from,dmg,o){
 function knockOut(t,att){
   sfxUI("ko");
   t.ko=1.6; t.kb=null; t.counter=null; t.rush=null; t.chan=null; t.tunnel=null; t.shieldOn=false;
-  if(matchMode==="duel"&&!NET.guest){if(t===player)score.foe++;else score.me++}
+  const more=teamKO(t);
+  if(!more&&matchMode==="duel"&&!NET.guest){if(t===player)score.foe++;else score.me++}
   showLog(t.sp.name+" est K.O. !",1600);
 }
 function updateKO(e,dt){
   if(e.ko<=0)return;
   e.ko-=dt;
   if(e.ko<=0){
-    if(e.ai){e.x=clampX(player.x+rand(-110,110));e.y=clampY(player.y+rand(-70,70));e.hp=e.maxHp;e.hpShow=0;e.kb=null;setAnim(e,"idle");e.ai.wait=rand(.6,1.4);e.ai.tx=e.x;e.ai.ty=e.y}
+    if(e.team&&!NET.guest&&teamAlive(e)>0)teamEnter(e);
+    else if(e.ai){e.x=clampX(player.x+rand(-110,110));e.y=clampY(player.y+rand(-70,70));e.hp=e.maxHp;e.hpShow=0;e.kb=null;setAnim(e,"idle");e.ai.wait=rand(.6,1.4);e.ai.tx=e.x;e.ai.ty=e.y}
     else if(!NET.guest)resetRound();
   }
 }
@@ -1345,6 +1376,7 @@ function fireBeam(e){
 // Lance un sort par son identifiant
 function cast(e,id){
   if(e.counter||e.ko>0)return;
+  if(id==="swap"){if(NET.guest&&e===player){NET.sendCast(id);return}startSwap(e);return}
   if(id==="flash"){if(NET.guest&&e===player)NET.sendCast(id);castFlash(e);return}
   if(!e.kit.includes(id))return;
   if(NET.guest&&e===player)NET.sendCast(id);
@@ -1878,6 +1910,7 @@ function drawBeam(b){
   ctx.globalAlpha=1;
 }
 function drawEntity(e){
+  if(e.swapC&&!e.tunnel){drawSwap(e);return}
   if(e.tunnel){drawTunnelSprite(e);return}
   if(e.ko>0&&Math.floor(e.ko*12)%2)return;
   const s=e.sp.sheets[e.anim], a=e.sp.anch[e.anim][e.dir][e.frame], lift=(e.rush&&e.rush.cfg&&e.rush.cfg.fly&&e.rush.ph==="dash")?14:0, x=snap(e.x)-a[0], y=snap(e.y)-a[1]-lift;
@@ -2093,13 +2126,17 @@ function applyKit(){
     SLOT_T.delete(btn);
   });
   const kit=player.kit.map((id,i)=>"<b>"+SLOT_KEYS[i]+"</b> "+SPL[id].name+" ("+SPL[id].cost+")").join(" · ");
-  helpEl.innerHTML="<b>Clic droit</b> se déplacer (maintenir pour suivre)<br><b>Survoler l'ennemi</b> + clic droit : le poursuivre<br><b>Espace</b> bouclier (maintenir)<br><b>F</b> Flash : blink vers le curseur, cast 0,5 s puis blink (recharge 12 s)<br>"+kit+"<br><b>Clic gauche</b> lance le sort visé · <b>Clic droit</b> ou <b>Échap</b> annule<br>Le mode de lancer (clic, rapide, maintenir) se change avec le bouton à côté.";
+  helpEl.innerHTML="<b>Clic droit</b> se déplacer (maintenir pour suivre)<br><b>Survoler l'ennemi</b> + clic droit : le poursuivre<br><b>Espace</b> bouclier (maintenir)<br><b>Tab</b> changer d'Ace (0,5 s, vulnérable)<br><b>F</b> Flash : blink vers le curseur, cast 0,5 s puis blink (recharge 12 s)<br>"+kit+"<br><b>Clic gauche</b> lance le sort visé · <b>Clic droit</b> ou <b>Échap</b> annule<br>Le mode de lancer (clic, rapide, maintenir) se change avec le bouton à côté.";
   scoreEl.textContent=""; scoreTxt="";
 }
 const SLOT_T=new WeakMap();
 const flashBtn=document.createElement("button"); flashBtn.type="button"; flashBtn.className="slot flashb"; flashBtn.title="Flash (F) : blink vers le curseur";
 flashBtn.innerHTML='<span class="k">F</span><span class="n">Flash</span><span class="cd"></span><span class="t"></span>'; flashBtn.style.setProperty("--g1","#f4d24a"); flashBtn.style.setProperty("--g2","#6a5410");
 shdBtn.parentNode.insertBefore(flashBtn,shdBtn);
+const swapBtn=document.createElement("button"); swapBtn.type="button"; swapBtn.className="slot flashb"; swapBtn.id="swapb"; swapBtn.title="Changer d'Ace (Tab)";
+swapBtn.innerHTML='<span class="k">Tab</span><span class="n">Ace</span><span class="cd"></span><span class="t"></span>'; swapBtn.style.setProperty("--g1","#e85a4a"); swapBtn.style.setProperty("--g2","#5a1a14");
+shdBtn.parentNode.insertBefore(swapBtn,flashBtn);
+swapBtn.addEventListener("click",()=>{if(!menuOpen&&!paused&&player.ko<=0)cast(player,"swap")});
 flashBtn.addEventListener("click",()=>{if(!menuOpen&&!paused&&player.ko<=0)cast(player,"flash")});
 function setSlot(btn,cd,max,active,cost){
   let t=SLOT_T.get(btn); if(!t){t={cd:btn.querySelector(".cd"),t:btn.querySelector(".t"),last:""};SLOT_T.set(btn,t)}
@@ -2111,10 +2148,10 @@ function setSlot(btn,cd,max,active,cost){
 /* ===== HUD de combat ===== */
 const HUD_TC={normal:"#a8a878",fire:"#f08030",water:"#6890f0",electric:"#f8d030",grass:"#78c850",ice:"#98d8d8",fighting:"#c03028",poison:"#a040a0",ground:"#e0c068",flying:"#a890f0",psychic:"#f85888",bug:"#a8b820",rock:"#b8a038",ghost:"#705898",dragon:"#7038f8",dark:"#705848",steel:"#b8b8d0",fairy:"#ee99ac"};
 const hudEl=document.createElement("div"); hudEl.id="fhud";
-hudEl.innerHTML=["me","foe"].map(s=>'<div class="ht '+s+'"><div class="hp-pt"><img alt=""></div><div class="hb"><div class="hn"><b></b><span class="hty"></span><span class="hst"></span></div><div class="hbar"><i class="gh"></i><i class="fl"></i><em></em></div><div class="pbar"><i></i></div><div class="pips"></div></div></div>').join("");
+hudEl.innerHTML=["me","foe"].map(s=>'<div class="ht '+s+'"><div class="hp-pt"><img alt=""></div><div class="hb"><div class="hn"><b></b><span class="hty"></span><span class="hst"></span></div><div class="hbar"><i class="gh"></i><i class="fl"></i><em></em></div><div class="pbar"><i></i></div><div class="pips"></div><div class="bench"></div></div></div>').join("");
 document.getElementById("stage").appendChild(hudEl);
 const HT={me:hudEl.querySelector(".ht.me"),foe:hudEl.querySelector(".ht.foe")};
-Object.values(HT).forEach(t=>{t.img=t.querySelector("img");t.nm=t.querySelector(".hn b");t.ty=t.querySelector(".hty");t.st=t.querySelector(".hst");t.gh=t.querySelector(".gh");t.fl=t.querySelector(".fl");t.num=t.querySelector(".hbar em");t.pp=t.querySelector(".pbar i");t.pips=t.querySelector(".pips");t.k=""});
+Object.values(HT).forEach(t=>{t.img=t.querySelector("img");t.nm=t.querySelector(".hn b");t.ty=t.querySelector(".hty");t.st=t.querySelector(".hst");t.gh=t.querySelector(".gh");t.fl=t.querySelector(".fl");t.num=t.querySelector(".hbar em");t.pp=t.querySelector(".pbar i");t.pips=t.querySelector(".pips");t.bn=t.querySelector(".bench");t.k=""});
 function hudTile(t,e,pts,show){
   const key=e.key+"|"+e.sp.name; if(t.k!==key){t.k=key;t.img.src=PORTRAITS[e.key]||"";t.nm.textContent=e.sp.name;t.ty.innerHTML=e.sp.types.map(x=>'<u style="background:'+(HUD_TC[x]||"#888")+'">'+TYPE_FR[x]+'</u>').join("")}
   const f=clamp(e.hp/e.maxHp,0,1), c=f>.5?"#5fd35f":f>.2?"#f0c030":"#e84040";
@@ -2125,7 +2162,11 @@ function hudTile(t,e,pts,show){
   const st=[]; if(e.burn>0)st.push("🔥"); if(e.psn>0)st.push("☠"); if(e.slow>0)st.push("❄"); if(e.stun>0)st.push("💫"); if(e.shieldOn)st.push("🛡");
   if(e.bf)for(const k in e.bf)if(e.bf[k]>0)st.push("⬆");
   const s=st.join(" "); if(t.st.textContent!==s)t.st.textContent=s;
-  const p=show?String(pts):""; if(t.pips.dataset.v!==p){t.pips.dataset.v=p;t.pips.textContent=show?"★ "+pts+(pts>1?" KO":" KO"):""}
+  if(e.team&&e.team.length>1){
+    const sig=e.team.map((s,i)=>s.key+(i===e.ti?"*":"")+(s.dead?"x":"")+Math.round((i===e.ti?e.hp:s.hp)/s.maxHp*20)).join("|");
+    if(t.bn.dataset.v!==sig){t.bn.dataset.v=sig;t.bn.innerHTML=e.team.map((s,i)=>{const hp=i===e.ti?e.hp:s.hp;return '<i class="'+(i===e.ti?"on ":"")+(s.dead?"dead":"")+'" title="'+SPECIES[s.key].name+'"><img alt="" src="'+PORTRAITS[s.key]+'"><u style="width:'+Math.round(clamp(hp/s.maxHp,0,1)*100)+'%"></u></i>'}).join("")}
+  }else if(t.bn.dataset.v){t.bn.dataset.v="";t.bn.innerHTML=""}
+  const p=show?String(pts):""; if(t.pips.dataset.v!==p){t.pips.dataset.v=p;t.pips.textContent=show?"★ "+pts+(pts>1?" victoires":" victoire"):""}
 }
 function hudUpdate(){
   const duel=matchMode==="duel"; hudEl.style.display=(menuOpen||!player||!foe)?"none":"";
@@ -2139,7 +2180,7 @@ function updateHud(){
     const id=player.kit[i], sp=SPL[id], ch=(id==="rush"&&player.rush&&player.rush.ph==="chan")||(id==="gleam"&&!!player.chan)||(!!SPL[id].buff&&!!player.bf[SPL[id].buff])||((id==="mburst"||id==="riposte")&&!!player.counter);
     setSlot(btn,cdOf(player,id),sp.cd,aiming===id||ch,sp.cost);
   });
-  setSlot(flashBtn,cdOf(player,"flash"),12,false);
+  setSlot(flashBtn,cdOf(player,"flash"),12,false); swapBtn.hidden=!(player.team&&player.team.length>1); if(!swapBtn.hidden)setSlot(swapBtn,player.swapCd||0,SWAP.cd,!!player.swapC);
   const pr=String(!!player.shieldOn); if(shdBtn.getAttribute("aria-pressed")!==pr)shdBtn.setAttribute("aria-pressed",pr);
   const txt="";
   if(txt!==scoreTxt){scoreTxt=txt;scoreEl.textContent=txt}
@@ -2163,6 +2204,7 @@ addEventListener("keydown",e=>{const k=e.key.toLowerCase();
   if(paused)return;
   if(k==="t"){const i=AIM.modes.findIndex(x=>x[0]===AIM.mode),n=AIM.modes[(i+1)%3];setAimMode(n[0]);showLog("Visée : "+n[1],900);return}
   if(k===" "){e.preventDefault();keys.add(" ");return}
+  if(k==="tab"){e.preventDefault();if(!e.repeat&&player.ko<=0)cast(player,"swap");return}
   if(k==="f"){e.preventDefault();if(!e.repeat&&player.ko<=0)cast(player,"flash");return}
   const s=slotOf(e); if(s!==undefined){e.preventDefault();if(!e.repeat)pressSpell(s);return}
   if(["arrowup","arrowdown","arrowleft","arrowright"].includes(k))e.preventDefault();
@@ -2194,6 +2236,9 @@ const menuEl=document.getElementById("menu"), cardsEl=document.getElementById("c
 let pick="garchomp", pickMode="train";
 try{const d=localStorage.getItem("aceDiff"); if(DIFFS[d])diff=d; const fp=localStorage.getItem("aceFoe"); if(fp==="rand"||(SPECIES[fp]&&SPECIES[fp].playable))foePick=fp}catch(_){}
 try{const k=localStorage.getItem("aceKey"); if(SPECIES[k]&&SPECIES[k].playable)pick=k; const m=localStorage.getItem("aceMode"); if(m==="duel"||m==="train")pickMode=m}catch(_){}
+let picks=[];
+try{const t=JSON.parse(localStorage.getItem("aceTeam")||"[]"); if(Array.isArray(t))picks=t.filter((k,i)=>SPECIES[k]&&SPECIES[k].playable&&t.indexOf(k)===i).slice(0,3)}catch(_){}
+if(!picks.length)picks=[pick]; if(!picks.includes(pick))pick=picks[0];
 // ---- Équipement : 4 sorts au choix parmi les 8 de l'Ace ----
 const DESC={
   scl:"Griffures spectrales devant soi. Rapide.",shball:"Sphère d'ombre en ligne droite.",sbomb:"Projectile lobé : explose sur la zone visée puis laisse une flaque qui empoisonne 3 s.",
@@ -2210,6 +2255,7 @@ const catFr=c=>c==="phys"?"Physique":c==="spec"?"Spécial":"Statut";
 const draft={}; // panoplie en cours de choix, par Ace
 const draftOf=k=>draft[k]||(draft[k]=kitOf(k).slice());
 const equipEl=document.getElementById("equip");
+const teamLineEl=document.createElement("div"); teamLineEl.id="teamLine"; equipEl.parentNode.insertBefore(teamLineEl,equipEl);
 function moveInfo(id){const s=SPL[id];return catFr(s.cat)+" · "+TYPE_FR[s.type]+(s.power?" · Puiss. "+s.power:"")+" · Recharge "+s.cd+" s"}
 function buildEquip(){
   const k=pick, sp=SPECIES[k], dk=draftOf(k);
@@ -2237,8 +2283,14 @@ function buildMenu(){
     const types=sp.types.map(t=>'<i style="background:'+TYPE_COL[t]+'">'+TYPE_FR[t]+'</i>').join("");
     const stats=STAT_ROWS.map(([l,s])=>'<div class="sr"><span>'+l+'</span><u><s style="width:'+Math.round(sp.base[s]/190*100)+'%"></s></u><em>'+sp.base[s]+'</em></div>').join("");
     const spells="";
-    b.innerHTML='<img alt="" src="'+PORTRAITS[k]+'"><h3>'+sp.name+'</h3><div class="ty">'+types+'</div><div class="st">'+stats+'</div><ul>'+spells+'</ul>';
-    b.addEventListener("click",()=>{pick=k;refreshMenu()});
+    b.innerHTML='<span class="tn"></span><img alt="" src="'+PORTRAITS[k]+'"><h3>'+sp.name+'</h3><div class="ty">'+types+'</div><div class="st">'+stats+'</div><ul>'+spells+'</ul>';
+    b.addEventListener("click",()=>{
+      const i=picks.indexOf(k);
+      if(i>=0){if(pick===k){picks.splice(i,1);if(picks.length)pick=picks[picks.length-1]}else pick=k}
+      else if(picks.length<3){picks.push(k);pick=k}
+      else{teamLineEl.textContent="3 Aces maximum : clique sur un Ace choisi (déjà sélectionné) pour le retirer.";return}
+      refreshMenu();
+    });
     cardsEl.appendChild(b);
   });
   document.querySelectorAll("#menu .modes button").forEach(b=>b.addEventListener("click",()=>{pickMode=b.dataset.mode;refreshMenu()}));
@@ -2251,23 +2303,26 @@ function buildMenu(){
   refreshMenu();
 }
 function refreshMenu(){
-  cardsEl.querySelectorAll(".ace").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.key===pick)));
+  cardsEl.querySelectorAll(".ace").forEach(b=>{const i=picks.indexOf(b.dataset.key); b.setAttribute("aria-pressed",String(i>=0)); b.classList.toggle("focus",b.dataset.key===pick&&i>=0); b.querySelector(".tn").textContent=i>=0?String(i+1):""});
+  teamLineEl.innerHTML="<b>Équipe</b> "+[0,1,2].map(i=>picks[i]?'<span class="tl">'+(i+1)+" "+SPECIES[picks[i]].name+"</span>":'<span class="tl empty">'+(i+1)+" ?</span>").join("")+'<small>Clique un Ace pour l\'ajouter (ordre 1, 2, 3). Tab : changer d\'Ace en combat.</small>';
   document.querySelectorAll("#menu .modes button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===pickMode)));
   document.querySelectorAll("#menu .diffs button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.diff===diff)));
   document.querySelector("#menu .diffs").hidden=pickMode!=="duel";
   document.querySelector("#menu .foes").hidden=pickMode!=="duel";
-  document.querySelectorAll("#foeBtns button").forEach(b=>{b.setAttribute("aria-pressed",String(b.dataset.foe===foePick));b.disabled=b.dataset.foe===pick})
-  if(foePick===pick){foePick="rand"}
+  document.querySelectorAll("#foeBtns button").forEach(b=>{b.setAttribute("aria-pressed",String(b.dataset.foe===foePick));b.disabled=picks.includes(b.dataset.foe)})
+  if(picks.includes(foePick)){foePick="rand"}
   buildEquip();
   cardsEl.querySelectorAll(".ace").forEach(b=>{b.querySelector("ul").innerHTML=draftOf(b.dataset.key).map(id=>'<li><b style="background:'+TYPE_COL[SPL[id].type]+'"></b>'+SPL[id].name+'</li>').join("")});
-  goBtn.disabled=draftOf(pick).length!==4;
+  goBtn.disabled=!teamReady();
+  goBtn.textContent=teamReady()?"Combattre":(picks.length<(pickMode==="duel"?3:1)?"Choisis "+(pickMode==="duel"?3:1)+" Aces":"Complète les 4 sorts");
 }
+const teamReady=()=>picks.length>=(pickMode==="duel"?3:1)&&picks.every(k=>draftOf(k).length===4);
 function openMenu(){if(NET.on){NET.toLobby();NET.tab("online")}musicSet("menu");setPause(false);menuOpen=true;menuEl.hidden=false;refreshMenu()}
 goBtn.addEventListener("click",()=>{
-  if(draftOf(pick).length!==4)return;
-  KITS[pick]=draftOf(pick).slice(); try{localStorage.setItem("aceKits",JSON.stringify(KITS))}catch(_){}
+  if(!teamReady())return;
+  picks.forEach(k=>{KITS[k]=draftOf(k).slice()}); try{localStorage.setItem("aceKits",JSON.stringify(KITS));localStorage.setItem("aceTeam",JSON.stringify(picks))}catch(_){}
   try{localStorage.setItem("aceKey",pick);localStorage.setItem("aceMode",pickMode);localStorage.setItem("aceDiff",diff);localStorage.setItem("aceFoe",foePick)}catch(_){}
-  NET.leave(); menuOpen=false; menuEl.hidden=true; startMatch(pick,pickMode); last=performance.now();
+  NET.leave(); menuOpen=false; menuEl.hidden=true; startMatch(picks.slice(),pickMode); last=performance.now();
 });
 document.getElementById("menuBtn").addEventListener("click",openMenu);
 // ---- Boucle ----
@@ -2303,7 +2358,7 @@ function frame(now){
     entities.forEach(e=>updateKO(e,dt));
   }
   entities.forEach(e=>{e.flash=Math.max(0,e.flash-dt);e.hpShow=Math.max(0,e.hpShow-dt)});
-  fighters.forEach(watchDecoy); fighters.forEach(e=>tickBurn(e,dt)); fighters.forEach(e=>tickFlash(e,dt));
+  fighters.forEach(watchDecoy); fighters.forEach(e=>tickBurn(e,dt)); fighters.forEach(e=>tickFlash(e,dt)); fighters.forEach(e=>tickSwap(e,dt)); if(!NET.on)fighters.forEach(e=>botSwapDecide(e,dt));
   fx.forEach(c=>c.t+=dt); for(let i=fx.length-1;i>=0;i--)if(fx[i].t>(fx[i].life||.3))fx.splice(i,1);
   beams.forEach(b=>b.t+=dt); for(let i=beams.length-1;i>=0;i--)if(beams[i].t>beams[i].life)beams.splice(i,1);
   parts.forEach(q=>{q.t+=dt;q.x+=q.vx*dt;q.y+=q.vy*dt;q.vy+=(q.g===undefined?120:q.g)*dt}); for(let i=parts.length-1;i>=0;i--)if(parts[i].t>parts[i].life)parts.splice(i,1);
@@ -2744,6 +2799,104 @@ function drawFlashMark(e){
   ellipseLine(x,y,Math.max(2,Math.round(R*(1-u)*1.6)),Math.max(1,Math.round(ry*(1-u)*1.6)),"#fff6b0");
 }
 
+/* ===== Equipes de 3 Aces : swap (Tab) avec animation Pokeball, KO = suivant entre, victoire a 3 KO ===== */
+const SWAP={t:.5,cd:1.5};
+function initTeam(e,keys,kits){
+  e.team=keys.map((k,i)=>({key:k,kit:(kits&&kits[i]||kitOf(k)).slice(),hp:SPECIES[k].maxHp,maxHp:SPECIES[k].maxHp,dead:false,cd:{}}));
+  e.ti=0; e.swapC=null; e.swapCd=0;
+  const s=e.team[0]; e.sp=SPECIES[s.key]; e.key=s.key; e.kit=s.kit.slice(); e.maxHp=s.maxHp; e.hp=s.hp; e.cd=s.cd;
+}
+const teamAlive=e=>e.team?e.team.filter(s=>!s.dead).length:0;
+function nextAlive(e,from){
+  for(let k=1;k<=e.team.length;k++){const i=(from+k)%e.team.length; if(!e.team[i].dead&&i!==e.ti)return i}
+  return -1;
+}
+function loadSlot(e,i,save){
+  const old=e.team[e.ti], fcd=e.cd&&e.cd.flash||0;
+  if(save!==false){old.hp=Math.max(0,e.hp); old.kit=e.kit.slice(); old.cd=e.cd}
+  const s=e.team[i]; e.ti=i; e.sp=SPECIES[s.key]; e.key=s.key; e.kit=s.kit.slice(); e.maxHp=s.maxHp; e.hp=s.hp; e.cd=s.cd; e.cd.flash=Math.max(e.cd.flash||0,fcd);
+  e.bf={}; e.rush=null; e.chan=null; e.tunnel=null; e.counter=null; e.stun=0; e.slow=0; e.burn=0; e.psn=0; e.sleep=false; e.inv=0; e.flashC=null; e.cast=null; e.kb=null; e.comboT=0; e.hit=false; e.shieldOn=false; e.shieldBroken=false; e.shieldE=100;
+  e.hpShow=0; e.flash=0; e.moveTarget=null; setAnim(e,"idle");
+  if(e.bot&&typeof botEquip==="function"){botEquip(e,foeOf(e)); s.kit=e.kit.slice()}
+  if(e===player&&typeof applyKit==="function")applyKit();
+}
+function resetTeam(e){
+  if(!e.team)return;
+  e.team.forEach(s=>{s.hp=SPECIES[s.key].maxHp; s.maxHp=s.hp; s.dead=false; s.cd={}});
+  e.swapC=null; e.swapCd=0;
+  if(e.ti!==0||e.key!==e.team[0].key)loadSlot(e,0,false); else{e.maxHp=e.team[0].maxHp; e.hp=e.maxHp; e.cd=e.team[0].cd}
+}
+function teamKO(t){ // renvoie true s'il reste un coequipier
+  if(!t.team)return false;
+  t.team[t.ti].dead=true; t.team[t.ti].hp=0; t.swapC=null;
+  return teamAlive(t)>0;
+}
+function teamEnter(e){ // apres un KO : le suivant arrive tout de suite
+  const j=nextAlive(e,e.ti); if(j<0)return false;
+  loadSlot(e,j,false); e.ko=0; e.swapC={t:SWAP.t/2,to:-1}; e.lock=SWAP.t/2+.02; e.swapCd=SWAP.cd;
+  ballFx(e); logFor(e,e.sp.name+" entre en jeu !",1100);
+  return true;
+}
+function startSwap(e,to){
+  if(!e.team||e.ko>0||e.stun>0||e.tunnel||e.rush||e.chan||e.counter||e.flashC||e.swapC||e.lock>0||(e.anim==="attack"&&!e.hit)||(e.swapCd||0)>0)return;
+  const j=to!==undefined&&to>=0&&!e.team[to].dead&&to!==e.ti?to:nextAlive(e,e.ti); if(j<0)return;
+  e.swapC={t:0,to:j}; e.lock=SWAP.t+.02; e.moveTarget=null; e.shieldOn=false; if(e===player)marker=null;
+  rings.push({x:e.x,y:e.y,t:0,dur:.25,max:12,c:"#ff5a4a"}); SND.pe=e;SND.pend="tele";
+}
+function tickSwap(e,dt){
+  if(e.swapCd>0)e.swapCd=Math.max(0,e.swapCd-dt);
+  const S=e.swapC; if(!S)return;
+  if(NET.guest){S.t=Math.min(SWAP.t,S.t+dt);return}
+  if(e.ko>0&&S.to>=0){e.swapC=null;return}
+  const before=S.t; S.t+=dt;
+  if(S.to>=0&&before<SWAP.t/2&&S.t>=SWAP.t/2){loadSlot(e,S.to); S.to=-1; e.lock=SWAP.t/2+.02; ballFx(e)}
+  if(S.t>=SWAP.t){e.swapC=null; e.lock=0; e.swapCd=SWAP.cd; if(e.team)logFor(e,e.sp.name+" !",700)}
+}
+function ballFx(e){
+  const pal=["#ffffff","#ff5a4a","#ffd0c8","#e03020","#ffffff"];
+  colorBurst(e.x,e.y-6,16,pal,24,90); rings.push({x:e.x,y:e.y-4,t:0,dur:.3,max:22,c:"#ffffff"});
+}
+function drawBall(x,y,r,open){
+  ctx.save(); ctx.translate(x,y);
+  ctx.fillStyle="#14171c"; ctx.beginPath(); ctx.arc(0,0,r+1,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle="#e8402e"; ctx.beginPath(); ctx.arc(0,0,r,Math.PI,0); ctx.fill();
+  ctx.fillStyle="#f4f4f4"; ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI); ctx.fill();
+  ctx.fillStyle="#14171c"; ctx.fillRect(-r,-1,r*2,2);
+  ctx.fillStyle="#f4f4f4"; ctx.beginPath(); ctx.arc(0,0,Math.max(1.5,r*.35),0,Math.PI*2); ctx.fill(); ctx.strokeStyle="#14171c"; ctx.lineWidth=1; ctx.stroke();
+  if(open){ctx.globalAlpha=.7;ctx.fillStyle="#ffffff";ctx.beginPath();ctx.arc(0,0,r*(1+open*1.2),0,Math.PI*2);ctx.fill();ctx.globalAlpha=1}
+  ctx.restore();
+}
+function drawSwap(e){
+  const S=e.swapC, half=SWAP.t/2, s=e.sp.sheets[e.anim], a=e.sp.anch[e.anim][e.dir][e.frame];
+  if(!s.img.complete)return;
+  const out=S.to>=0, u=out?clamp(S.t/half,0,1):clamp((S.t-half)/half,0,1), sc=out?1-u:u, fx0=snap(e.x), fy0=snap(e.y);
+  if(sc>.04){
+    tctx.clearRect(0,0,96,96); tctx.globalCompositeOperation="source-over";
+    tctx.drawImage(s.img,e.frame*s.w,e.dir*s.h,s.w,s.h,0,0,s.w,s.h);
+    tctx.globalCompositeOperation="source-atop"; tctx.fillStyle=out?"rgba(255,70,50,"+(.4+.5*u).toFixed(2)+")":"rgba(255,255,255,"+(1-u).toFixed(2)+")"; tctx.fillRect(0,0,s.w,s.h); tctx.globalCompositeOperation="source-over";
+    ctx.save(); ctx.translate(fx0,fy0-6); ctx.scale(sc,sc); ctx.drawImage(tmp,0,0,s.w,s.h,-a[0],-a[1]+6,s.w,s.h); ctx.restore();
+  }
+  const by=fy0-8-(out?Math.sin(u*Math.PI)*8:0);
+  if(out&&u>.5)drawBall(fx0,by,4,0); else if(!out&&u<.6)drawBall(fx0,by,4,u/.6);
+}
+// IA : change d'Ace quand le sien est mal en point ou mal place face a l'adversaire (jamais en facile)
+function botEdge(sp,kit,o){ // meilleur multiplicateur de type offensif moins celui que l'adversaire peut nous infliger
+  const off=Math.max(1,...kit.filter(id=>SPL[id]&&SPL[id].power).map(id=>typeMult(SPL[id].type,o.sp.types)*(sp.types.includes(SPL[id].type)?1.05:1)));
+  const def=Math.max(1,...o.kit.filter(id=>SPL[id]&&SPL[id].power).map(id=>typeMult(SPL[id].type,sp.types)));
+  return off-def*.8;
+}
+function botSwapDecide(e,dt){
+  if(!e.team||!e.bot||teamAlive(e)<2)return;
+  e.bot.swapT=(e.bot.swapT||rand(1,2))-dt; if(e.bot.swapT>0)return; e.bot.swapT=rand(.8,1.6);
+  if(e.swapC||e.lock>0||(e.swapCd||0)>0||e.ko>0||e.stun>0||DF().kit<1)return;
+  const o=foeOf(e), cur=botEdge(e.sp,e.kit,o), hpf=e.hp/e.maxHp;
+  let best=-1,bs=-9;
+  e.team.forEach((s,i)=>{if(s.dead||i===e.ti)return; const sc=botEdge(SPECIES[s.key],s.kit,o)+s.hp/s.maxHp; if(sc>bs){bs=sc;best=i}});
+  if(best<0)return;
+  const cand=e.team[best], cf=cand.hp/cand.maxHp;
+  if((hpf<.28&&cf>.55)||(cur<-.3&&cf>.5&&hpf>.3&&Math.random()<.5&&bs-(cur+hpf)>.5))startSwap(e,best);
+}
+
 // ---- Multijoueur en ligne : l'hôte fait autorité, l'invité joue en prédiction locale et se recale sur les instantanés ----
 // Le combat tourne chez les deux joueurs avec le même code. L'hôte reçoit les ordres de l'invité (déplacement, sort, bouclier)
 // et envoie 20 fois par seconde l'état de jeu (combattants, boules, zones). L'invité applique cet état sans saccade.
@@ -2813,6 +2966,7 @@ function applyEnt(e,s,own,pend){
     if(SKIP.has(k)||k in s||(own&&(OWN_SKIP.has(k)||(pend&&PRED.has(k)))))continue;
     delete e[k];
   }
+  if(s.key&&e.key!==s.key&&SPECIES[s.key]){e.key=s.key;e.sp=SPECIES[s.key];if(own&&typeof applyKit==="function")applyKit()}
   if(own){
     // le serveur a arrêté mon déplacement : on s'arrête aussi (sauf ordre tout récent)
     if(!s.moveTarget&&e.moveTarget&&performance.now()-lastMvAt>300)e.moveTarget=null;
@@ -2869,35 +3023,34 @@ NET.tick=function(dt){
   pingAcc+=dt; if(pingAcc>=PING_DT){pingAcc=0;pingTs=performance.now();send({t:"ping",ts:pingTs},true)}
 };
 const cache={me:"",opp:""};
-function slotHtml(key,kit,ready,label){
-  const sp=SPECIES[key];
-  if(!sp)return '<h4>'+label+'</h4><div class="lbwait">Choisit son Ace…</div>';
-  const li=(kit||[]).map(id=>SPL[id]?'<li><b style="background:'+TYPE_COL[SPL[id].type]+'"></b>'+SPL[id].name+'</li>':"").join("");
-  return '<h4>'+label+'</h4><img alt="" src="'+PORTRAITS[key]+'"><div class="lbnm">'+sp.name+'</div><ul>'+li+'</ul><em class="'+(ready?"lbrdy":"")+'">'+(ready?"Prêt":"Pas prêt")+'</em>';
+function slotHtml(team,ready,label){
+  if(!team||!team.length)return '<h4>'+label+'</h4><div class="lbwait">Choisit son Ace…</div>';
+  const rows=team.map((t,i)=>'<div class="lbm"><img alt="" src="'+PORTRAITS[t.key]+'"><span><b>'+(i+1)+'</b> '+SPECIES[t.key].name+'</span></div>').join("");
+  return '<h4>'+label+'</h4>'+rows+'<em class="'+(ready?"lbrdy":"")+'">'+(ready?"Prêt":"Pas prêt")+'</em>';
 }
 function refreshLobby(){
   lobbyEl.hidden=!inLobby; rowEl.hidden=inLobby; menuRoot.classList.toggle("locked",inLobby&&myReady);
   const so=q('#menu .tabs [data-tab="solo"]'); if(so)so.disabled=inLobby;
   if(!inLobby)return;
   codeEl.textContent=roomCode;
-  const me=slotHtml(pick,draftOf(pick),myReady,"Toi");
-  const opp=peerHere?slotHtml(oppPick&&oppPick.key,oppPick&&oppPick.kit,oppReady,"Adversaire"):'<h4>Adversaire</h4><div class="lbwait">En attente…<br><small>Donne-lui le code '+roomCode+'</small></div>';
+  const me=slotHtml(teamPicks(),myReady,"Toi");
+  const opp=peerHere?slotHtml(oppPick&&oppPick.team,oppReady,"Adversaire"):'<h4>Adversaire</h4><div class="lbwait">En attente…<br><small>Donne-lui le code '+roomCode+'</small></div>';
   if(me!==cache.me){slotMe.innerHTML=me;cache.me=me} if(opp!==cache.opp){slotOpp.innerHTML=opp;cache.opp=opp}
   slotMe.classList.toggle("ok",myReady); slotOpp.classList.toggle("ok",oppReady&&peerHere);
   btnR.disabled=!peerHere; btnR.textContent=myReady?"Pas prêt":"Prêt";
 }
 function setTab(t){
   menuRoot.classList.toggle("tab-online",t==="online");
-  menuH2.textContent=t==="online"?"Multijoueur":"Choisis ton Ace";
+  menuH2.textContent=t==="online"?"Multijoueur":"Choisis ton équipe";
   document.querySelectorAll("#menu .tabs button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.tab===t)));
 }
 NET.tab=setTab;
 document.querySelectorAll("#menu .tabs button").forEach(b=>b.addEventListener("click",()=>{if(!b.disabled)setTab(b.dataset.tab)}));
 function sendPick(force){
   if(!inLobby||!peerHere||NET.started)return;
-  const k=pick, kit=draftOf(k).slice(), sig=k+kit.join(","), now=performance.now();
+  const team=teamPicks(), sig=JSON.stringify(team), now=performance.now();
   if(!force&&sig===lastSig&&now-pickAt<2000)return;
-  lastSig=sig; pickAt=now; relay({t:"pick",key:k,kit});
+  lastSig=sig; pickAt=now; relay({t:"pick",team});
 }
 setInterval(()=>{if(inLobby&&!NET.started){refreshLobby();sendPick(false)}},300);
 function openRoom(code){inLobby=true;roomCode=code;peerHere=false;myReady=oppReady=false;oppHello=oppPick=null;say("");refreshLobby()}
@@ -2913,7 +3066,7 @@ btnR.addEventListener("click",()=>{
   if(!inLobby||NET.started)return;
   if(!myReady&&!saveKit())return;
   myReady=!myReady; myHello=mineHello();
-  relay({t:"ready",on:myReady,key:myHello.key,kit:myHello.kit});
+  relay({t:"ready",on:myReady,team:myHello.team});
   refreshLobby(); maybeStart();
 });
 // Retour au salon sans quitter la connexion : l'autre joueur est prévenu et revient aussi.
@@ -2932,8 +3085,8 @@ function onMsg(m){
   else if(m.t==="pong"){pingMs=Math.round(performance.now()-m.ts);info.hidden=false;info.textContent=(mode==="peer"||rtcOpen()?"P2P ":"Relais ")+pingMs+" ms"}
   else if(m.t==="back"){NET.toLobby(true)}
   else if(m.t==="pick"||m.t==="ready"){
-    if(NET.started||!SPECIES[m.key]||!SPECIES[m.key].playable||!validKit(m.key,m.kit))return;
-    oppPick={key:m.key,kit:m.kit};
+    if(NET.started||!validTeam(m.team))return;
+    oppPick={team:m.team,key:m.team[0].key,kit:m.team[0].kit};
     if(m.t==="ready"){oppReady=!!m.on; if(m.on)oppHello=oppPick}
     refreshLobby(); maybeStart();
   }
@@ -2946,7 +3099,8 @@ function onMsg(m){
 // ---- Démarrage du match ----
 function begin(hostH,guestH,asHost){
   musicSet("battle"); matchMode="duel"; score.me=0; score.foe=0; seq=0; lastSnapSeq=-1; castSeq=ackSeq=0; lastMv=""; lastSh=false;
-  const A=makeFighter(hostH.key,START_A[0],START_A[1],false,hostH.kit), B=makeFighter(guestH.key,START_B[0],START_B[1],false,guestH.kit);
+  const A=makeFighter(hostH.team[0].key,START_A[0],START_A[1],false,hostH.team[0].kit), B=makeFighter(guestH.team[0].key,START_B[0],START_B[1],false,guestH.team[0].kit);
+  initTeam(A,hostH.team.map(x=>x.key),hostH.team.map(x=>x.kit)); initTeam(B,guestH.team.map(x=>x.key),guestH.team.map(x=>x.kit));
   entities=[A,B]; fighters=entities.slice();
   if(asHost){player=A;foe=B;B.remote=true}else{player=B;foe=A;A.remote=true}
   playerKey=player.key; resetRound();
@@ -2956,11 +3110,12 @@ function begin(hostH,guestH,asHost){
 }
 function beginHost(){
   myHello=mineHello(); const h=myHello, g=oppHello;
-  if(!h||!g||!SPECIES[g.key]||!SPECIES[g.key].playable||!validKit(g.key,g.kit)){say("Invité invalide");return}
-  relay({t:"start",h:{key:h.key,kit:h.kit},g:{key:g.key,kit:g.kit}});
+  if(!h||!g||!validTeam(g.team)){say("Invité invalide");return}
+  relay({t:"start",h:{team:h.team},g:{team:g.team}});
   begin(h,g,true);
 }
-function beginGuest(m){ if(!SPECIES[m.h.key]||!validKit(m.h.key,m.h.kit))return; begin(m.h,m.g,false) }
+function beginGuest(m){ if(!m.h||!validTeam(m.h.team)||!validTeam(m.g&&m.g.team))return; begin(m.h,m.g,false) }
+const validTeam=t=>Array.isArray(t)&&t.length===3&&new Set(t.map(x=>x&&x.key)).size===3&&t.every(x=>x&&SPECIES[x.key]&&SPECIES[x.key].playable&&validKit(x.key,x.kit));
 const validKit=(key,kit)=>Array.isArray(kit)&&kit.length===4&&kit.every(id=>SPECIES[key].pool.includes(id))&&new Set(kit).size===4;
 // ---- Connexion : serveur de signalisation (WebSocket) puis liaison directe WebRTC ----
 function onChan(c){
@@ -3055,8 +3210,9 @@ function connect(onOpen){
     else if(m.t==="err"){say(m.msg||"Erreur");btnC.disabled=btnJ.disabled=false}
   };
 }
-function mineHello(){const k=pick; return {key:k,kit:draftOf(k).slice()}}
-function saveKit(){const k=pick; if(draftOf(k).length!==4)return false; KITS[k]=draftOf(k).slice(); try{localStorage.setItem("aceKits",JSON.stringify(KITS));localStorage.setItem("aceKey",k)}catch(_){} return true}
+const teamPicks=()=>picks.map(k=>({key:k,kit:draftOf(k).slice()}));
+function mineHello(){const t=teamPicks(); return {key:t[0].key,kit:t[0].kit,team:t}}
+function saveKit(){if(picks.length!==3||!picks.every(k=>draftOf(k).length===4))return false; picks.forEach(k=>{KITS[k]=draftOf(k).slice()}); try{localStorage.setItem("aceKits",JSON.stringify(KITS));localStorage.setItem("aceTeam",JSON.stringify(picks));localStorage.setItem("aceKey",pick)}catch(_){} return true}
 btnC.addEventListener("click",()=>{ if(!saveKit())return; role="host"; myHello=mineHello(); connectAny(true) });
 btnJ.addEventListener("click",()=>{
   const c=(codeIn.value||"").trim().toUpperCase(); if(c.length!==4){say("Entre le code à 4 lettres");return}
