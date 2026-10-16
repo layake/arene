@@ -9,7 +9,7 @@ export class Arena{
     state.blockConcurrencyWhile(async()=>{this.core.load(await state.storage.list())});
   }
   async fetch(req){
-    const out=route(this.core,req.method,new URL(req.url).pathname,req.method==="POST"?await req.text():"");
+    const out=route(this.core,req.method,new URL(req.url).pathname,req.method==="POST"?await req.text():"",req.headers.get("cf-connecting-ip")||"");
     if(Math.random()<.02)this.core.cleanup();
     return new Response(JSON.stringify(out.body),{status:out.status,headers:{...CORS,"content-type":"application/json"}});
   }

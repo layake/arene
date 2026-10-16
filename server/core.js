@@ -3,6 +3,7 @@
 export const START_ELO=1200, ELO_FLOOR=100;
 export const QUEUE_STALE_MS=6000;      // sans nouvelle de lui depuis 6 s, un joueur quitte la file
 export const ASSIGN_TTL_MS=90000;      // un appariement non retiré reste redonné 90 s (réponse perdue)
+export const MAX_PLAYERS=50000;
 export const MIN_MATCH_MS=20000;       // un résultat avant 20 s est refusé
 export const SOLO_REPORT_MS=45000;     // un seul rapport suffit si l'autre ne répond pas pendant 45 s
 export const MATCH_TTL_MS=15*60*1000;
@@ -18,10 +19,14 @@ export const kFactor=games=>games<20?40:20;
 export const expected=(ra,rb)=>1/(1+Math.pow(10,(rb-ra)/400));
 export function eloDelta(ra,gamesA,rb,scoreA){return Math.round(kFactor(gamesA)*(scoreA-expected(ra,rb)))}
 
+const BANNED=["nazi","hitler","salope","connard","connasse","enculer","encule","nigger","nigga","pedophile","fuck","bitch","cunt","faggot","retard","pute","batard","fdp","ntm"];
+const norm=t=>t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/0/g,"o").replace(/[1!|]/g,"i").replace(/3/g,"e").replace(/4|@/g,"a").replace(/5|\$/g,"s").replace(/[^a-z]/g,"");
+export const isBanned=n=>{const t=norm(n);return BANNED.some(w=>t.includes(w))};
 export function cleanName(raw){
   const n=String(raw||"").normalize("NFC").replace(/\s+/g," ").trim();
   if(n.length<2||n.length>16)bad("Le pseudo doit faire 2 à 16 caractères");
   if(!/^[\p{L}\p{N} _.-]+$/u.test(n))bad("Pseudo : lettres, chiffres, espace, _ . - seulement");
+  if(isBanned(n))bad("Pseudo refusé");
   return n;
 }
 
@@ -30,7 +35,7 @@ export class Ranked{
   constructor({persist=()=>{},now=()=>Date.now()}={}){
     this.persist=persist; this.now=now;
     this.players=new Map(); this.names=new Map(); this.matches=new Map();
-    this.queue=[]; this.assigned=new Map(); this.lbDirty=true; this.lb=[];
+    this.queue=[]; this.assigned=new Map(); this.rates=new Map(); this.lbDirty=true; this.lb=[];
   }
   load(entries){ // entrées {clé: valeur} relues du stockage
     for(const [k,v] of entries){
@@ -43,7 +48,14 @@ export class Ranked{
   saveMatch(m){this.persist("m:"+m.id,m)}
   pub(p){return {id:p.id,name:p.name,elo:p.elo,games:p.games,wins:p.wins,losses:p.losses}}
 
-  register(name){
+  limit(ip,key,max,windowMs){ // fenêtre glissante par adresse ; ip vide = pas de limite (tests, dev)
+    if(!ip)return; const k=key+":"+ip, t=this.now(), a=(this.rates.get(k)||[]).filter(x=>t-x<windowMs);
+    if(a.length>=max){this.rates.set(k,a);bad("Trop de requêtes, réessaie plus tard",429)}
+    a.push(t); this.rates.set(k,a);
+  }
+  register(name,ip){
+    this.limit(ip,"reg",5,3600000);
+    if(this.players.size>=MAX_PLAYERS)bad("Serveur plein",503);
     const n=cleanName(name);
     if(this.names.has(n.toLowerCase()))bad("Pseudo déjà pris",409);
     const p={id:hex(4),token:hex(16),name:n,elo:START_ELO,games:0,wins:0,losses:0,disputes:0,created:this.now()};
@@ -136,6 +148,7 @@ export class Ranked{
   }
   cleanup(){ // supprime les combats anciens sans résultat
     const t=this.now();
+    for(const [k,a] of this.rates){const f=a.filter(x=>t-x<3600000); if(f.length)this.rates.set(k,f); else this.rates.delete(k)}
     for(const [id,m] of this.matches)if(t-m.created>MATCH_TTL_MS){this.matches.delete(id); this.persist("m:"+id,undefined)}
   }
 }

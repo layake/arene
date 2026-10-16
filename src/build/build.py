@@ -18,13 +18,13 @@ import subprocess,datetime
 try: N=int(subprocess.check_output(['git','-C',os.path.join(os.path.dirname(os.path.abspath(__file__)),'..','..'),'rev-list','--count','HEAD']).decode())+1
 except Exception: N=0
 VER='v1.%d'%N
-head=head.replace('Usage privé.</footer>','Usage privé. <b id="ver">'+VER+' · '+datetime.date.today().strftime('%d/%m/%Y')+'</b></footer>',1)
+head=head.replace('générés par le code.</footer>','générés par le code. <b id="ver">'+VER+' · '+datetime.date.today().strftime('%d/%m/%Y')+'</b></footer>',1)
 open('VERSION','w').write(VER)
 head=head.replace('<title>Carchacrok Arena</title>','<title>Aces Arena</title>')
 head=head.replace("Changer d'Ace",'Menu')
 head='<meta charset="utf-8">\n'+head
 parts=[head,'\n'.join(data)]
-for f in ['../gv/gv_data.js','../ag/ag_data.js','../eg/eg_data.js','../pt/pt_data.js','../luc/luc_data.js','../ami/ami_data.js','../chz/chz_data.js','../mam/mam_data.js','../jun/jun_data.js','../mew/mew_data.js','../emp/emp_data.js','../blz/blz_data.js','new/snd_data.js','new/snd_data2.js','new/snd_data3.js','new/base.js','new/a.js','new/snd.js','new/c.js','new/d.js','new/h0.js','new/e.js','new/f.js','new/g1.js','new/arena.js','new/g2.js','new/g3.js','new/h.js','new/h2.js','new/aces_b.js','new/aces_c.js','new/alts.js','new/aces_d.js','new/moves.js','new/streams.js','new/archetypes.js','new/aces_e.js','new/snd_map.js','new/snd_fix.js','new/team.js','new/net.js','new/ui2.js','new/rush.js','new/ranked.js','new/lock.js','new/i18n.js']:
+for f in ['../gv/gv_data.js','../ag/ag_data.js','../eg/eg_data.js','../pt/pt_data.js','../luc/luc_data.js','../ami/ami_data.js','../chz/chz_data.js','../mam/mam_data.js','../jun/jun_data.js','../mew/mew_data.js','../emp/emp_data.js','../blz/blz_data.js','new/base.js','new/a.js','new/snd_synth.js','new/snd.js','new/c.js','new/d.js','new/h0.js','new/e.js','new/f.js','new/g1.js','new/arena.js','new/g2.js','new/g3.js','new/h.js','new/h2.js','new/aces_b.js','new/aces_c.js','new/alts.js','new/aces_d.js','new/moves.js','new/streams.js','new/archetypes.js','new/aces_e.js','new/snd_map.js','new/snd_fix.js','new/team.js','new/net.js','new/ui2.js','new/rush.js','new/ranked.js','new/lock.js','new/i18n.js']:
     t=open(f,encoding='utf-8').read()
     if f=='new/a.js': t=t.replace('/*ACES_A*/',open('new/aces_a.js',encoding='utf-8').read())
     parts.append(t)

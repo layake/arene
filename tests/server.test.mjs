@@ -15,6 +15,11 @@ ok("pseudo : refuse trop court, caractères spéciaux",()=>{throws(()=>cleanName
 ok("inscription : pseudo unique (insensible à la casse)",()=>{const c=core();const a=c.register("Lancelot");assert.equal(a.elo,START_ELO);throws(()=>c.register("lancelot"),409)});
 ok("authentification : mauvais jeton refusé",()=>{const c=core();const a=c.register("Alice");throws(()=>c.me(a.id,"faux"),401)});
 
+ok("pseudo : mots interdits refusés (même déguisés)",()=>{throws(()=>cleanName("N4zi"),400);throws(()=>cleanName("xX_Hitler_Xx"),400);assert.equal(cleanName("Lancelot"),"Lancelot")});
+ok("limite : 5 comptes par heure et par adresse, puis ça repasse",()=>{
+  const c=core(); for(let i=0;i<5;i++)c.register("Joueur"+i,"1.2.3.4"); throws(()=>c.register("Joueur9","1.2.3.4"),429);
+  c.register("Autre","5.6.7.8"); t+=3600001; c.register("Joueur9","1.2.3.4")});
+ok("limite : 300 requêtes par minute et par adresse",()=>{const c=core(); for(let i=0;i<300;i++)c.limit("9.9.9.9","all",300,60000); throws(()=>c.limit("9.9.9.9","all",300,60000),429); t+=60001; c.limit("9.9.9.9","all",300,60000)});
 function pair(c,a,b){ // a attend, b arrive, a récupère son appariement
   const w=c.queuePoll(a.id,a.token); assert.equal(w.status,"waiting");
   const mb=c.queuePoll(b.id,b.token); assert.equal(mb.status,"matched");
