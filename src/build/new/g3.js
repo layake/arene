@@ -35,7 +35,7 @@ function applyKit(){
     SLOT_T.delete(btn);
   });
   const kit=player.kit.map((id,i)=>"<b>"+SLOT_KEYS[i]+"</b> "+SPL[id].name+" ("+Math.round(SPL[id].cd*10)/10+" s)").join(" · ");
-  helpEl.innerHTML="<b>Clic droit</b> : se déplacer (maintenir pour suivre)<br><b>Clic droit sur l'ennemi</b> : le poursuivre<br><b>Espace</b> : bouclier (maintenir)<br><b>Tab</b> : changer d'Ace (0,5 s)<br><b>F</b> : Flash, téléportation vers le curseur (recharge 12 s)<br>"+kit+"<br><b>Clic gauche</b> : lancer le sort · <b>Clic droit</b> ou <b>Échap</b> : annuler<br><b>Souris</b> : bloquée dans la fenêtre pendant le combat, <b>Échap</b> la libère et met en pause<br><b>Jets (Lance-Flammes, Hydrocanon, Blizzard)</b> : maintenir la touche, on reste immobile, relâcher coupe<br>Le mode de lancer se règle dans le menu Pause.";
+  helpEl.innerHTML="<b>Clic droit</b> : se déplacer (maintenir pour suivre)<br><b>Clic droit sur l'ennemi</b> : le poursuivre<br><b>Espace</b> : bouclier (maintenir)<br><b>F</b> : changer d'Ace, le nouveau arrive au curseur (recharge 1,5 s)<br><b>F</b> sans coéquipier : Flash, téléportation vers le curseur (recharge 12 s)<br>"+kit+"<br><b>Clic gauche</b> : lancer le sort · <b>Clic droit</b> ou <b>Échap</b> : annuler<br><b>Souris</b> : bloquée dans la fenêtre pendant le combat, <b>Échap</b> la libère et met en pause<br><b>Jets (Lance-Flammes, Hydrocanon, Blizzard)</b> : maintenir la touche, on reste immobile, relâcher coupe<br>Le mode de lancer se règle dans le menu Pause.";
   scoreEl.textContent=""; scoreTxt="";
 }
 const SLOT_T=new WeakMap();
@@ -102,7 +102,8 @@ function updateHud(){
     const id=player.kit[i], sp=SPL[id], ch=(id==="rush"&&player.rush&&player.rush.ph==="chan")||(id==="gleam"&&!!player.chan)||(!!SPL[id].buff&&!!player.bf[SPL[id].buff])||((id==="mburst"||id==="riposte")&&!!player.counter);
     setSlot(btn,cdOf(player,id),sp.cd,aiming===id||ch,sp.cost);
   });
-  setSlot(flashBtn,cdOf(player,"flash"),12,false); swapBtn.hidden=!(player.team&&player.team.length>1); if(!swapBtn.hidden)setSlot(swapBtn,player.swapCd||0,SWAP.cd,!!player.swapC);
+  swapBtn.hidden=true; const sw=swapReady(player); if(flashBtn.__sw!==sw){flashBtn.__sw=sw; flashBtn.querySelector(".n").textContent=sw?"Ace":"Flash"; flashBtn.title=sw?"Changer d'Ace (F) : le nouvel Ace arrive au curseur":"Flash (F) : blink vers le curseur"; if(typeof retranslateAll==="function"&&LANG==="en")retranslateAll()}
+  if(sw)setSlot(flashBtn,player.swapCd||0,SWAP.cd,!!player.swapC); else setSlot(flashBtn,cdOf(player,"flash"),12,false);
   const pr=String(!!player.shieldOn); if(shdBtn.getAttribute("aria-pressed")!==pr)shdBtn.setAttribute("aria-pressed",pr);
   const txt="";
   if(txt!==scoreTxt){scoreTxt=txt;scoreEl.textContent=txt}
@@ -126,7 +127,7 @@ addEventListener("keydown",e=>{const k=e.key.toLowerCase();
   if(paused)return;
   if(k==="t"){const i=AIM.modes.findIndex(x=>x[0]===AIM.mode),n=AIM.modes[(i+1)%3];setAimMode(n[0]);showLog("Visée : "+n[1],900);return}
   if(k===" "){e.preventDefault();keys.add(" ");return}
-  if(k==="tab"){e.preventDefault();if(!e.repeat&&player.ko<=0)cast(player,"swap");return}
+  if(k==="tab"){e.preventDefault();return} // le swap est sur F
   if(k==="f"){e.preventDefault();if(!e.repeat&&player.ko<=0)cast(player,"flash");return}
   const s=slotOf(e); if(s!==undefined){e.preventDefault();if(!e.repeat)pressSpell(s);return}
   if(["arrowup","arrowdown","arrowleft","arrowright"].includes(k))e.preventDefault();
@@ -237,7 +238,7 @@ function buildMenu(){
 }
 function refreshMenu(){
   cardsEl.querySelectorAll(".ace").forEach(b=>{const i=picks.indexOf(b.dataset.key); b.setAttribute("aria-pressed",String(i>=0)); b.classList.toggle("focus",b.dataset.key===pick&&i>=0); b.querySelector(".tn").textContent=i>=0?String(i+1):""});
-  teamLineEl.innerHTML=[0,1,2].map(i=>{const k=picks[i]; return k?'<div class="tslot'+(k===pick?" on":"")+'" data-i="'+i+'"><b>'+(i+1)+'</b><img alt="" src="'+PORTRAITS[k]+'"><span>'+SPECIES[k].name+'</span><u data-rm="'+i+'" title="Retirer">×</u></div>':'<div class="tslot empty"><b>'+(i+1)+'</b><span>Choisir un Ace</span></div>'}).join("")+'<small>Ordre d\'entrée 1, 2, 3 · Tab : changer d\'Ace en combat</small>';
+  teamLineEl.innerHTML=[0,1,2].map(i=>{const k=picks[i]; return k?'<div class="tslot'+(k===pick?" on":"")+'" data-i="'+i+'"><b>'+(i+1)+'</b><img alt="" src="'+PORTRAITS[k]+'"><span>'+SPECIES[k].name+'</span><u data-rm="'+i+'" title="Retirer">×</u></div>':'<div class="tslot empty"><b>'+(i+1)+'</b><span>Choisir un Ace</span></div>'}).join("")+'<small>Ordre d\'entrée 1, 2, 3 · F : changer d\'Ace en combat</small>';
   document.querySelectorAll("#menu .modes button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===pickMode)));
   document.querySelectorAll("#menu .diffs button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.diff===diff)));
   document.querySelector("#menu .diffs").hidden=pickMode!=="duel";

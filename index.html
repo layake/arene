@@ -442,7 +442,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Sélection d'équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>mannequin d'entraînement</small></button><button type="button" data-mode="duel" aria-pressed="false">Versus<small>contre un adversaire</small></button><button type="button" data-mode="rush" aria-pressed="false">Marathon<small>16 adversaires d'affilée, au chrono</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="rounds" role="group" aria-label="Rounds"><span>Rounds</span><button type="button" data-r="1">1</button><button type="button" data-r="3" aria-pressed="true">3</button><button type="button" data-r="5">5</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
 </div>
-<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.61 · 16/10/2026</b></footer>
+<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.62 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -1626,7 +1626,7 @@ function fireBeam(e){
 function cast(e,id){
   if(e.counter||e.ko>0||vsT>0)return;
   if(id==="swap"){if(NET.guest&&e===player){NET.sendCast(id);return}startSwap(e);return}
-  if(id==="flash"){if(NET.guest&&e===player)NET.sendCast(id);castFlash(e);return}
+  if(id==="flash"){if(NET.guest&&e===player){NET.sendCast(id); if(!swapReady(e))castFlash(e); return} castFlashOrSwap(e);return}
   if(!e.kit.includes(id))return;
   if(NET.guest&&e===player)NET.sendCast(id);
   SND.pe=e;SND.pend=id;
@@ -2590,7 +2590,7 @@ function applyKit(){
     SLOT_T.delete(btn);
   });
   const kit=player.kit.map((id,i)=>"<b>"+SLOT_KEYS[i]+"</b> "+SPL[id].name+" ("+Math.round(SPL[id].cd*10)/10+" s)").join(" · ");
-  helpEl.innerHTML="<b>Clic droit</b> : se déplacer (maintenir pour suivre)<br><b>Clic droit sur l'ennemi</b> : le poursuivre<br><b>Espace</b> : bouclier (maintenir)<br><b>Tab</b> : changer d'Ace (0,5 s)<br><b>F</b> : Flash, téléportation vers le curseur (recharge 12 s)<br>"+kit+"<br><b>Clic gauche</b> : lancer le sort · <b>Clic droit</b> ou <b>Échap</b> : annuler<br><b>Souris</b> : bloquée dans la fenêtre pendant le combat, <b>Échap</b> la libère et met en pause<br><b>Jets (Lance-Flammes, Hydrocanon, Blizzard)</b> : maintenir la touche, on reste immobile, relâcher coupe<br>Le mode de lancer se règle dans le menu Pause.";
+  helpEl.innerHTML="<b>Clic droit</b> : se déplacer (maintenir pour suivre)<br><b>Clic droit sur l'ennemi</b> : le poursuivre<br><b>Espace</b> : bouclier (maintenir)<br><b>F</b> : changer d'Ace, le nouveau arrive au curseur (recharge 1,5 s)<br><b>F</b> sans coéquipier : Flash, téléportation vers le curseur (recharge 12 s)<br>"+kit+"<br><b>Clic gauche</b> : lancer le sort · <b>Clic droit</b> ou <b>Échap</b> : annuler<br><b>Souris</b> : bloquée dans la fenêtre pendant le combat, <b>Échap</b> la libère et met en pause<br><b>Jets (Lance-Flammes, Hydrocanon, Blizzard)</b> : maintenir la touche, on reste immobile, relâcher coupe<br>Le mode de lancer se règle dans le menu Pause.";
   scoreEl.textContent=""; scoreTxt="";
 }
 const SLOT_T=new WeakMap();
@@ -2657,7 +2657,8 @@ function updateHud(){
     const id=player.kit[i], sp=SPL[id], ch=(id==="rush"&&player.rush&&player.rush.ph==="chan")||(id==="gleam"&&!!player.chan)||(!!SPL[id].buff&&!!player.bf[SPL[id].buff])||((id==="mburst"||id==="riposte")&&!!player.counter);
     setSlot(btn,cdOf(player,id),sp.cd,aiming===id||ch,sp.cost);
   });
-  setSlot(flashBtn,cdOf(player,"flash"),12,false); swapBtn.hidden=!(player.team&&player.team.length>1); if(!swapBtn.hidden)setSlot(swapBtn,player.swapCd||0,SWAP.cd,!!player.swapC);
+  swapBtn.hidden=true; const sw=swapReady(player); if(flashBtn.__sw!==sw){flashBtn.__sw=sw; flashBtn.querySelector(".n").textContent=sw?"Ace":"Flash"; flashBtn.title=sw?"Changer d'Ace (F) : le nouvel Ace arrive au curseur":"Flash (F) : blink vers le curseur"; if(typeof retranslateAll==="function"&&LANG==="en")retranslateAll()}
+  if(sw)setSlot(flashBtn,player.swapCd||0,SWAP.cd,!!player.swapC); else setSlot(flashBtn,cdOf(player,"flash"),12,false);
   const pr=String(!!player.shieldOn); if(shdBtn.getAttribute("aria-pressed")!==pr)shdBtn.setAttribute("aria-pressed",pr);
   const txt="";
   if(txt!==scoreTxt){scoreTxt=txt;scoreEl.textContent=txt}
@@ -2681,7 +2682,7 @@ addEventListener("keydown",e=>{const k=e.key.toLowerCase();
   if(paused)return;
   if(k==="t"){const i=AIM.modes.findIndex(x=>x[0]===AIM.mode),n=AIM.modes[(i+1)%3];setAimMode(n[0]);showLog("Visée : "+n[1],900);return}
   if(k===" "){e.preventDefault();keys.add(" ");return}
-  if(k==="tab"){e.preventDefault();if(!e.repeat&&player.ko<=0)cast(player,"swap");return}
+  if(k==="tab"){e.preventDefault();return} // le swap est sur F
   if(k==="f"){e.preventDefault();if(!e.repeat&&player.ko<=0)cast(player,"flash");return}
   const s=slotOf(e); if(s!==undefined){e.preventDefault();if(!e.repeat)pressSpell(s);return}
   if(["arrowup","arrowdown","arrowleft","arrowright"].includes(k))e.preventDefault();
@@ -2792,7 +2793,7 @@ function buildMenu(){
 }
 function refreshMenu(){
   cardsEl.querySelectorAll(".ace").forEach(b=>{const i=picks.indexOf(b.dataset.key); b.setAttribute("aria-pressed",String(i>=0)); b.classList.toggle("focus",b.dataset.key===pick&&i>=0); b.querySelector(".tn").textContent=i>=0?String(i+1):""});
-  teamLineEl.innerHTML=[0,1,2].map(i=>{const k=picks[i]; return k?'<div class="tslot'+(k===pick?" on":"")+'" data-i="'+i+'"><b>'+(i+1)+'</b><img alt="" src="'+PORTRAITS[k]+'"><span>'+SPECIES[k].name+'</span><u data-rm="'+i+'" title="Retirer">×</u></div>':'<div class="tslot empty"><b>'+(i+1)+'</b><span>Choisir un Ace</span></div>'}).join("")+'<small>Ordre d\'entrée 1, 2, 3 · Tab : changer d\'Ace en combat</small>';
+  teamLineEl.innerHTML=[0,1,2].map(i=>{const k=picks[i]; return k?'<div class="tslot'+(k===pick?" on":"")+'" data-i="'+i+'"><b>'+(i+1)+'</b><img alt="" src="'+PORTRAITS[k]+'"><span>'+SPECIES[k].name+'</span><u data-rm="'+i+'" title="Retirer">×</u></div>':'<div class="tslot empty"><b>'+(i+1)+'</b><span>Choisir un Ace</span></div>'}).join("")+'<small>Ordre d\'entrée 1, 2, 3 · F : changer d\'Ace en combat</small>';
   document.querySelectorAll("#menu .modes button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===pickMode)));
   document.querySelectorAll("#menu .diffs button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.diff===diff)));
   document.querySelector("#menu .diffs").hidden=pickMode!=="duel";
@@ -3252,15 +3253,29 @@ function botAce2(e,t,d,threat,go,ok,rnd){
 
 /* ===== Flash (touche F) : court cast avec destination visible, puis blink; pas de recuperation ===== */
 const FLASH={dist:110,cast:.5,inv:0,cd:12,pal:["#fff6b0","#ffe060","#ffffff","#f0b020","#ffd23c"]};
-function castFlash(e){
-  if(e.ko>0||e.stun>0||e.tunnel||e.rush||e.chan||e.counter||e.flashC||e.lock>0||(e.anim==="attack"&&!e.hit)||cdOf(e,"flash")>0)return;
-  e.cd.flash=FLASH.cd;
+// point d'arrivée vers le curseur (ou la visée du bot / de l'invité), limité à la portée du Flash
+function flashDest(e){
   const pt=e===player&&!e.bot?mouse:e.aimPt, o=e===player?foe:player;
   let dx=pt?pt.wx-e.x:o.x-e.x, dy=pt?pt.wy-e.y:o.y-e.y, d=Math.hypot(dx,dy);
   if(d<4){dx=o.x-e.x;dy=o.y-e.y;d=Math.hypot(dx,dy)||1}
   const k=Math.min(FLASH.dist,d)/d;
+  return {x:clampX(e.x+dx*k),y:clampY(e.y+dy*k)};
+}
+// touche F : avec un coéquipier en vie, le nouvel Ace est envoyé au curseur ; seul, c'est un Flash classique
+const swapReady=e=>!!(e.team&&teamAlive(e)>1);
+function castFlashOrSwap(e){ if(swapReady(e))startSwap(e,undefined,flashDest(e)); else castFlash(e) }
+function swapBlink(e,x,y){ // trainée du Flash entre l'ancien et le nouvel emplacement
+  const ox=e.x, oy=e.y;
+  for(let i=0;i<=8;i++){const f=i/8; colorBurst(ox+(x-ox)*f,oy+(y-oy)*f,3,FLASH.pal,12,60)}
+  rings.push({x:ox,y:oy,t:0,dur:.3,max:20,c:"#ffe060"});
+  e.x=x; e.y=y; e.lx=x; e.ly=y; e.kb=null; e.moveTarget=null; if(e===player)marker=null;
+}
+function castFlash(e){
+  if(e.ko>0||e.stun>0||e.tunnel||e.rush||e.chan||e.counter||e.flashC||e.lock>0||(e.anim==="attack"&&!e.hit)||cdOf(e,"flash")>0)return;
+  e.cd.flash=FLASH.cd;
+  const D=flashDest(e);
   e.shieldOn=false; e.moveTarget=null; if(e===player)marker=null; e.lock=FLASH.cast+.02;
-  e.flashC={t:0,x:clampX(e.x+dx*k),y:clampY(e.y+dy*k)};
+  e.flashC={t:0,x:D.x,y:D.y};
   rings.push({x:e.x,y:e.y,t:0,dur:.3,max:14,c:"#ffe060"});
   SND.pe=e;SND.pend="tele";
 }
@@ -3278,7 +3293,7 @@ function tickFlash(e,dt){
   logFor(e,e.sp.name+" utilise Flash !",900);
 }
 function drawFlashMark(e){
-  const F=e.flashC; if(!F)return;
+  const S=e.swapC, F=e.flashC||(S&&S.dx!=null&&S.to>=0?{x:S.dx,y:S.dy,t:S.t*FLASH.cast/(SWAP.t/2)}:null); if(!F)return;
   const x=Math.round(F.x), y=Math.round(F.y), u=clamp(F.t/FLASH.cast,0,1), R=9, ry=Math.round(R*ISO), blink=Math.floor(performance.now()/60)%2;
   ellipseRows(x,y,R,ry,"rgba(255,224,96,"+(.12+.25*u).toFixed(2)+")"); ellipseLine(x,y,R,ry,blink&&u>.6?"#ffffff":"#ffd23c");
   ellipseLine(x,y,Math.max(2,Math.round(R*(1-u)*1.6)),Math.max(1,Math.round(ry*(1-u)*1.6)),"#fff6b0");
@@ -4224,7 +4239,7 @@ Object.assign(SFX_MAP,{
   sbomb:{cast:876,hit:856}, wpulse:{cast:859,hit:856}, heat:{cast:858}, stomp:{cast:813,hit:750}
 });
 
-/* ===== Equipes de 3 Aces : swap (Tab) avec animation Pokeball, KO = suivant entre, victoire a 3 KO ===== */
+/* ===== Equipes de 3 Aces : swap (F, le nouvel Ace arrive au curseur) avec animation Pokeball, KO = suivant entre, victoire a 3 KO ===== */
 const SWAP={t:.5,cd:1.5};
 function initTeam(e,keys,kits){
   e.team=keys.map((k,i)=>({key:k,kit:(kits&&kits[i]||kitOf(k)).slice(),hp:SPECIES[k].maxHp,maxHp:SPECIES[k].maxHp,dead:false,cd:{}}));
@@ -4262,10 +4277,10 @@ function teamEnter(e){ // apres un KO : le suivant arrive tout de suite
   ballFx(e); logFor(e,e.sp.name+" entre en jeu !",1100);
   return true;
 }
-function startSwap(e,to){
+function startSwap(e,to,dest){
   if(!e.team||e.ko>0||e.stun>0||e.tunnel||e.rush||e.chan||e.counter||e.flashC||e.swapC||e.lock>0||(e.anim==="attack"&&!e.hit)||(e.swapCd||0)>0)return;
   const j=to!==undefined&&to>=0&&!e.team[to].dead&&to!==e.ti?to:nextAlive(e,e.ti); if(j<0)return;
-  e.swapC={t:0,to:j}; e.lock=SWAP.t+.02; e.moveTarget=null; e.shieldOn=false; if(e===player)marker=null;
+  e.swapC={t:0,to:j}; if(dest){e.swapC.dx=dest.x;e.swapC.dy=dest.y} e.lock=SWAP.t+.02; e.moveTarget=null; e.shieldOn=false; if(e===player)marker=null;
   rings.push({x:e.x,y:e.y,t:0,dur:.25,max:12,c:"#ff5a4a"}); SND.pe=e;SND.pend="tele";
 }
 function tickSwap(e,dt){
@@ -4274,7 +4289,7 @@ function tickSwap(e,dt){
   if(NET.guest){S.t=Math.min(SWAP.t,S.t+dt);return}
   if(e.ko>0&&S.to>=0){e.swapC=null;return}
   const before=S.t; S.t+=dt;
-  if(S.to>=0&&before<SWAP.t/2&&S.t>=SWAP.t/2){loadSlot(e,S.to); S.to=-1; e.lock=SWAP.t/2+.02; ballFx(e)}
+  if(S.to>=0&&before<SWAP.t/2&&S.t>=SWAP.t/2){loadSlot(e,S.to); S.to=-1; e.lock=SWAP.t/2+.02; if(S.dx!=null)swapBlink(e,S.dx,S.dy); ballFx(e)}
   if(S.t>=SWAP.t){e.swapC=null; e.lock=0; e.swapCd=SWAP.cd; if(e.team)logFor(e,e.sp.name+" !",700)}
 }
 function ballFx(e){
@@ -5032,11 +5047,12 @@ const EN={
 "Sorts : lancer instantané":"Spells: instant cast","Sorts : relâcher pour lancer":"Spells: release to cast","Sorts : visée au clic":"Spells: click to aim",
 "Flash (F) : blink vers le curseur":"Flash (F): blink toward the cursor","Survoler l'ennemi + clic droit : le poursuivre":"Hover the enemy + right click: chase him",
 "libère la souris (bloquée en combat)":"frees the mouse (locked during fights)","Souris":"Mouse",": bloquée dans la fenêtre pendant le combat,":": locked in the window during fights,","la libère et met en pause":"frees it and pauses",
+": changer d'Ace, le nouveau arrive au curseur (recharge 1,5 s)":": switch Ace, the new one lands at the cursor (1.5 s cooldown)","sans coéquipier : Flash, téléportation vers le curseur (recharge 12 s)":"with no teammate: Flash, teleport to the cursor (12 s cooldown)","Changer d'Ace (F) : le nouvel Ace arrive au curseur":"Switch Ace (F): the new Ace lands at the cursor","Flash (F) : blink vers le curseur":"Flash (F): blink to the cursor",
 "Jeu prévu pour ordinateur : souris + clavier":"Made for computer: mouse + keyboard",
 "Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code.":"Unofficial, non-commercial fan game, not affiliated with Nintendo, Game Freak, Creatures or The Pokémon Company. Pokémon and its characters © Nintendo / Creatures / Game Freak. Sprites: PMDCollab SpriteCollab (CC BY-NC 4.0), originals Chunsoft. Sound effects: Pokémon Mystery Dungeon © Chunsoft / The Pokémon Company; music generated by code.",
 "Sélectionne ton équipe puis valide avec Prêt.":"Pick your team, then confirm with Ready.","Sélectionne 4 sorts. Les plus puissants ont un temps de recharge plus long.":"Select 4 moves. The most powerful ones have a longer cooldown.","4 sorts maximum : retire-en un d'abord.":"4 moves maximum: remove one first.","Pas assez de PP !":"Not enough PP!",
 "Choisit son Ace…":"Choosing an Ace…","En attente":"Waiting","En attente…":"Waiting…","Choisir un Ace":"Pick an Ace","Retirer":"Remove",
-"Ordre d'entrée 1, 2, 3 · Tab : changer d'Ace en combat":"Entry order 1, 2, 3 · Tab: switch Ace in battle",
+"Ordre d'entrée 1, 2, 3 · F : changer d'Ace en combat":"Entry order 1, 2, 3 · F: switch Ace in battle",
 "Connecté":"Connected","Connexion…":"Connecting…","Connexion perdue":"Connection lost","Serveur injoignable":"Server unreachable","Bibliothèque PeerJS injoignable":"PeerJS library unreachable","Code copié":"Code copied","Salon quitté":"Room left","Saisis le code du salon (4 lettres)":"Enter the room code (4 letters)",
 "L'adversaire a quitté le salon":"The opponent left the room","L'adversaire a quitté le salon. Le salon reste ouvert.":"The opponent left the room. The room stays open.","L'adversaire est de retour. Valide ton équipe avec Prêt.":"The opponent is back. Confirm your team with Ready.","Équipe de l'adversaire invalide":"Invalid opponent team",
 // combat

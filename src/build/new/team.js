@@ -1,4 +1,4 @@
-/* ===== Equipes de 3 Aces : swap (Tab) avec animation Pokeball, KO = suivant entre, victoire a 3 KO ===== */
+/* ===== Equipes de 3 Aces : swap (F, le nouvel Ace arrive au curseur) avec animation Pokeball, KO = suivant entre, victoire a 3 KO ===== */
 const SWAP={t:.5,cd:1.5};
 function initTeam(e,keys,kits){
   e.team=keys.map((k,i)=>({key:k,kit:(kits&&kits[i]||kitOf(k)).slice(),hp:SPECIES[k].maxHp,maxHp:SPECIES[k].maxHp,dead:false,cd:{}}));
@@ -36,10 +36,10 @@ function teamEnter(e){ // apres un KO : le suivant arrive tout de suite
   ballFx(e); logFor(e,e.sp.name+" entre en jeu !",1100);
   return true;
 }
-function startSwap(e,to){
+function startSwap(e,to,dest){
   if(!e.team||e.ko>0||e.stun>0||e.tunnel||e.rush||e.chan||e.counter||e.flashC||e.swapC||e.lock>0||(e.anim==="attack"&&!e.hit)||(e.swapCd||0)>0)return;
   const j=to!==undefined&&to>=0&&!e.team[to].dead&&to!==e.ti?to:nextAlive(e,e.ti); if(j<0)return;
-  e.swapC={t:0,to:j}; e.lock=SWAP.t+.02; e.moveTarget=null; e.shieldOn=false; if(e===player)marker=null;
+  e.swapC={t:0,to:j}; if(dest){e.swapC.dx=dest.x;e.swapC.dy=dest.y} e.lock=SWAP.t+.02; e.moveTarget=null; e.shieldOn=false; if(e===player)marker=null;
   rings.push({x:e.x,y:e.y,t:0,dur:.25,max:12,c:"#ff5a4a"}); SND.pe=e;SND.pend="tele";
 }
 function tickSwap(e,dt){
@@ -48,7 +48,7 @@ function tickSwap(e,dt){
   if(NET.guest){S.t=Math.min(SWAP.t,S.t+dt);return}
   if(e.ko>0&&S.to>=0){e.swapC=null;return}
   const before=S.t; S.t+=dt;
-  if(S.to>=0&&before<SWAP.t/2&&S.t>=SWAP.t/2){loadSlot(e,S.to); S.to=-1; e.lock=SWAP.t/2+.02; ballFx(e)}
+  if(S.to>=0&&before<SWAP.t/2&&S.t>=SWAP.t/2){loadSlot(e,S.to); S.to=-1; e.lock=SWAP.t/2+.02; if(S.dx!=null)swapBlink(e,S.dx,S.dy); ballFx(e)}
   if(S.t>=SWAP.t){e.swapC=null; e.lock=0; e.swapCd=SWAP.cd; if(e.team)logFor(e,e.sp.name+" !",700)}
 }
 function ballFx(e){

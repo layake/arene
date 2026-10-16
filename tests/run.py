@@ -49,6 +49,14 @@ with sync_playwright() as p:
     pg.evaluate("()=>{const e=entities[0];e.stun=0;e.lock=0;e.swapCd=0;e.cd.hydrocanon=5;cast(e,'swap')}"); pg.wait_for_timeout(1500)
     a=pg.evaluate("()=>entities[0].team[0].cd.hydrocanon"); pg.wait_for_timeout(4000)
     check("cooldown du banc baisse",0<a<4.5 and pg.evaluate("()=>entities[0].team[0].cd.hydrocanon")==0,a)
+    # 4b. F en équipe : le nouvel Ace arrive au curseur ; seul : Flash
+    pg.evaluate(START,[['garchomp','lucario','mewtwo'],'duel']); pg.wait_for_timeout(4500)
+    pg.evaluate("()=>{foe.stun=99;player.lock=0;window.__p=[player.x,player.y];mouse={wx:player.x+60,wy:player.y+40};cast(player,'flash')}"); pg.wait_for_timeout(800)
+    r=pg.evaluate("()=>[player.key,Math.round(Math.hypot(player.x-__p[0],player.y-__p[1])),player.swapCd>0,!(player.cd.flash>0)]")
+    check("F en équipe : swap au curseur",r[0]!='garchomp' and r[1]>40 and r[2] and r[3],r)
+    pg.evaluate("()=>{player.team.forEach((s,i)=>{if(i!==player.ti)s.dead=true});player.lock=0;window.__p=[player.x,player.y];mouse={wx:player.x-60,wy:player.y};cast(player,'flash')}"); pg.wait_for_timeout(800)
+    r=pg.evaluate("()=>[Math.round(Math.hypot(player.x-__p[0],player.y-__p[1])),player.cd.flash>0]")
+    check("F seul : Flash classique",r[0]>40 and r[1],r)
     # 5. marathon
     pg.evaluate(START,[['empoleon','garchomp','gengar'],'rush']); pg.wait_for_timeout(2800)
     pg.evaluate("()=>{foe.hp=1;strike(player,foe,SPL[player.kit[0]],{})}"); pg.wait_for_timeout(2600)

@@ -185,15 +185,29 @@ function botAce2(e,t,d,threat,go,ok,rnd){
 
 /* ===== Flash (touche F) : court cast avec destination visible, puis blink; pas de recuperation ===== */
 const FLASH={dist:110,cast:.5,inv:0,cd:12,pal:["#fff6b0","#ffe060","#ffffff","#f0b020","#ffd23c"]};
-function castFlash(e){
-  if(e.ko>0||e.stun>0||e.tunnel||e.rush||e.chan||e.counter||e.flashC||e.lock>0||(e.anim==="attack"&&!e.hit)||cdOf(e,"flash")>0)return;
-  e.cd.flash=FLASH.cd;
+// point d'arrivée vers le curseur (ou la visée du bot / de l'invité), limité à la portée du Flash
+function flashDest(e){
   const pt=e===player&&!e.bot?mouse:e.aimPt, o=e===player?foe:player;
   let dx=pt?pt.wx-e.x:o.x-e.x, dy=pt?pt.wy-e.y:o.y-e.y, d=Math.hypot(dx,dy);
   if(d<4){dx=o.x-e.x;dy=o.y-e.y;d=Math.hypot(dx,dy)||1}
   const k=Math.min(FLASH.dist,d)/d;
+  return {x:clampX(e.x+dx*k),y:clampY(e.y+dy*k)};
+}
+// touche F : avec un coéquipier en vie, le nouvel Ace est envoyé au curseur ; seul, c'est un Flash classique
+const swapReady=e=>!!(e.team&&teamAlive(e)>1);
+function castFlashOrSwap(e){ if(swapReady(e))startSwap(e,undefined,flashDest(e)); else castFlash(e) }
+function swapBlink(e,x,y){ // trainée du Flash entre l'ancien et le nouvel emplacement
+  const ox=e.x, oy=e.y;
+  for(let i=0;i<=8;i++){const f=i/8; colorBurst(ox+(x-ox)*f,oy+(y-oy)*f,3,FLASH.pal,12,60)}
+  rings.push({x:ox,y:oy,t:0,dur:.3,max:20,c:"#ffe060"});
+  e.x=x; e.y=y; e.lx=x; e.ly=y; e.kb=null; e.moveTarget=null; if(e===player)marker=null;
+}
+function castFlash(e){
+  if(e.ko>0||e.stun>0||e.tunnel||e.rush||e.chan||e.counter||e.flashC||e.lock>0||(e.anim==="attack"&&!e.hit)||cdOf(e,"flash")>0)return;
+  e.cd.flash=FLASH.cd;
+  const D=flashDest(e);
   e.shieldOn=false; e.moveTarget=null; if(e===player)marker=null; e.lock=FLASH.cast+.02;
-  e.flashC={t:0,x:clampX(e.x+dx*k),y:clampY(e.y+dy*k)};
+  e.flashC={t:0,x:D.x,y:D.y};
   rings.push({x:e.x,y:e.y,t:0,dur:.3,max:14,c:"#ffe060"});
   SND.pe=e;SND.pend="tele";
 }
@@ -211,7 +225,7 @@ function tickFlash(e,dt){
   logFor(e,e.sp.name+" utilise Flash !",900);
 }
 function drawFlashMark(e){
-  const F=e.flashC; if(!F)return;
+  const S=e.swapC, F=e.flashC||(S&&S.dx!=null&&S.to>=0?{x:S.dx,y:S.dy,t:S.t*FLASH.cast/(SWAP.t/2)}:null); if(!F)return;
   const x=Math.round(F.x), y=Math.round(F.y), u=clamp(F.t/FLASH.cast,0,1), R=9, ry=Math.round(R*ISO), blink=Math.floor(performance.now()/60)%2;
   ellipseRows(x,y,R,ry,"rgba(255,224,96,"+(.12+.25*u).toFixed(2)+")"); ellipseLine(x,y,R,ry,blink&&u>.6?"#ffffff":"#ffd23c");
   ellipseLine(x,y,Math.max(2,Math.round(R*(1-u)*1.6)),Math.max(1,Math.round(ry*(1-u)*1.6)),"#fff6b0");
