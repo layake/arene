@@ -2,6 +2,7 @@
 // Pur JavaScript sans dépendance : tourne dans un Durable Object Cloudflare (worker.js) et dans Node (dev.js, tests).
 export const START_ELO=1200, ELO_FLOOR=100;
 export const QUEUE_STALE_MS=6000;      // sans nouvelle de lui depuis 6 s, un joueur quitte la file
+export const ASSIGN_TTL_MS=90000;      // un appariement non retiré reste redonné 90 s (réponse perdue)
 export const MIN_MATCH_MS=20000;       // un résultat avant 20 s est refusé
 export const SOLO_REPORT_MS=45000;     // un seul rapport suffit si l'autre ne répond pas pendant 45 s
 export const MATCH_TTL_MS=15*60*1000;
@@ -53,10 +54,12 @@ export class Ranked{
 
   // --- file d'attente : le client appelle toutes les ~2 s ---
   tolerance(waitedMs){return 100+50*Math.floor(waitedMs/5000)}
-  queuePoll(id,token){
+  queuePoll(id,token,fresh){
     const p=this.auth(id,token), t=this.now();
+    if(fresh)this.assigned.delete(p.id); // nouvelle recherche : on oublie l'ancien appariement
     const mine=this.assigned.get(p.id);
-    if(mine){this.assigned.delete(p.id); const m=this.matches.get(mine); if(m&&!m.done)return this.matchInfo(m,p.id)}
+    // idempotent : si la réponse précédente s'est perdue, le joueur retrouve le même combat
+    if(mine){const m=this.matches.get(mine); if(m&&!m.done&&t-m.created<ASSIGN_TTL_MS)return this.matchInfo(m,p.id); this.assigned.delete(p.id)}
     const old=this.queue.find(e=>e.id===p.id);
     this.queue=this.queue.filter(e=>e.id!==p.id&&t-e.last<=QUEUE_STALE_MS);
     let me=old&&t-old.last<=QUEUE_STALE_MS?old:null;
@@ -72,7 +75,7 @@ export class Ranked{
     const host=this.players.get(best.e.id), guest=p;
     const m={id:hex(6),code:rcode(),host:host.id,guest:guest.id,created:t,reports:{},done:false,result:null};
     this.matches.set(m.id,m); this.saveMatch(m);
-    this.assigned.set(host.id,m.id); // l'hôte l'apprend à son prochain appel
+    this.assigned.set(host.id,m.id); this.assigned.set(guest.id,m.id); // l'hôte l'apprend à son prochain appel
     return this.matchInfo(m,guest.id);
   }
   queueLeave(id,token){const p=this.auth(id,token); this.queue=this.queue.filter(e=>e.id!==p.id); this.assigned.delete(p.id); return {status:"left"}}

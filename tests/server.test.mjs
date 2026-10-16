@@ -21,6 +21,16 @@ function pair(c,a,b){ // a attend, b arrive, a récupère son appariement
   const ma=c.queuePoll(a.id,a.token); assert.equal(ma.status,"matched");
   return {ma,mb};
 }
+ok("file : réponse perdue, l'appariement est redonné aux deux joueurs",()=>{
+  const c=core(),a=c.register("Alice"),b=c.register("Bob"); const {ma,mb}=pair(c,a,b);
+  const ma2=c.queuePoll(a.id,a.token), mb2=c.queuePoll(b.id,b.token);
+  assert.equal(ma2.matchId,ma.matchId); assert.equal(mb2.matchId,mb.matchId); assert.equal(ma2.role,"host"); assert.equal(mb2.role,"guest");
+});
+ok("file : nouvelle recherche (fresh) oublie l'ancien appariement",()=>{
+  const c=core(),a=c.register("Alice"),b=c.register("Bob"); pair(c,a,b);
+  assert.equal(c.queuePoll(a.id,a.token,true).status,"waiting");
+  assert.equal(c.queuePoll(b.id,b.token,true).status,"matched");
+});
 ok("file : deux joueurs proches sont appariés, hôte = celui qui attendait",()=>{
   const c=core(),a=c.register("Alice"),b=c.register("Bob"); const {ma,mb}=pair(c,a,b);
   assert.equal(ma.role,"host");assert.equal(mb.role,"guest");assert.equal(ma.code,mb.code);assert.equal(ma.matchId,mb.matchId);assert.equal(ma.opp.name,"Bob")});

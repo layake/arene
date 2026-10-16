@@ -6,7 +6,7 @@ export function route(core,method,path,raw){
     const ok=body=>({status:200,body});
     if(method==="POST"&&path==="/api/register")return ok(core.register(b.name));
     if(method==="POST"&&path==="/api/me")return ok(core.me(b.id,b.token));
-    if(method==="POST"&&path==="/api/queue")return ok(core.queuePoll(b.id,b.token));
+    if(method==="POST"&&path==="/api/queue")return ok(core.queuePoll(b.id,b.token,!!b.fresh));
     if(method==="POST"&&path==="/api/queue/leave")return ok(core.queueLeave(b.id,b.token));
     if(method==="POST"&&path==="/api/report")return ok(core.report(b.id,b.token,b.matchId,b.result));
     if(method==="POST"&&path==="/api/result")return ok(core.result(b.id,b.token,b.matchId));

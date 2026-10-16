@@ -17,10 +17,10 @@ function cancelChannel(){if(NET.guest)NET.send({t:"cancel"});if(player.rush&&pla
 stage.addEventListener("pointerdown",e=>{
   if(paused||menuOpen||player.ko>0||e.target.closest("button")||(e.button!==0&&e.button!==2))return;
   if(player.rush||player.chan){if(e.button===2)cancelChannel();return}
-  if(aiming){const a=aiming; aiming=null; lastE={clientX:e.clientX,clientY:e.clientY}; mouse=toWorld(lastE);
+  if(aiming){const a=aiming; aiming=null; lastE=ptrXY(e); mouse=toWorld(lastE);
     if(e.button===0)cast(player,a); return}
-  lastE={clientX:e.clientX,clientY:e.clientY}; held=true; setMoveTarget(lastE,true); stage.setPointerCapture(e.pointerId)});
-stage.addEventListener("pointermove",e=>{lastE={clientX:e.clientX,clientY:e.clientY}});
+  lastE=ptrXY(e); held=true; setMoveTarget(lastE,true); try{stage.setPointerCapture(e.pointerId)}catch(_){}});
+stage.addEventListener("pointermove",e=>{lastE=ptrXY(e)});
 ["pointerup","pointercancel"].forEach(t=>stage.addEventListener(t,()=>{held=false}));
 // ---- Barre de sorts : les 4 emplacements prennent le kit de l'Ace choisi ----
 const SLOT_KEYS=["A","Z","E","R"];
@@ -239,7 +239,7 @@ function refreshMenu(){
   goBtn.textContent=teamReady()?"Combattre":(picks.length<(pickMode==="duel"?3:1)?"Sélectionne "+(pickMode==="duel"?3:1)+(pickMode==="duel"?" Aces":" Ace"):"Sélectionne 4 sorts");
 }
 const teamReady=()=>picks.length>=(pickMode==="duel"?3:1)&&picks.every(k=>draftOf(k).length===4);
-function openMenu(){if(NET.on){NET.toLobby();NET.tab("online")}musicSet("menu");setPause(false);menuOpen=true;menuEl.hidden=false;refreshMenu()}
+function openMenu(){if(typeof hideBanner==="function")hideBanner(); if(NET.on){NET.toLobby();NET.tab("online")}musicSet("menu");setPause(false);menuOpen=true;menuEl.hidden=false;refreshMenu()}
 goBtn.addEventListener("click",()=>{
   if(!teamReady())return;
   picks.forEach(k=>{KITS[k]=draftOf(k).slice()}); try{localStorage.setItem("aceKits",JSON.stringify(KITS));localStorage.setItem("aceTeam",JSON.stringify(picks))}catch(_){}

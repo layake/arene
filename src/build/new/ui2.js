@@ -64,8 +64,9 @@ vsEl.addEventListener("click",()=>{if(vsT>0&&vsT<2.2)hideVersus()});
 addEventListener("keydown",e=>{if(!vsEl.hidden&&vsT<2.2&&(e.key==="Enter"||e.key===" ")){e.preventDefault();e.stopPropagation();hideVersus()}},true);
 // --- banniere de manche ---
 var banEl=document.createElement("div"); banEl.id="roundban"; banEl.hidden=true; stageEl.appendChild(banEl);
-function showBanner(txt,cls){banEl.textContent=txt;banEl.className=cls||"";banEl.hidden=false;void banEl.offsetWidth;banEl.classList.add("in")}
-function hideBanner(){if(banEl)banEl.hidden=true}
+var banT=0;
+function showBanner(txt,cls){clearTimeout(banT); if(cls==="win"||cls==="lose")banT=setTimeout(hideBanner,3200); banEl.textContent=txt;banEl.className=cls||"";banEl.hidden=false;void banEl.offsetWidth;banEl.classList.add("in")}
+function hideBanner(){clearTimeout(banT); if(banEl)banEl.hidden=true}
 // --- fin de match ---
 function winsNeeded(){return (bestOf+1)/2}
 function matchWon(){return matchMode==="duel"&&(score.me>=winsNeeded()||score.foe>=winsNeeded())}

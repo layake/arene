@@ -4,7 +4,7 @@ const RK={prof:null,state:"idle",poll:0,match:null,since:0,board:false};
 try{RK.prof=JSON.parse(localStorage.getItem("aceRk"))}catch(_){}
 const rkSave=()=>{try{localStorage.setItem("aceRk",JSON.stringify(RK.prof))}catch(_){}};
 async function rkCall(path,body,get){
-  const c=new AbortController(); const to=setTimeout(()=>c.abort(),6000);
+  const c=new AbortController(); const to=setTimeout(()=>c.abort(),10000);
   try{
     const r=await fetch(RANKED_API+path,get?{signal:c.signal}:{method:"POST",body:JSON.stringify(body||{}),signal:c.signal});
     const j=await r.json().catch(()=>({})); if(!r.ok)throw Object.assign(new Error(j.error||"Erreur"),{status:r.status});
@@ -51,12 +51,12 @@ async function rkBoard(){
 function rkSearch(){
   if(!RK.prof)return;
   if(!NET.saveKit()){rkMsg(LANG==="en"?"Pick 3 Aces with 4 moves each first":"Choisis d'abord 3 Aces avec 4 sorts chacun",true);return}
-  RK.state="queue"; RK.since=performance.now(); rkRender(); rkPoll();
+  RK.state="queue"; RK.since=performance.now(); RK.fresh=true; rkRender(); rkPoll();
 }
 async function rkPoll(){
   clearTimeout(RK.poll); if(RK.state!=="queue")return;
   try{
-    const r=await rkCall("/api/queue",{id:RK.prof.id,token:RK.prof.token});
+    const r=await rkCall("/api/queue",{id:RK.prof.id,token:RK.prof.token,fresh:!!RK.fresh}); RK.fresh=false;
     if(RK.state!=="queue")return;
     if(r.status==="matched"){
       RK.state="found"; RK.match={matchId:r.matchId,reported:false,started:false,oppName:r.opp.name}; async function rkMe(){if(!RK.prof)return; try{const m=await rkCall("/api/me",{id:RK.prof.id,token:RK.prof.token}); if(m&&m.elo){RK.prof.elo=m.elo;rkSave();if(RK.state==="idle")rkRender()}}catch(_){}}

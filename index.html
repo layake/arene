@@ -438,7 +438,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Sélection d'équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>mannequin d'entraînement</small></button><button type="button" data-mode="duel" aria-pressed="false">Versus<small>contre un adversaire</small></button><button type="button" data-mode="rush" aria-pressed="false">Marathon<small>16 adversaires d'affilée, au chrono</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="rounds" role="group" aria-label="Rounds"><span>Rounds</span><button type="button" data-r="1">1</button><button type="button" data-r="3" aria-pressed="true">3</button><button type="button" data-r="5">5</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
 </div>
-<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.54 · 16/10/2026</b></footer>
+<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.55 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -2568,10 +2568,10 @@ function cancelChannel(){if(NET.guest)NET.send({t:"cancel"});if(player.rush&&pla
 stage.addEventListener("pointerdown",e=>{
   if(paused||menuOpen||player.ko>0||e.target.closest("button")||(e.button!==0&&e.button!==2))return;
   if(player.rush||player.chan){if(e.button===2)cancelChannel();return}
-  if(aiming){const a=aiming; aiming=null; lastE={clientX:e.clientX,clientY:e.clientY}; mouse=toWorld(lastE);
+  if(aiming){const a=aiming; aiming=null; lastE=ptrXY(e); mouse=toWorld(lastE);
     if(e.button===0)cast(player,a); return}
-  lastE={clientX:e.clientX,clientY:e.clientY}; held=true; setMoveTarget(lastE,true); stage.setPointerCapture(e.pointerId)});
-stage.addEventListener("pointermove",e=>{lastE={clientX:e.clientX,clientY:e.clientY}});
+  lastE=ptrXY(e); held=true; setMoveTarget(lastE,true); try{stage.setPointerCapture(e.pointerId)}catch(_){}});
+stage.addEventListener("pointermove",e=>{lastE=ptrXY(e)});
 ["pointerup","pointercancel"].forEach(t=>stage.addEventListener(t,()=>{held=false}));
 // ---- Barre de sorts : les 4 emplacements prennent le kit de l'Ace choisi ----
 const SLOT_KEYS=["A","Z","E","R"];
@@ -2790,7 +2790,7 @@ function refreshMenu(){
   goBtn.textContent=teamReady()?"Combattre":(picks.length<(pickMode==="duel"?3:1)?"Sélectionne "+(pickMode==="duel"?3:1)+(pickMode==="duel"?" Aces":" Ace"):"Sélectionne 4 sorts");
 }
 const teamReady=()=>picks.length>=(pickMode==="duel"?3:1)&&picks.every(k=>draftOf(k).length===4);
-function openMenu(){if(NET.on){NET.toLobby();NET.tab("online")}musicSet("menu");setPause(false);menuOpen=true;menuEl.hidden=false;refreshMenu()}
+function openMenu(){if(typeof hideBanner==="function")hideBanner(); if(NET.on){NET.toLobby();NET.tab("online")}musicSet("menu");setPause(false);menuOpen=true;menuEl.hidden=false;refreshMenu()}
 goBtn.addEventListener("click",()=>{
   if(!teamReady())return;
   picks.forEach(k=>{KITS[k]=draftOf(k).slice()}); try{localStorage.setItem("aceKits",JSON.stringify(KITS));localStorage.setItem("aceTeam",JSON.stringify(picks))}catch(_){}
@@ -4719,8 +4719,9 @@ vsEl.addEventListener("click",()=>{if(vsT>0&&vsT<2.2)hideVersus()});
 addEventListener("keydown",e=>{if(!vsEl.hidden&&vsT<2.2&&(e.key==="Enter"||e.key===" ")){e.preventDefault();e.stopPropagation();hideVersus()}},true);
 // --- banniere de manche ---
 var banEl=document.createElement("div"); banEl.id="roundban"; banEl.hidden=true; stageEl.appendChild(banEl);
-function showBanner(txt,cls){banEl.textContent=txt;banEl.className=cls||"";banEl.hidden=false;void banEl.offsetWidth;banEl.classList.add("in")}
-function hideBanner(){if(banEl)banEl.hidden=true}
+var banT=0;
+function showBanner(txt,cls){clearTimeout(banT); if(cls==="win"||cls==="lose")banT=setTimeout(hideBanner,3200); banEl.textContent=txt;banEl.className=cls||"";banEl.hidden=false;void banEl.offsetWidth;banEl.classList.add("in")}
+function hideBanner(){clearTimeout(banT); if(banEl)banEl.hidden=true}
 // --- fin de match ---
 function winsNeeded(){return (bestOf+1)/2}
 function matchWon(){return matchMode==="duel"&&(score.me>=winsNeeded()||score.foe>=winsNeeded())}
@@ -4819,7 +4820,7 @@ const RK={prof:null,state:"idle",poll:0,match:null,since:0,board:false};
 try{RK.prof=JSON.parse(localStorage.getItem("aceRk"))}catch(_){}
 const rkSave=()=>{try{localStorage.setItem("aceRk",JSON.stringify(RK.prof))}catch(_){}};
 async function rkCall(path,body,get){
-  const c=new AbortController(); const to=setTimeout(()=>c.abort(),6000);
+  const c=new AbortController(); const to=setTimeout(()=>c.abort(),10000);
   try{
     const r=await fetch(RANKED_API+path,get?{signal:c.signal}:{method:"POST",body:JSON.stringify(body||{}),signal:c.signal});
     const j=await r.json().catch(()=>({})); if(!r.ok)throw Object.assign(new Error(j.error||"Erreur"),{status:r.status});
@@ -4866,12 +4867,12 @@ async function rkBoard(){
 function rkSearch(){
   if(!RK.prof)return;
   if(!NET.saveKit()){rkMsg(LANG==="en"?"Pick 3 Aces with 4 moves each first":"Choisis d'abord 3 Aces avec 4 sorts chacun",true);return}
-  RK.state="queue"; RK.since=performance.now(); rkRender(); rkPoll();
+  RK.state="queue"; RK.since=performance.now(); RK.fresh=true; rkRender(); rkPoll();
 }
 async function rkPoll(){
   clearTimeout(RK.poll); if(RK.state!=="queue")return;
   try{
-    const r=await rkCall("/api/queue",{id:RK.prof.id,token:RK.prof.token});
+    const r=await rkCall("/api/queue",{id:RK.prof.id,token:RK.prof.token,fresh:!!RK.fresh}); RK.fresh=false;
     if(RK.state!=="queue")return;
     if(r.status==="matched"){
       RK.state="found"; RK.match={matchId:r.matchId,reported:false,started:false,oppName:r.opp.name}; async function rkMe(){if(!RK.prof)return; try{const m=await rkCall("/api/me",{id:RK.prof.id,token:RK.prof.token}); if(m&&m.elo){RK.prof.elo=m.elo;rkSave();if(RK.state==="idle")rkRender()}}catch(_){}}
@@ -4931,6 +4932,37 @@ const rankedFinished=rkFinished;
 setInterval(()=>{rkBox.hidden=!!(rkRow&&rkRow.hidden)},300);
 async function rkMe(){if(!RK.prof)return; try{const m=await rkCall("/api/me",{id:RK.prof.id,token:RK.prof.token}); if(m&&m.elo){RK.prof.elo=m.elo;rkSave();if(RK.state==="idle")rkRender()}}catch(_){}}
 rkRender(); rkMe();
+
+/* ===== Souris verrouillée dans la fenêtre pendant le combat : curseur virtuel, Échap libère et met en pause ===== */
+const PL={on:false,x:0,y:0,rel:false};
+function ptrXY(e){return PL.on?{clientX:PL.x,clientY:PL.y}:{clientX:e.clientX,clientY:e.clientY}}
+const plCur=document.createElement("div"); plCur.id="plCur"; plCur.hidden=true; document.body.appendChild(plCur);
+{const st=document.createElement("style");
+ st.textContent='#plCur{position:fixed;left:0;top:0;width:18px;height:18px;margin:-9px 0 0 -9px;border:3px solid #ffe45e;border-radius:50%;box-shadow:0 0 0 2px #000,inset 0 0 0 2px #000;pointer-events:none;z-index:99999}#plCur[hidden]{display:none}';
+ document.head.appendChild(st)}
+const plWant=()=>!menuOpen&&!paused&&!endShown&&titleEl.hidden&&vsT<=0;
+const plBox=()=>stage.getBoundingClientRect();
+function plPlace(){plCur.style.transform="translate("+PL.x+"px,"+PL.y+"px)"}
+document.addEventListener("pointermove",e=>{
+  if(!PL.on)return;
+  const r=plBox(); PL.x=Math.max(r.left,Math.min(r.right-1,PL.x+(e.movementX||0))); PL.y=Math.max(r.top,Math.min(r.bottom-1,PL.y+(e.movementY||0))); plPlace();
+},true);
+document.addEventListener("pointerdown",e=>{
+  if(PL.on){ // sous verrou, les boutons se cliquent via le curseur virtuel
+    const el=document.elementFromPoint(PL.x,PL.y), b=el&&el.closest&&el.closest("button");
+    if(b){e.stopPropagation();e.preventDefault();b.click()}
+    return;
+  }
+  if(!plWant()||e.button!==0&&e.button!==2||(e.target.closest&&e.target.closest("button")))return;
+  if(!stage.requestPointerLock)return;
+  PL.x=e.clientX; PL.y=e.clientY;
+  try{const p=stage.requestPointerLock(); if(p&&p.catch)p.catch(()=>{})}catch(_){}
+},true);
+document.addEventListener("pointerlockchange",()=>{
+  PL.on=document.pointerLockElement===stage; plCur.hidden=!PL.on; if(PL.on)plPlace();
+  if(!PL.on){ if(!PL.rel&&plWant())setPause(true); PL.rel=false }
+});
+setInterval(()=>{if(PL.on&&!plWant()){PL.rel=true; try{document.exitPointerLock()}catch(_){}}},150);
 
 // ---- Langue : le code reste en français, une couche de traduction (DOM + texte canvas) bascule en anglais ----
 var LANG="fr"; try{const l=localStorage.getItem("aceLang"); LANG=l==="en"||l==="fr"?l:((navigator.language||"").toLowerCase().startsWith("fr")?"fr":"en")}catch(_){}
