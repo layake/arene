@@ -238,7 +238,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Choisis ton Ace</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>Tortipousse, mannequin</small></button><button type="button" data-mode="duel" aria-pressed="false">Duel<small>contre l'autre Ace</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div>
 </div>
-<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.14 · 16/10/2026</b></footer>
+<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.15 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -618,7 +618,7 @@ try{const k=JSON.parse(localStorage.getItem("aceKits")||"{}");for(const s in k)i
 const kitOf=key=>KITS[key]||SPECIES[key].kit;
 function makeFighter(species,x,y,bot,kit){
   const e=makeEntity(species,x,y);
-  e.kit=(kit||SPECIES[species].kit).slice(); e.slow=0; e.burn=0; e.inv=0; e.psn=0; e.sleep=false;
+  e.kit=(kit||SPECIES[species].kit).slice(); e.slow=0; e.burn=0; e.inv=0; e.psn=0; e.flashC=null; e.sleep=false;
   e.fighter=true; e.bf={}; e.shieldE=100; e.shieldOn=false; e.shieldBroken=false; e.pp=PP_MAX; e.cd={}; e.comboT=0; e.moveTarget=null; e.wantShield=false; e.aimPt=null; e.cast=null;
   e.bot=bot?{think:rand(.3,.7),shieldT:0,strafe:1,strafeT:0,nextMove:0}:null;
   return e;
@@ -633,7 +633,7 @@ function resetRound(){
   entities.forEach((e,i)=>{
     const s=i===0?START_A:START_B; e.x=s[0]; e.y=s[1]; e.hp=e.maxHp; e.hpShow=0; e.ko=0; e.kb=null; e.stun=0; e.dizzy=false; e.flash=0; e.lock=0; e.hit=false; e.run=false;
     e.lx=e.x; e.ly=e.y; setAnim(e,"idle");
-    if(e.fighter){e.pp=PP_MAX; e.shieldE=100; e.shieldOn=false; e.shieldBroken=false; e.tunnel=null; e.rush=null; e.chan=null; e.counter=null; e.bf={}; e.slow=0; e.burn=0; e.inv=0; e.psn=0; e.sleep=false; e.cd={}; e.comboT=0; e.moveTarget=null; e.cast=null; e.dir=i===0?2:6}
+    if(e.fighter){e.pp=PP_MAX; e.shieldE=100; e.shieldOn=false; e.shieldBroken=false; e.tunnel=null; e.rush=null; e.chan=null; e.counter=null; e.bf={}; e.slow=0; e.burn=0; e.inv=0; e.psn=0; e.flashC=null; e.sleep=false; e.cd={}; e.comboT=0; e.moveTarget=null; e.cast=null; e.dir=i===0?2:6}
     if(e.ai){e.ai.atk=null;e.ai.atkCd=3;e.ai.wait=rand(1,2.5);e.ai.tx=e.x;e.ai.ty=e.y; e.dir=6}
   });
   [fx,parts,pops,orbs,zones,beams,holes,trail,rings,glows].forEach(a=>a.length=0);
@@ -1955,7 +1955,7 @@ function draw(){
   ctx.globalAlpha=1;
   fighters.forEach(e=>{if(e.tunnel&&e.tunnel.phase==="dash")drawMound(e.x,e.y,1)});
   if(marker)drawMarker(marker);
-  zones.forEach(drawZone);
+  zones.forEach(drawZone); fighters.forEach(drawFlashMark);
   glows.forEach(g=>{
     const u=g.t/g.life, hw=Math.round(8*(1-.35*u)), a=(1-u)*.65, x=Math.round(g.x), y=Math.round(g.y);
     for(let dy=-3;dy<=3;dy++){const w=Math.round(hw*Math.sqrt(1-dy*dy/12));
@@ -2093,7 +2093,7 @@ function applyKit(){
     SLOT_T.delete(btn);
   });
   const kit=player.kit.map((id,i)=>"<b>"+SLOT_KEYS[i]+"</b> "+SPL[id].name+" ("+SPL[id].cost+")").join(" · ");
-  helpEl.innerHTML="<b>Clic droit</b> se déplacer (maintenir pour suivre)<br><b>Survoler l'ennemi</b> + clic droit : le poursuivre<br><b>Espace</b> bouclier (maintenir)<br><b>F</b> Flash : blink vers le curseur, intouchable 0,25 s (recharge 12 s)<br>"+kit+"<br><b>Clic gauche</b> lance le sort visé · <b>Clic droit</b> ou <b>Échap</b> annule<br>Le mode de lancer (clic, rapide, maintenir) se change avec le bouton à côté.";
+  helpEl.innerHTML="<b>Clic droit</b> se déplacer (maintenir pour suivre)<br><b>Survoler l'ennemi</b> + clic droit : le poursuivre<br><b>Espace</b> bouclier (maintenir)<br><b>F</b> Flash : blink vers le curseur, court cast puis intouchable 0,25 s (recharge 12 s)<br>"+kit+"<br><b>Clic gauche</b> lance le sort visé · <b>Clic droit</b> ou <b>Échap</b> annule<br>Le mode de lancer (clic, rapide, maintenir) se change avec le bouton à côté.";
   scoreEl.textContent=""; scoreTxt="";
 }
 const SLOT_T=new WeakMap();
@@ -2303,7 +2303,7 @@ function frame(now){
     entities.forEach(e=>updateKO(e,dt));
   }
   entities.forEach(e=>{e.flash=Math.max(0,e.flash-dt);e.hpShow=Math.max(0,e.hpShow-dt)});
-  fighters.forEach(watchDecoy); fighters.forEach(e=>tickBurn(e,dt));
+  fighters.forEach(watchDecoy); fighters.forEach(e=>tickBurn(e,dt)); fighters.forEach(e=>tickFlash(e,dt));
   fx.forEach(c=>c.t+=dt); for(let i=fx.length-1;i>=0;i--)if(fx[i].t>(fx[i].life||.3))fx.splice(i,1);
   beams.forEach(b=>b.t+=dt); for(let i=beams.length-1;i>=0;i--)if(beams[i].t>beams[i].life)beams.splice(i,1);
   parts.forEach(q=>{q.t+=dt;q.x+=q.vx*dt;q.y+=q.vy*dt;q.vy+=(q.g===undefined?120:q.g)*dt}); for(let i=parts.length-1;i>=0;i--)if(parts[i].t>parts[i].life)parts.splice(i,1);
@@ -2710,22 +2710,38 @@ function botAce2(e,t,d,threat,go,ok,rnd){
   return false;
 }
 
-/* ===== Flash (touche F) : blink vers le curseur, intouchable bref, puis recuperation ===== */
-const FLASH={dist:110,inv:.25,rec:.45,cd:12,pal:["#fff6b0","#ffe060","#ffffff","#f0b020","#ffd23c"]};
+/* ===== Flash (touche F) : court cast avec destination visible, puis blink; pas de recuperation ===== */
+const FLASH={dist:110,cast:.3,inv:.25,cd:12,pal:["#fff6b0","#ffe060","#ffffff","#f0b020","#ffd23c"]};
 function castFlash(e){
-  if(e.ko>0||e.stun>0||e.tunnel||e.rush||e.chan||e.counter||e.lock>0||(e.anim==="attack"&&!e.hit)||cdOf(e,"flash")>0)return;
+  if(e.ko>0||e.stun>0||e.tunnel||e.rush||e.chan||e.counter||e.flashC||e.lock>0||(e.anim==="attack"&&!e.hit)||cdOf(e,"flash")>0)return;
   e.cd.flash=FLASH.cd;
   const pt=e===player&&!e.bot?mouse:e.aimPt, o=e===player?foe:player;
   let dx=pt?pt.wx-e.x:o.x-e.x, dy=pt?pt.wy-e.y:o.y-e.y, d=Math.hypot(dx,dy);
   if(d<4){dx=o.x-e.x;dy=o.y-e.y;d=Math.hypot(dx,dy)||1}
-  const k=Math.min(FLASH.dist,d)/d, nx=clampX(e.x+dx*k), ny=clampY(e.y+dy*k), ox=e.x, oy=e.y;
-  for(let i=0;i<=8;i++){const f=i/8; colorBurst(ox+(nx-ox)*f,oy+(ny-oy)*f,3,FLASH.pal,12,60)}
-  rings.push({x:ox,y:oy,t:0,dur:.3,max:20,c:"#ffe060"});
-  e.shieldOn=false; e.x=nx; e.y=ny; e.kb=null; e.moveTarget=null; if(e===player)marker=null; e.lx=e.x; e.ly=e.y; setAnim(e,"idle");
-  e.inv=Math.max(e.inv||0,FLASH.inv); e.lock=FLASH.rec;
-  colorBurst(nx,ny,22,FLASH.pal,28,120); rings.push({x:nx,y:ny,t:0,dur:.35,max:26,c:"#ffffff"});
+  const k=Math.min(FLASH.dist,d)/d;
+  e.shieldOn=false; e.moveTarget=null; if(e===player)marker=null; e.lock=FLASH.cast+.02;
+  e.flashC={t:0,x:clampX(e.x+dx*k),y:clampY(e.y+dy*k)};
+  rings.push({x:e.x,y:e.y,t:0,dur:.3,max:14,c:"#ffe060"});
   SND.pe=e;SND.pend="tele";
+}
+function tickFlash(e,dt){
+  const F=e.flashC; if(!F)return;
+  if(e.ko>0||e.stun>0){e.flashC=null;e.lock=0;return}
+  F.t+=dt; if(F.t<FLASH.cast)return;
+  e.flashC=null; e.lock=0;
+  const ox=e.x, oy=e.y;
+  for(let i=0;i<=8;i++){const f=i/8; colorBurst(ox+(F.x-ox)*f,oy+(F.y-oy)*f,3,FLASH.pal,12,60)}
+  rings.push({x:ox,y:oy,t:0,dur:.3,max:20,c:"#ffe060"});
+  e.x=F.x; e.y=F.y; e.kb=null; e.moveTarget=null; if(e===player)marker=null; e.lx=e.x; e.ly=e.y; setAnim(e,"idle");
+  e.inv=Math.max(e.inv||0,FLASH.inv);
+  colorBurst(e.x,e.y,22,FLASH.pal,28,120); rings.push({x:e.x,y:e.y,t:0,dur:.35,max:26,c:"#ffffff"});
   logFor(e,e.sp.name+" utilise Flash !",900);
+}
+function drawFlashMark(e){
+  const F=e.flashC; if(!F)return;
+  const x=Math.round(F.x), y=Math.round(F.y), u=clamp(F.t/FLASH.cast,0,1), R=9, ry=Math.round(R*ISO), blink=Math.floor(performance.now()/60)%2;
+  ellipseRows(x,y,R,ry,"rgba(255,224,96,"+(.12+.25*u).toFixed(2)+")"); ellipseLine(x,y,R,ry,blink&&u>.6?"#ffffff":"#ffd23c");
+  ellipseLine(x,y,Math.max(2,Math.round(R*(1-u)*1.6)),Math.max(1,Math.round(ry*(1-u)*1.6)),"#fff6b0");
 }
 
 // ---- Multijoueur en ligne : l'hôte fait autorité, l'invité joue en prédiction locale et se recale sur les instantanés ----
