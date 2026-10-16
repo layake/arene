@@ -1,4 +1,4 @@
-// ---- Sons : effets synthétisés par le code (voir snd_synth.js). WebAudio, 3 jauges (général, combat, interface). ----
+// ---- Sons : effets de Pokémon Donjon Mystère (usage privé). WebAudio, 3 jauges (général, combat, interface). ----
 const SFX_MAP={ // cast = départ du sort, hit = impact (sinon son selon l'efficacité)
   claw:{cast:726,hit:848},mud:{cast:860,hit:863},tun:{cast:602,hit:344},rush:{cast:402,hit:336},
   quake:{cast:420,hit:750},rslide:{cast:653,hit:651},ihead:{cast:819,hit:344},sdance:{cast:744},
@@ -11,15 +11,19 @@ const SFX_UI={click:306,go:307,shield:355,block:344,sbreak:336,ko:416,sleep:772,
 const SND={ctx:null,gain:null,bus:{},vol:{master:.8,fight:.8,ui:.8,music:.5},buf:{},ready:false,idmap:null};
 try{const v=JSON.parse(localStorage.getItem("sndVol")||"null");if(v)Object.assign(SND.vol,v)}catch(e){}
 function sndInit(){
-  if(SND.ctx)return; const AC=window.AudioContext||window.webkitAudioContext; if(!AC)return;
+  if(SND.ctx)return; const AC=window.AudioContext||window.webkitAudioContext; if(!AC||typeof SND_B64==="undefined")return;
   SND.ctx=new AC(); SND.gain=SND.ctx.createGain(); const cmp=SND.ctx.createDynamicsCompressor(); cmp.threshold.value=-14; cmp.ratio.value=5; cmp.attack.value=.003; cmp.release.value=.18; const mk=SND.ctx.createGain(); mk.gain.value=1.7; SND.gain.connect(cmp); cmp.connect(mk); mk.connect(SND.ctx.destination);
   ["fight","ui","music"].forEach(k=>{const g=SND.ctx.createGain();g.connect(SND.gain);SND.bus[k]=g});
   sndApply(); musicSet(menuOpen?"menu":"battle");
+  Object.keys(SND_B64).forEach(id=>{
+    const bin=atob(SND_B64[id]), u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+    SND.ctx.decodeAudioData(u.buffer,b=>{SND.buf[id]=b},()=>{});
+  });
 }
 function sndApply(){ if(!SND.ctx)return; SND.gain.gain.value=SND.vol.master; SND.bus.fight.gain.value=SND.vol.fight; SND.bus.ui.gain.value=SND.vol.ui; SND.bus.music.gain.value=SND.vol.music*(SND.duck?.3:1) }
 function sndSave(){ try{localStorage.setItem("sndVol",JSON.stringify(SND.vol))}catch(e){} }
 function sfx(id,bus,vol,rate,x){
-  if(!SND.ctx||!id)return; const b=SND.buf[id]||(SND.buf[id]=sndRender(id)); if(!b)return;
+  if(!SND.ctx||!id)return; const b=SND.buf[id]; if(!b)return;
   if(SND.ctx.state==="suspended")SND.ctx.resume();
   const s=SND.ctx.createBufferSource(), g=SND.ctx.createGain(); s.buffer=b; if(rate)s.playbackRate.value=rate;
   g.gain.value=(vol==null?1:vol)*((typeof SFX_GAIN!=="undefined"&&SFX_GAIN[id])||1); s.connect(g);
