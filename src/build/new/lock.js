@@ -1,11 +1,12 @@
 /* ===== Souris verrouillée dans la fenêtre pendant le combat : curseur virtuel, Échap libère et met en pause ===== */
 const PL={on:false,x:0,y:0,rel:false};
+const PL_ON=()=>{try{return localStorage.getItem("aceLock")!=="0"}catch(_){return true}}; // réglable dans Paramètres
 function ptrXY(e){return PL.on?{clientX:PL.x,clientY:PL.y}:{clientX:e.clientX,clientY:e.clientY}}
 const plCur=document.createElement("div"); plCur.id="plCur"; plCur.hidden=true; document.body.appendChild(plCur);
 {const st=document.createElement("style");
  st.textContent='#plCur{position:fixed;left:0;top:0;width:18px;height:18px;margin:-9px 0 0 -9px;border:3px solid #ffe45e;border-radius:50%;box-shadow:0 0 0 2px #000,inset 0 0 0 2px #000;pointer-events:none;z-index:99999}#plCur[hidden]{display:none}';
  document.head.appendChild(st)}
-const plWant=()=>!menuOpen&&!paused&&!endShown&&titleEl.hidden&&vsT<=0;
+const plWant=()=>PL_ON()&&!menuOpen&&!paused&&!endShown&&titleEl.hidden&&vsT<=0;
 const plBox=()=>stage.getBoundingClientRect();
 function plPlace(){plCur.style.transform="translate("+PL.x+"px,"+PL.y+"px)"}
 document.addEventListener("pointermove",e=>{

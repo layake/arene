@@ -23,7 +23,14 @@ stage.addEventListener("pointerdown",e=>{
 stage.addEventListener("pointermove",e=>{lastE=ptrXY(e)});
 ["pointerup","pointercancel"].forEach(t=>stage.addEventListener(t,()=>{held=false}));
 // ---- Barre de sorts : les 4 emplacements prennent le kit de l'Ace choisi ----
-const SLOT_KEYS=["A","Z","E","R"];
+// ---- Touches configurables (menu Pause) : on retient la touche physique (e.code), affichée selon la disposition du clavier ----
+const BIND_DEF={s0:"KeyQ",s1:"KeyW",s2:"KeyE",s3:"KeyR",shield:"Space",swap:"Tab",flash:"KeyF",aim:"KeyT"};
+const BIND=Object.assign({},BIND_DEF); try{const b=JSON.parse(localStorage.getItem("aceKeys")||"{}"); for(const k in BIND_DEF)if(typeof b[k]==="string")BIND[k]=b[k]}catch(_){}
+const KEY_LBL={};
+if(/^fr/i.test(navigator.language||""))Object.assign(KEY_LBL,{KeyQ:"A",KeyW:"Z",KeyA:"Q",KeyZ:"W",Semicolon:"M",KeyM:","}); // AZERTY par défaut en français
+function keyLabel(c){ if(KEY_LBL[c])return KEY_LBL[c]; if(c==="Space")return "Espace"; if(c.startsWith("Key"))return c.slice(3); if(c.startsWith("Digit"))return c.slice(5); if(c.startsWith("Numpad"))return "Pavé "+c.slice(6); return ({ShiftLeft:"Maj",ShiftRight:"Maj D",ControlLeft:"Ctrl",ControlRight:"Ctrl D",AltLeft:"Alt",ArrowUp:"↑",ArrowDown:"↓",ArrowLeft:"←",ArrowRight:"→",Backquote:"²",CapsLock:"Verr. Maj"})[c]||c }
+try{if(navigator.keyboard&&navigator.keyboard.getLayoutMap)navigator.keyboard.getLayoutMap().then(m=>{m.forEach((v,k)=>{if(v&&v.trim())KEY_LBL[k]=v.toUpperCase()}); if(typeof refreshKeyLabels==="function")refreshKeyLabels()}).catch(()=>{})}catch(_){}
+const SLOT_KEYS=[0,1,2,3].map(i=>keyLabel(BIND["s"+i]));
 const slotBtns=["atk","pls","tun","rsh"].map(id=>document.getElementById(id));
 const shdBtn=document.getElementById("shd");
 const shade=(hex,f)=>{const n=parseInt(hex.slice(1),16);const c=v=>clamp(Math.round(v*f),0,255);return"#"+((1<<24)+(c(n>>16)<<16)+(c(n>>8&255)<<8)+c(n&255)).toString(16).slice(1)};
@@ -35,7 +42,7 @@ function applyKit(){
     SLOT_T.delete(btn);
   });
   const kit=player.kit.map((id,i)=>"<b>"+SLOT_KEYS[i]+"</b> "+SPL[id].name+" ("+Math.round(SPL[id].cd*10)/10+" s)").join(" · ");
-  helpEl.innerHTML="<b>Clic droit</b> : se déplacer (maintenir pour suivre)<br><b>Clic droit sur l'ennemi</b> : le poursuivre<br><b>Espace</b> : bouclier (maintenir)<br><b>Tab</b> : changer d'Ace (0,5 s)<br><b>F</b> : Flash, téléportation vers le curseur (recharge 5 s)<br>"+kit+"<br><b>Clic gauche</b> : lancer le sort · <b>Clic droit</b> ou <b>Échap</b> : annuler<br><b>Souris</b> : bloquée dans la fenêtre pendant le combat, <b>Échap</b> la libère et met en pause<br><b>Jets (Lance-Flammes, Hydrocanon, Blizzard)</b> : maintenir la touche, on reste immobile, relâcher coupe<br>Le mode de lancer se règle dans le menu Pause.";
+  helpEl.innerHTML="<b>Clic droit</b> : se déplacer (maintenir pour suivre)<br><b>Clic droit sur l'ennemi</b> : le poursuivre<br><b>"+keyLabel(BIND.shield)+"</b> : bouclier (maintenir)<br><b>"+keyLabel(BIND.swap)+"</b> : changer d'Ace (0,5 s)<br><b>"+keyLabel(BIND.flash)+"</b> : Flash, téléportation vers le curseur (recharge 5 s)<br>"+kit+"<br><b>Clic gauche</b> : lancer le sort · <b>Clic droit</b> ou <b>Échap</b> : annuler<br><b>Souris</b> : bloquée dans la fenêtre pendant le combat, <b>Échap</b> la libère et met en pause<br><b>Jets (Lance-Flammes, Hydrocanon, Blizzard)</b> : maintenir la touche, on reste immobile, relâcher coupe<br>Le mode de lancer se règle dans le menu Pause.";
   scoreEl.textContent=""; scoreTxt="";
 }
 const SLOT_T=new WeakMap();
@@ -116,7 +123,7 @@ const CAST_MODES=[["click","Sorts : visée au clic"],["quick","Sorts : lancer in
 let castMode="click"; try{const m=localStorage.getItem("castMode");if(CAST_MODES.some(c=>c[0]===m))castMode=m}catch(_){}
 function pressSpell(slot){ const id=player.kit[slot]; if(!id||player.ko>0)return; if(typeof STREAM_DEFS!=="undefined"&&STREAM_DEFS.some(d=>d.id===id)){aiming=null;player.holdKey=true;player.holdSlot=slot;cast(player,id);return} if(castMode==="quick"||SPL[id].self){aiming=null;cast(player,id)} else aiming=id }
 function releaseSpell(){ const n=aiming; aiming=null; if(n)cast(player,n) }
-const slotOf=e=>e.code==="KeyQ"?0:({z:1,e:2,r:3})[e.key.toLowerCase()];
+const slotOf=e=>{const i=[0,1,2,3].find(i=>e.code===BIND["s"+i]); return i===-1?undefined:i};
 addEventListener("keydown",e=>{const k=e.key.toLowerCase();
   if(menuOpen)return;
   if(k==="escape"||k==="p"){
@@ -124,14 +131,15 @@ addEventListener("keydown",e=>{const k=e.key.toLowerCase();
     if(k==="escape"&&(aiming||channeling())){aiming=null;if(channeling())cancelChannel();return}
     setPause(true);return}
   if(paused)return;
-  if(k==="t"){const i=AIM.modes.findIndex(x=>x[0]===AIM.mode),n=AIM.modes[(i+1)%3];setAimMode(n[0]);showLog("Visée : "+n[1],900);return}
-  if(k===" "){e.preventDefault();keys.add(" ");return}
-  if(k==="tab"){e.preventDefault();if(!e.repeat&&player.ko<=0)cast(player,"swap");return}
-  if(k==="f"){e.preventDefault();if(!e.repeat&&player.ko<=0)cast(player,"flash");return}
+  if(e.code===BIND.aim){const i=AIM.modes.findIndex(x=>x[0]===AIM.mode),n=AIM.modes[(i+1)%3];setAimMode(n[0]);showLog("Visée : "+n[1],900);return}
+  if(e.code===BIND.shield){e.preventDefault();keys.add("shield");return}
+  if(e.code===BIND.swap){e.preventDefault();if(!e.repeat&&player.ko<=0)cast(player,"swap");return}
+  if(k==="tab"){e.preventDefault();return}
+  if(e.code===BIND.flash){e.preventDefault();if(!e.repeat&&player.ko<=0)cast(player,"flash");return}
   const s=slotOf(e); if(s!==undefined){e.preventDefault();if(!e.repeat)pressSpell(s);return}
   if(["arrowup","arrowdown","arrowleft","arrowright"].includes(k))e.preventDefault();
   keys.add(k)});
-addEventListener("keyup",e=>{if(e.key===" ")e.preventDefault();keys.delete(e.key.toLowerCase());
+addEventListener("keyup",e=>{if(e.code===BIND.shield){e.preventDefault();keys.delete("shield")} keys.delete(e.key.toLowerCase());
   if(player.holdKey&&slotOf(e)===player.holdSlot)player.holdKey=false;
   if(castMode==="hold"&&aiming){const s=slotOf(e); if(s!==undefined&&aiming===player.kit[s])releaseSpell()}});
 document.querySelectorAll("#aimModes button").forEach(b=>b.addEventListener("click",()=>setAimMode(b.dataset.m)));setAimMode(AIM.mode);
@@ -270,7 +278,7 @@ function frame(now){
   if((paused&&!NET.on)||menuOpen){draw();requestAnimationFrame(frame);return}
   if(lastE){if(held)setMoveTarget(lastE,false);else mouse=toWorld(lastE)}
   foe.hover=hoverEnemy(); stage.style.cursor=foe.hover?"crosshair":"default";
-  player.wantShield=(keys.has(" ")||btnShield)&&player.ko<=0;
+  player.wantShield=(keys.has("shield")||btnShield)&&player.ko<=0;
   NET.tick(dt);
   if(hitstop>0){hitstop-=dt}
   else{
