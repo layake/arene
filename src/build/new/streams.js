@@ -1,15 +1,18 @@
 // ===== Archétype "jet continu" : un flux qui sort du Pokémon, suit la visée et touche à chaque tick =====
 // defStream({id,dur,tick,tickPower,reach,width,style,pal,burn,noise,...}) ; voir docs/AJOUTER_UNE_CAPACITE.md
 var STREAM_DEFS=[];
+const strm_h=n=>{n=(n*374761393+668265263)|0;n=(n^(n>>>13))*1274126177|0;return((n^(n>>>16))>>>0)/4294967295};
 const STREAM_STYLE={
   // blobs de feu qui montent et s'étalent
   fire:{n:20,flow:2,size:s=>Math.max(3,Math.round(8*(1-s*.55))),wob:s=>2+s*7,lift:s=>-s*s*9,cols:s=>s<.25?2:s<.6?1:0,core:s=>s<.3?4:s<.65?3:2},
   // blobs d'eau mous qui retombent en arc, avec des gouttes d'écume
+  // rafale de neige : petits flocons qui s'étalent en cône large
+  snow:{n:40,flow:1.5,size:s=>s<.5?3:2,wob:s=>1+s*3,lift:s=>s*s*6,cols:s=>s<.3?3:s<.7?2:1,core:s=>3},
   water:{n:22,flow:1.7,size:s=>Math.round(3+s*4),wob:s=>1+s*3,lift:s=>s*s*8,cols:s=>s<.3?2:s<.7?1:0,core:s=>s<.5?4:3}
 };
 function strmPoint(c,s,i,T){
   const f=c.e.aim||FACE[c.e.dir], nx=-f[1], ny=f[0], S=STREAM_STYLE[c.d.style]||STREAM_STYLE.fire, grow=Math.min(1,T*7);
-  const d=6+s*c.d.reach*grow, w=Math.sin(T*13+i*1.9)*S.wob(s);
+  const R=c.s.len||c.d.reach, d=6+s*R*grow, w=Math.sin(T*13+i*1.9)*S.wob(s)+(strm_h(i+7)-.5)*2*(c.d.spread||0)*s;
   return {x:c.e.x+f[0]*(8+d)+nx*w, y:c.e.y-c.e.sp.body+f[1]*d*.8+ny*w*.8+S.lift(s), s, S};
 }
 function drawStream(c){
@@ -44,9 +47,10 @@ function updateStreams(dt){
     for(let k=0;k<2;k++){ if(Math.random()<dt*70) spark(mx+f[0]*rand(10,d.reach),my+f[1]*rand(10,d.reach)*.8,rand(-20,20)+f[0]*30,rand(-40,-5),rand(.2,.4),d.pal[Math.floor(rand(0,5))],d.style==="water"?220:-40,2) }
     S.nt-=dt;
     if(S.nt<=0){ S.nt=d.tick;
+      let len=d.reach; for(let q=12;q<=d.reach;q+=6){ if(arenaShot({x:e.x+f[0]*q,y:e.y+f[1]*q,id:"~"+d.id})){len=q;break} } S.len=len;
       if(alive(t)&&!t.tunnel){
         const dx=t.x-mx, dy=(t.y-t.sp.body)-my, along=dx*f[0]+dy*f[1], lat=Math.abs(dx*-f[1]+dy*f[0]);
-        if(along>0&&along<d.reach+t.sp.body*.5&&lat<d.width+t.sp.body*.5){
+        if(along>0&&along<len+t.sp.body*.5&&lat<d.width+(d.spread||0)*Math.max(0,along)/d.reach+t.sp.body*.5){
           const sp=Object.assign({},SPL[d.id],{power:d.tickPower});
           if(strike(e,t,sp,{from:e,dot:true,contact:true,shieldCost:6})){
             colorBurst(t.x,t.y-t.sp.body*.6,4,d.pal,30,90);
@@ -64,9 +68,17 @@ function defStream(d){
   STREAM_DEFS.push(d);
   if(!d.keep){SPL[d.id]={name:d.name,type:d.type,cat:d.cat||"spec",power:d.power||d.tickPower*d.dur/d.tick,cost:d.cost||0,cd:d.cd,ground:false,pp0:0}; SFX_MAP[d.id]=d.sfx}
   if(d.desc){DESC[d.id]=d.desc; if(d.en)I18N_EXTRA[d.desc]=d.en}
-  PREV[d.id]={k:"shot",len:()=>d.reach,hw:d.width,from:10};
+  SPL["~"+d.id]={name:"",type:SPL[d.id].type,cat:"spec",power:d.tickPower,cost:0,cd:0}; // dégâts d'obstacle par tick
+  PREV[d.id]={k:"shot",len:()=>d.reach,hw:Math.round(d.width+(d.spread||0)*.6),from:10};
   ACE2[d.id]={hit(e){startStream(e,d)}};
 }
 defStream({keep:true,id:"flame",style:"fire",pal:FLAMEC,dur:1,tick:.125,tickPower:3,reach:84,width:11,burn:true,noise:[.38,2600,900,1.2],
   desc:"Souffle un jet de flammes continu pendant 1 s, orientable à la visée. Brûle la cible.",
   en:"Breathes a continuous jet of flames for 1 s that follows your aim. Burns the target."});
+
+defStream({keep:true,id:"hydrocanon",style:"water",pal:WATERC,dur:1.1,tick:.1,tickPower:3.6,reach:170,width:13,slow:.7,noise:[.5,1600,500,1.0],
+  desc:"Jet d'eau continu pendant 1 s : on se déplace et le jet suit le curseur. Ralentit la cible.",
+  en:"Continuous water jet for 1 s: you can move and the jet follows the cursor. Slows the target."});
+defStream({keep:true,id:"blizzard",style:"snow",pal:ICEC,dur:1.6,tick:.2,tickPower:2.4,reach:125,width:12,spread:38,slow:1.4,noise:[.55,3200,1200,1.1],
+  desc:"Rafale glacée en cône large pendant 1,6 s, qui suit le curseur. Ralentit fortement.",
+  en:"Wide icy blast for 1.6 s that follows the cursor. Slows heavily."});

@@ -438,7 +438,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Sélection d'équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>mannequin d'entraînement</small></button><button type="button" data-mode="duel" aria-pressed="false">Versus<small>contre un adversaire</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="rounds" role="group" aria-label="Rounds"><span>Rounds</span><button type="button" data-r="1">1</button><button type="button" data-r="3" aria-pressed="true">3</button><button type="button" data-r="5">5</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
 </div>
-<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.45 · 16/10/2026</b></footer>
+<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.46 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -1581,7 +1581,7 @@ function updateRush(e,dt){
     }
   }else if(R.t>=R.cfg.rec){e.rush=null}
 }
-// ---- Éclat Magique : canalisation immobile (la visée suit), puis un rayon long qui traverse tout et étourdit ----
+// ---- Éclat Magique : canalisation mobile (la visée suit), puis un rayon long qui traverse tout et étourdit ----
 function startGleam(e){
   if(e.stun>0||e.tunnel||e.rush||e.chan||e.lock>0||cdOf(e,"gleam")>0||e.shieldOn||(e.anim==="attack"&&!e.hit))return;
   if(!spendPP(e,SPL.gleam.cost))return;
@@ -2787,7 +2787,7 @@ function frame(now){
     fighters.forEach(e=>{
       if(e.bot)thinkBot(e,dt);
       if(e.ko>0)return;
-      if(e.tunnel)updateTunnel(e,dt);else if(e.rush)updateRush(e,dt);else if(e.chan)updateChan(e,dt);else updateMove(e,dt);
+      if(e.tunnel)updateTunnel(e,dt);else if(e.rush)updateRush(e,dt);else if(e.chan){updateMove(e,dt);updateChan(e,dt)}else updateMove(e,dt);
     });
     if(foe.ai)updateWanderer(foe,dt);
     resolveCollision(dt); if(typeof wallPush!=="undefined")fighters.forEach(wallPush); entities.forEach(arenaFix);
@@ -3859,15 +3859,18 @@ defMelee({keep:true,id:"blazekick",fx:"kick",type:"fire",pal:["#a01808","#e8481c
 // ===== Archétype "jet continu" : un flux qui sort du Pokémon, suit la visée et touche à chaque tick =====
 // defStream({id,dur,tick,tickPower,reach,width,style,pal,burn,noise,...}) ; voir docs/AJOUTER_UNE_CAPACITE.md
 var STREAM_DEFS=[];
+const strm_h=n=>{n=(n*374761393+668265263)|0;n=(n^(n>>>13))*1274126177|0;return((n^(n>>>16))>>>0)/4294967295};
 const STREAM_STYLE={
   // blobs de feu qui montent et s'étalent
   fire:{n:20,flow:2,size:s=>Math.max(3,Math.round(8*(1-s*.55))),wob:s=>2+s*7,lift:s=>-s*s*9,cols:s=>s<.25?2:s<.6?1:0,core:s=>s<.3?4:s<.65?3:2},
   // blobs d'eau mous qui retombent en arc, avec des gouttes d'écume
+  // rafale de neige : petits flocons qui s'étalent en cône large
+  snow:{n:40,flow:1.5,size:s=>s<.5?3:2,wob:s=>1+s*3,lift:s=>s*s*6,cols:s=>s<.3?3:s<.7?2:1,core:s=>3},
   water:{n:22,flow:1.7,size:s=>Math.round(3+s*4),wob:s=>1+s*3,lift:s=>s*s*8,cols:s=>s<.3?2:s<.7?1:0,core:s=>s<.5?4:3}
 };
 function strmPoint(c,s,i,T){
   const f=c.e.aim||FACE[c.e.dir], nx=-f[1], ny=f[0], S=STREAM_STYLE[c.d.style]||STREAM_STYLE.fire, grow=Math.min(1,T*7);
-  const d=6+s*c.d.reach*grow, w=Math.sin(T*13+i*1.9)*S.wob(s);
+  const R=c.s.len||c.d.reach, d=6+s*R*grow, w=Math.sin(T*13+i*1.9)*S.wob(s)+(strm_h(i+7)-.5)*2*(c.d.spread||0)*s;
   return {x:c.e.x+f[0]*(8+d)+nx*w, y:c.e.y-c.e.sp.body+f[1]*d*.8+ny*w*.8+S.lift(s), s, S};
 }
 function drawStream(c){
@@ -3902,9 +3905,10 @@ function updateStreams(dt){
     for(let k=0;k<2;k++){ if(Math.random()<dt*70) spark(mx+f[0]*rand(10,d.reach),my+f[1]*rand(10,d.reach)*.8,rand(-20,20)+f[0]*30,rand(-40,-5),rand(.2,.4),d.pal[Math.floor(rand(0,5))],d.style==="water"?220:-40,2) }
     S.nt-=dt;
     if(S.nt<=0){ S.nt=d.tick;
+      let len=d.reach; for(let q=12;q<=d.reach;q+=6){ if(arenaShot({x:e.x+f[0]*q,y:e.y+f[1]*q,id:"~"+d.id})){len=q;break} } S.len=len;
       if(alive(t)&&!t.tunnel){
         const dx=t.x-mx, dy=(t.y-t.sp.body)-my, along=dx*f[0]+dy*f[1], lat=Math.abs(dx*-f[1]+dy*f[0]);
-        if(along>0&&along<d.reach+t.sp.body*.5&&lat<d.width+t.sp.body*.5){
+        if(along>0&&along<len+t.sp.body*.5&&lat<d.width+(d.spread||0)*Math.max(0,along)/d.reach+t.sp.body*.5){
           const sp=Object.assign({},SPL[d.id],{power:d.tickPower});
           if(strike(e,t,sp,{from:e,dot:true,contact:true,shieldCost:6})){
             colorBurst(t.x,t.y-t.sp.body*.6,4,d.pal,30,90);
@@ -3922,12 +3926,20 @@ function defStream(d){
   STREAM_DEFS.push(d);
   if(!d.keep){SPL[d.id]={name:d.name,type:d.type,cat:d.cat||"spec",power:d.power||d.tickPower*d.dur/d.tick,cost:d.cost||0,cd:d.cd,ground:false,pp0:0}; SFX_MAP[d.id]=d.sfx}
   if(d.desc){DESC[d.id]=d.desc; if(d.en)I18N_EXTRA[d.desc]=d.en}
-  PREV[d.id]={k:"shot",len:()=>d.reach,hw:d.width,from:10};
+  SPL["~"+d.id]={name:"",type:SPL[d.id].type,cat:"spec",power:d.tickPower,cost:0,cd:0}; // dégâts d'obstacle par tick
+  PREV[d.id]={k:"shot",len:()=>d.reach,hw:Math.round(d.width+(d.spread||0)*.6),from:10};
   ACE2[d.id]={hit(e){startStream(e,d)}};
 }
 defStream({keep:true,id:"flame",style:"fire",pal:FLAMEC,dur:1,tick:.125,tickPower:3,reach:84,width:11,burn:true,noise:[.38,2600,900,1.2],
   desc:"Souffle un jet de flammes continu pendant 1 s, orientable à la visée. Brûle la cible.",
   en:"Breathes a continuous jet of flames for 1 s that follows your aim. Burns the target."});
+
+defStream({keep:true,id:"hydrocanon",style:"water",pal:WATERC,dur:1.1,tick:.1,tickPower:3.6,reach:170,width:13,slow:.7,noise:[.5,1600,500,1.0],
+  desc:"Jet d'eau continu pendant 1 s : on se déplace et le jet suit le curseur. Ralentit la cible.",
+  en:"Continuous water jet for 1 s: you can move and the jet follows the cursor. Slows the target."});
+defStream({keep:true,id:"blizzard",style:"snow",pal:ICEC,dur:1.6,tick:.2,tickPower:2.4,reach:125,width:12,spread:38,slow:1.4,noise:[.55,3200,1200,1.1],
+  desc:"Rafale glacée en cône large pendant 1,6 s, qui suit le curseur. Ralentit fortement.",
+  en:"Wide icy blast for 1.6 s that follows the cursor. Slows heavily."});
 
 // ===== Archétypes : rayon instantané (defRay), vague en éventail (defWave), météores qui tombent (style "draco") =====
 var RAY_DEFS=[], WAVE_DEFS=[];
@@ -3957,6 +3969,14 @@ const RAY_STYLE={
     ctx.fillStyle=P[3]; const r=Math.round(6*(1-u)+2); for(let j=-r;j<=r;j++){const hw=Math.round(Math.sqrt(Math.max(0,r*r-j*j)));ctx.fillRect(Math.round(c.x-hw),Math.round(c.y+j),hw*2+1,1)}
     if(T>.04){const ex=c.x+f[0]*L, ey=c.y+f[1]*L; for(let i=0;i<4;i++){const a=i*1.57+T*8; ctx.fillStyle=i%2?P[2]:"#ffffff"; ctx.fillRect(Math.round(ex+Math.cos(a)*(3+u*8)),Math.round(ey+Math.sin(a)*(3+u*8)),2,2)}}
   }
+};
+RAY_STYLE.flash=function(c,P,u,T){ // faisceau de lumière métallique : droit, épais, pulsations qui avancent
+  const f=c.f, nx=-f[1], ny=f[0], w=Math.max(2,Math.round(9*Math.pow(1-u,.6))), L=Math.round(c.len*Math.min(1,T/.04));
+  [[P[4],w+6],[P[0],w+4],[P[1],w+2],["#ffffff",w]].forEach(([col,ww])=>{ctx.fillStyle=col;for(let s=0;s<=L;s++)ctx.fillRect(Math.round(c.x+f[0]*s-ww/2),Math.round(c.y+f[1]*s-ww/2),ww,ww)});
+  for(let s=(T*420)%24;s<L;s+=24){ctx.fillStyle=P[2];for(let k=-(w+5);k<=w+5;k+=1)ctx.fillRect(Math.round(c.x+f[0]*s+nx*k),Math.round(c.y+f[1]*s+ny*k*.9),1,2)}
+  const r=Math.round(9*(1-u)+3); ctx.fillStyle=P[2]; for(let j=-r;j<=r;j++){const hw=Math.round(Math.sqrt(Math.max(0,r*r-j*j)));ctx.fillRect(Math.round(c.x-hw),Math.round(c.y+j),hw*2+1,1)}
+  ctx.fillStyle="#ffffff"; for(let j=-(r>>1);j<=(r>>1);j++){const hw=Math.round(Math.sqrt(Math.max(0,(r>>1)*(r>>1)-j*j)));ctx.fillRect(Math.round(c.x-hw),Math.round(c.y+j),hw*2+1,1)}
+  if(T>.03){const ex=c.x+f[0]*L, ey=c.y+f[1]*L; for(let i=0;i<6;i++){const a=i*1.047+T*6, rr=3+u*10; ctx.fillStyle=i%2?"#ffffff":P[2]; ctx.fillRect(Math.round(ex+Math.cos(a)*rr),Math.round(ey+Math.sin(a)*rr),2,2)}}
 };
 function drawRay(c){const u=clamp(c.t/c.life,0,1); ctx.globalAlpha=1-u*.6; (RAY_STYLE[c.d.style]||RAY_STYLE.ice)(c,c.d.pal,u,c.t); ctx.globalAlpha=1}
 function defRay(d){
@@ -4023,6 +4043,85 @@ GZ.dmeteor.style="draco";
     ctx.globalAlpha=1; ctx.fillStyle=pal[1]; ctx.fillRect(mx-4,my-4,9,9); ctx.fillStyle=pal[2]; ctx.fillRect(mx-3,my-3,7,7); ctx.fillStyle=pal[3]; ctx.fillRect(mx-2,my-2,4,4); ctx.fillStyle="#ffffff"; ctx.fillRect(mx-1,my-1,2,2);
   });
 }}
+
+defRay({id:"fcannon",style:"flash",pal:["#606080","#a8a8c8","#d8d8f0","#ffffff","#8090d0"],reach:PROJ.fcannon.range,half:13,push:35,noise:[.45,.5,2400,600,1.4],
+  desc:"Rayon de lumière métallique instantané et puissant, droit devant soi.",
+  en:"Instant powerful beam of metallic light straight ahead."});
+// ---------- LIEN : un filament accroché à la cible, qui draine à chaque tick ----------
+var TETHER_DEFS=[];
+function startTether(e,d){
+  const f=e.aim||FACE[e.dir], t=foeOf(e); let tgt=null;
+  if(alive(t)&&!t.tunnel){const dx=t.x-e.x, dy=t.y-e.y, dist=Math.hypot(dx,dy*1.1); if(dist<d.reach+t.sp.body*.4&&(dx*f[0]+dy*f[1])/(dist||1)>=Math.cos(d.cone/2))tgt=t}
+  e.tth={d,t:0,nt:0,tgt,len:0,dur:tgt?d.dur:.55};
+  fx.push({k:"tether",e,d,s:e.tth,x:e.x,y:e.y,sy:e.y+.5,t:0,life:e.tth.dur,f});
+  logFor(e,e.sp.name+" utilise "+SPL[d.id].name+(tgt?" !":" ... dans le vide"),1600);
+}
+function updateTethers(dt){
+  fighters.forEach(e=>{const S=e.tth; if(!S)return; const d=S.d, t=S.tgt;
+    if(!alive(e)||e.stun>0||e.tunnel||S.t>=S.dur){e.tth=null;return}
+    S.t+=dt;
+    if(!t){S.len=Math.min(d.reach*.7,S.len+d.reach*dt*4); return}
+    if(!alive(t)||t.tunnel||Math.hypot(t.x-e.x,(t.y-e.y)*1.1)>d.leash){e.tth=null;pops.push({x:e.x,y:e.y-e.sp.body-30,t:0,txt:"Lien rompu"});return}
+    S.nt-=dt;
+    if(S.nt<=0){S.nt=d.tick;
+      if(typeof obstBlock==="function"&&obstBlock(e,t,{power:d.tickPower})){e.tth=null;return}
+      const hp0=t.hp, sp=Object.assign({},SPL[d.id],{power:d.tickPower});
+      if(strike(e,t,sp,{from:e,dot:true,shieldCost:5})){
+        const dmg=hp0-t.hp, h=Math.round(dmg*d.heal); if(h>0&&alive(e)){e.hp=Math.min(e.maxHp,e.hp+h);pops.push({x:e.x,y:e.y-e.sp.body-24,t:0,txt:"+"+h,col:"#8ae068"})}
+        for(let i=0;i<3;i++){const k=Math.random();spark(t.x+(e.x-t.x)*k,t.y-t.sp.body*.5+((e.y-e.sp.body*.5)-(t.y-t.sp.body*.5))*k,0,-rand(10,40),rand(.3,.5),d.pal[2],0,2)}
+      }
+    }
+  });
+}
+function drawTether(c){
+  const e=c.e,S=c.s,d=c.d,T=c.t,P=d.pal; let tx,ty;
+  const ox=e.x+(c.f[0])*8, oy=e.y-e.sp.body*.5;
+  if(S.tgt){tx=S.tgt.x;ty=S.tgt.y-S.tgt.sp.body*.5}else{tx=ox+c.f[0]*S.len;ty=oy+c.f[1]*S.len*.9}
+  const dx=tx-ox, dy=ty-oy, L=Math.max(1,Math.hypot(dx,dy)), ux=dx/L, uy=dy/L, nx=-uy, ny=ux, grow=Math.min(1,T/.12), fade=T>c.life-.15?Math.max(0,(c.life-T)/.15):1;
+  ctx.globalAlpha=fade;
+  [[P[0],4],[P[1],2],[P[2],1]].forEach(([col,w])=>{ctx.fillStyle=col;for(let s=0;s<=L*grow;s+=1){const k=s/L, amp=Math.sin(Math.PI*k)*5, j=Math.sin(s*.22-T*12)*amp; ctx.fillRect(Math.round(ox+ux*s+nx*j-w/2),Math.round(oy+uy*s+ny*j*.8-w/2),w,w)}});
+  if(S.tgt)for(let i=0;i<5;i++){const k=1-((i/5+T*1.4)%1), s=k*L, amp=Math.sin(Math.PI*k)*5, j=Math.sin(s*.22-T*12)*amp; ctx.fillStyle=i%2?"#ffffff":P[3]; ctx.fillRect(Math.round(ox+ux*s+nx*j)-1,Math.round(oy+uy*s+ny*j*.8)-1,3,3)}
+  ctx.globalAlpha=1;
+}
+function defTether(d){
+  TETHER_DEFS.push(d);
+  if(d.desc){DESC[d.id]=d.desc; if(d.en)I18N_EXTRA[d.desc]=d.en}
+  PREV[d.id]={k:"shot",len:()=>d.reach,hw:Math.round(d.reach*Math.sin(d.cone/2)*.7),from:10};
+  ACE2[d.id]={hit(e){startTether(e,d)}};
+}
+{const _d2=drawFx; drawFx=function(c){return c.k==="tether"?drawTether(c):_d2(c)}}
+{const _u2=updateOrbs; updateOrbs=function(dt){_u2(dt);updateTethers(dt)}}
+defTether({id:"megadrain",pal:["#1a6a2a","#3aa83a","#8ae068","#e8ffd0"],dur:2,tick:.25,tickPower:3,reach:115,leash:150,cone:1.2,heal:.5,
+  desc:"Un filament s'accroche à la cible et l'aspire pendant 2 s : tu peux te déplacer, il se rompt si elle s'éloigne trop. Te soigne.",
+  en:"A vine latches onto the target and drains it for 2 s: you can move, it breaks if the target gets too far. Heals you."});
+// ---------- RAFALE : une salve de projectiles tirés à la suite, qui suivent la visée ----------
+var BURST_DEFS=[];
+function defBurst(d){
+  BURST_DEFS.push(d);
+  PROJ[d.id]={speed:d.speed,range:d.range,hit:d.hit};
+  if(d.orb)ORB2[d.id]=d.orb;
+  if(d.desc){DESC[d.id]=d.desc; if(d.en)I18N_EXTRA[d.desc]=d.en}
+  PREV[d.id]={k:"shot",len:()=>d.range,hw:Math.round(d.range*Math.sin(d.spread/2)*.9+d.hit),from:14};
+  ACE2[d.id]={hit(e){e.bst={d,t:0,n:0}; logFor(e,e.sp.name+" utilise "+SPL[d.id].name+" !",1600)}};
+}
+function updateBursts(dt){
+  fighters.forEach(e=>{const S=e.bst; if(!S)return; const d=S.d;
+    if(!alive(e)||e.stun>0||e.tunnel){e.bst=null;return}
+    S.t+=dt;
+    while(S.n<d.count&&S.t>=S.n*d.interval){
+      const av=aimAt(e,false); if(av)e.aim=av; const f=e.aim||FACE[e.dir], a=Math.atan2(f[1],f[0])+(Math.random()-.5)*d.spread, vx=Math.cos(a), vy=Math.sin(a);
+      orbs.push({x:e.x+vx*14,y:e.y+vy*14,vx,vy,trav:0,t:0,o:e,id:d.id}); S.n++;
+      if(typeof sfx==="function"&&d.sfx)sfx(d.sfx,"fight",.5,.95+Math.random()*.2,e.x);
+    }
+    if(S.n>=d.count)e.bst=null;
+  });
+}
+{const _u3=updateOrbs; updateOrbs=function(dt){_u3(dt);updateBursts(dt)}}
+SPL.icespike.power=7; SPL.icespike.cd=8; SPL.icespike.cost=0;
+defBurst({id:"icespike",count:5,interval:.09,spread:.34,speed:330,range:190,hit:8,sfx:790,
+  orb:o=>{const x=o.x,y=o.y-14,P=ICEC; for(let k=0;k<11;k++){const w=Math.max(1,Math.min(4,1+Math.round(k*.35))); ctx.fillStyle=k<2?"#ffffff":k<7?P[2]:P[1]; ctx.fillRect(Math.round(x-o.vx*k*1.7)-(w>>1),Math.round(y-o.vy*k*1.5)-(w>>1),w,w)} ctx.fillStyle="#ffffff"; ctx.fillRect(Math.round(x+o.vx*4)-1,Math.round(y+o.vy*3.5)-1,2,2)},
+  desc:"Salve de 5 pointes de glace tirées à la suite en éventail, orientées par le curseur.",
+  en:"Volley of 5 ice spikes fired in a fan, aimed by the cursor."});
 
 // ===== Ronflex, Tyranocif, Zoroark, Étouraptor =====
 PORTRAITS.snorlax="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAYAAACM/rhtAAAADmVYSWZNTQAqAAAACAAAAAAAAADSU5MAAAUPSURBVHiczZgtlOM2FIVv9gwQFBQUFDRbsRqGrdmG1WzDGtawhRs4cKBhoGFYzSpoKFazCj4oNgW2FPkvmexv7zk5iWNZ+nz13pPszee//3nF/1hPv2pg15zR1jUAgAmB/Pi82O7dz0O6qjkd0NY1pJLIcg3BGZrTYbHtzEHfXtBUVTxmQkApCVEsd/CIfHuBuVzgnYNUElxl4JwDXKAb3LwL2FTV6GIiQlvXYPYAvd2CZdvZoNRZWNvBOzc6x4SA3m5HfTMh+v6FiP9zzmNf0/6fJHfoSEByB9u01zPkQMPFeVmCiAZnK+RlCQAjNwRnAJczB0KbACw46+G4GLVjA3DK05HAU3oQ5MgDcOBcgIjAOV8AxeC0vo4yGRTkwAVggf4GgJFzqZSSMJfewRRy7GBygSMPTg5IIDFx1BoDrpYHTIGVFhF4eiOxby7gnZk5+C7YuqqhUyIaj835KL7eJD6f2rS/oMAjuRuXGZVnE7Yx+BRyerw2cPh8jR6ug0QUP/c0hVqDvNXX9ynU5K7x9ZXtiQhMCJi6Gf3/TUudNQbANUOd7aD0NavT5ArHAGBtN/zTQSkZ41JwhrauIfJdjMMRYFoHY71aENkWjjx2miMTDJnOAABVbXA2ZjToLG5ti53m2Jc5zMXgWHcQ3PULg8oA28E1Z8giBzCZ4s40c5o068jBGoNcMZwPGfZlDr3VYJyBcYZ9meNUCFjbgWw774scHHmURe+y3mqcDxkc+dheKhlnZgbYF+gVkYO1HXaaoyw0hJKLzZYGDQrXsyEkAEAoGdsDAFfZaMkcAXrn4nI0VQrHFs6nEkricuprZIQckiK4N22/0zy2TZPlHQCYusFLeVgdMMTNW+CCGGeojjm4ELDGwNoOp0KsXr8v8+iiGqbZ1A0279+/fw3USw5y0cfU+ZCtTus9mUsfU3o7dy/VS9WgsT6O6Z3DE1vJ1KCwmqxltIsl4youxk5NwfzgVOi76/rvTDA01g+J2SHL9XIddOSvtY386tSEO54ml+AMueqzeklVbXqQyZg7zeMmxTsH6BXA0d06B7mywBeKoVCsr18PqCw0SmB20548zuaSFPJJoU7jMHVxTULfjqk1rSVKmPLAANxZi2/WxR+sYM4MMLiYqqNrYN+TuRi8VM3NNi9VM0suTx5d56J7/C0OBrXOg5x7E+RzQ9gfK+yOl1W4/bHCobLw5OOHnMOx7o3pn296wMUkSWORCYGqtsgEgwQAdy0501gyFwNHHnlRQHCG/XM765ucR1Pu+qVwMlNT91YBA2Sq1vm4BaKFZwsAkFLgfBAAOXQEAHPHpeYpbfxZD2Unde8m4BS2qi1QKBQqce3GJlXy1VMz1dajqu3MFOCBHXWArK0f3Pk+qq3H2RDq0xY7zdHZbnTjm98+fLj5ditkdDm4t6v647BZfcSpVB31CQUAz6WK67yzHXbPbdyZbz7+/vF1qd5Nwaadh4wDgFMR3grcBgL6WA7LXK7Y4g4phdx8+vOP15BNATRk007zGdx00Nb1U3RL0xUpVwyFlrNNxRTyUFlsPn358gpy152F7RZdu6c0Lls3n5FM9P1JKW6CTSF7wEHWmN41La+tHnmcvCf+drigWGYC3L7Mx/u1hRdCj0L1X4+BjQDTR0HgukKI4XWaT6v+ytZrzrW82jwMGJ5x9+X6iyDGWYQNWlqXvxVmSU+OPM6H7OELfwTMkjb//vX59Wsfhn6G/gNJ/eIlOwmueAAAAABJRU5ErkJggg==";

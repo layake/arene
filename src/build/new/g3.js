@@ -264,7 +264,7 @@ function frame(now){
     fighters.forEach(e=>{
       if(e.bot)thinkBot(e,dt);
       if(e.ko>0)return;
-      if(e.tunnel)updateTunnel(e,dt);else if(e.rush)updateRush(e,dt);else if(e.chan)updateChan(e,dt);else updateMove(e,dt);
+      if(e.tunnel)updateTunnel(e,dt);else if(e.rush)updateRush(e,dt);else if(e.chan){updateMove(e,dt);updateChan(e,dt)}else updateMove(e,dt);
     });
     if(foe.ai)updateWanderer(foe,dt);
     resolveCollision(dt); if(typeof wallPush!=="undefined")fighters.forEach(wallPush); entities.forEach(arenaFix);

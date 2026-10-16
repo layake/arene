@@ -374,7 +374,7 @@ function updateRush(e,dt){
     }
   }else if(R.t>=R.cfg.rec){e.rush=null}
 }
-// ---- Éclat Magique : canalisation immobile (la visée suit), puis un rayon long qui traverse tout et étourdit ----
+// ---- Éclat Magique : canalisation mobile (la visée suit), puis un rayon long qui traverse tout et étourdit ----
 function startGleam(e){
   if(e.stun>0||e.tunnel||e.rush||e.chan||e.lock>0||cdOf(e,"gleam")>0||e.shieldOn||(e.anim==="attack"&&!e.hit))return;
   if(!spendPP(e,SPL.gleam.cost))return;

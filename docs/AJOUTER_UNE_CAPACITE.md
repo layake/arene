@@ -26,11 +26,16 @@ Chaque capacité appartient à une famille de sensation. Le moteur doit savoir l
 - [ ] Une capacité qui n'a pas d'archétype dans le moteur : on crée l'archétype d'abord.
 
 ### Rayon (`defRay`) et vague (`defWave`)
-`defRay({id,style,pal,reach,half,push,noise,onHit,desc,en})` : touche instantanément la ligne devant soi, arrêté par les obstacles (qui s'abîment). Style `ice` disponible.
+`defRay({id,style,pal,reach,half,push,noise,onHit,desc,en})` : touche instantanément la ligne devant soi, arrêté par les obstacles (qui s'abîment). Styles `ice` et `flash` disponibles (Luminocanon).
 `defWave({id,style,pal,reach,r0,cone,dur,push,noise,onHit,desc,en})` : front d'éventail qui avance de `r0` à `reach` en `dur` secondes, touche une seule fois. Style `fire` disponible.
 Zones d'impacts : le style `draco` fait tomber de vrais météores (Draco-Météore).
 
+### Lien (`defTether`) et volée (`defBurst`)
+`defTether` : filament accroché à la cible, draine à chaque tick et soigne le lanceur (Giga-Sangsue). `defBurst` : plusieurs projectiles en ligne devant soi (Pointes de Glace).
+
 ### Jet continu (`defStream`)
+Options `spread` (cône, ex. Blizzard) ; le jet est bloqué par les obstacles ; on peut se déplacer et la visée suit le curseur. Pour tester, ajouter la capacité au `kit` (cast refuse les capacités hors kit).
+
 Le flux part de la bouche du Pokémon, suit la visée pendant `dur` secondes, touche toutes les `tick` secondes (`tickPower` par tick), peut brûler / ralentir. Il s'interrompt si le lanceur est étourdi. Styles : `fire` (blobs qui montent et s'étalent), `water` (blobs mous qui retombent en arc). Pour un nouveau rendu, ajouter un style dans `STREAM_STYLE`.
 
 ## 3. Comportement en jeu
