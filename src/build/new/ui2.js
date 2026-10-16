@@ -114,3 +114,6 @@ function countdownTick(dt){
 }
 // affiche le titre au chargement
 showTitle();
+
+// écran tactile seul : prévenir que le jeu se joue à la souris et au clavier
+try{if(matchMedia("(pointer:coarse)").matches&&!matchMedia("(any-pointer:fine)").matches){const n=document.createElement("div");n.id="touchNote";n.textContent="Jeu prévu pour ordinateur : souris + clavier";titleEl.appendChild(n);if(LANG==="en"&&typeof retranslateAll==="function")retranslateAll()}}catch(_){}

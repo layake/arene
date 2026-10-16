@@ -81,6 +81,19 @@ function hudUpdate(){
   const duel=matchMode==="duel"; hudEl.style.display=(menuOpen||!player||!foe)?"none":"";
   if(!player||!foe)return;
   hudTile(HT.me,player,score.me,duel); hudTile(HT.foe,foe,score.foe,duel);
+  hudDim();
+}
+// un panneau du HUD s'efface quand un Pokémon passe dessous, pour ne jamais le cacher
+let hudDimN=0;
+function hudDim(){
+  if((hudDimN=(hudDimN+1)%6))return; // 10 fois par seconde suffit, évite de forcer la mise en page à chaque image
+  const r=stage.getBoundingClientRect(), k=PX/(window.devicePixelRatio||1);
+  [HT.me,HT.foe].forEach(el=>{
+    if(!el)return; const b=el.getBoundingClientRect();
+    const under=fighters.some(e=>{const sx=r.left+(e.x-cam.x)*k, sy=r.top+(e.y-cam.y)*k, h=(e.sp.body*2+10)*k;
+      return sx>b.left-10&&sx<b.right+10&&sy-h<b.bottom+6&&sy>b.top});
+    el.classList.toggle("hdim",under);
+  });
 }
 const scoreEl=document.getElementById("score"); let scoreTxt="";
 function updateHud(){

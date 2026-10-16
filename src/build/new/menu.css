@@ -331,3 +331,7 @@ body{padding:0!important;gap:0!important}
 .langrow{display:flex;gap:8px;align-items:center;justify-content:center;margin:8px 0;color:#9fb4ff;font:500 12px "Pixelify Sans",var(--display)}.langrow button{font:500 12px "Pixelify Sans",var(--display);color:#c9d6ff;background:rgba(7,12,36,.55);border:2px solid #4a68c8;border-radius:6px;padding:3px 10px;min-height:28px;cursor:pointer}.langrow button[aria-pressed="true"]{color:#ffe45e;border-color:#ffe45e}.langtop{position:absolute;right:16px;top:10px;margin:0;z-index:3}.langtop span{display:none}
 
 body.paused #roundban{visibility:hidden!important}
+/* le bouton Combat reste visible quand le menu dépasse la hauteur de l'écran (portables 720p) */
+.mbox .bar{position:sticky;bottom:-12px;z-index:3;background:#0f1b55;margin:0 -22px -12px;padding:8px 22px 12px;box-shadow:0 -8px 14px rgba(5,9,30,.55)}
+#touchNote{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:5;background:#0b1340;border:2px solid #ffe45e;color:#ffe45e;padding:6px 12px;font:600 13px "Pixelify Sans",var(--display);text-align:center;max-width:90%}
+.ht{transition:box-shadow .2s,opacity .2s}.ht.hdim{opacity:.3}

@@ -65,6 +65,7 @@ setInterval(()=>{const M=RK.match; if(RK.state!=="found"||!M||M.finished||NET.st
   if(performance.now()-M.t0>40000)rkAbort(LANG==="en"?"The fight could not start (opponent unreachable). No rating change.":"Le combat n'a pas pu démarrer (adversaire injoignable). Aucun changement d'Elo.",true)},2000);
 async function rkMe(){if(!RK.prof)return; try{const m=await rkCall("/api/me",{id:RK.prof.id,token:RK.prof.token}); if(m&&m.elo){RK.prof.elo=m.elo;rkSave();if(RK.state==="idle")rkRender()}}catch(_){}}
 rkRender(); rkMe();
+
 rkCall("/api/health",null,true).then(h=>{const v=document.getElementById("rkVer");RK.sv=h.version;if(v)v.textContent="Serveur "+h.version}).catch(()=>{});
       rkMsg((LANG==="en"?"Opponent found: ":"Adversaire trouvé : ")+r.opp.name+" ("+r.opp.elo+")");
       NET.rankedStart({matchId:r.matchId,code:r.code,role:r.role}); NET.rankedEvent=rkEvent; return;
@@ -127,7 +128,8 @@ function rkFinished(win,endEl){ // appelée à la fin d'un combat classé
 }
 const rankedFinished=rkFinished;
 // la fiche se met à jour quand on revient dans l'onglet en ligne ; masquée dans un salon
-setInterval(()=>{rkBox.hidden=!!(rkRow&&rkRow.hidden)},300);
+let rkLang=LANG; // la fiche suit le changement de langue
+setInterval(()=>{rkBox.hidden=!!(rkRow&&rkRow.hidden); if(LANG!==rkLang){rkLang=LANG; const m=document.getElementById("rkMsg"), t=m&&m.textContent; rkRender(); if(t)rkMsg(t)}},300);
 // chien de garde : tant que le combat n'a pas démarré, on renvoie "prêt" ; au bout de 40 s on abandonne proprement
 setInterval(()=>{const M=RK.match; if(RK.state!=="found"||!M||M.finished||NET.started)return;
   if(NET.rankedKick)NET.rankedKick();
