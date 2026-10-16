@@ -38,8 +38,8 @@ function updateStreams(dt){
     const S=e.strm; if(!S)return;
     const d=S.d, t=foeOf(e);
     if(!alive(e)||e.stun>0||e.tunnel||S.t>=d.dur){S.on=false;e.strm=null;return}
-    S.t+=dt; e.lock=Math.max(e.lock,dt*2.5); if(e.moveTarget)e.moveTarget=null;
-    aimAt(e,false); const f=e.aim||FACE[e.dir];
+    S.t+=dt; // pas de verrou : on peut se déplacer pendant le jet, qui suit le curseur
+    const av=aimAt(e,false); if(av)e.aim=av; const f=e.aim||FACE[e.dir];
     const mx=e.x+f[0]*10, my=e.y-e.sp.body+f[1]*8;
     for(let k=0;k<2;k++){ if(Math.random()<dt*70) spark(mx+f[0]*rand(10,d.reach),my+f[1]*rand(10,d.reach)*.8,rand(-20,20)+f[0]*30,rand(-40,-5),rand(.2,.4),d.pal[Math.floor(rand(0,5))],d.style==="water"?220:-40,2) }
     S.nt-=dt;
