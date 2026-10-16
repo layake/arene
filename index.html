@@ -450,7 +450,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Sélection d'équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>mannequin d'entraînement</small></button><button type="button" data-mode="duel" aria-pressed="false">Versus<small>contre un adversaire</small></button><button type="button" data-mode="rush" aria-pressed="false">Marathon<small>Tous les Pokémon d'affilée, au chrono</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="rounds" role="group" aria-label="Rounds"><span>Rounds</span><button type="button" data-r="1">1</button><button type="button" data-r="3" aria-pressed="true">3</button><button type="button" data-r="5">5</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
 </div>
-<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.75 · 16/10/2026</b></footer>
+<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.76 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -2487,7 +2487,8 @@ function shotLane(px,py,ux,uy,from,len,hw,col){
 const channeling=()=>!!player&&((player.rush&&player.rush.ph==="chan")||!!player.chan);
 function draw(){
   const vw=cv.width/PX, vh=cv.height/PX, sk=shake>0?(Math.floor(shake*45)%2?1:-1):0;
-  cam.x=axis(snap(player.x),vw,WORLD.w)+sk; cam.y=axis(snap(player.y),vh,WORLD.h);
+  const CT=(matchMode==="ffa"&&player.out&&typeof ffaSpect==="function"&&ffaSpect())||player; // éliminé : la caméra suit la fin du combat
+  cam.x=axis(snap(CT.x),vw,WORLD.w)+sk; cam.y=axis(snap(CT.y),vh,WORLD.h);
   ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle=BG; ctx.fillRect(0,0,cv.width,cv.height);
   ctx.setTransform(PX,0,0,PX,-cam.x*PX,-cam.y*PX); ctx.imageSmoothingEnabled=false;
   ctx.drawImage(ground,0,0); if(arenaDeco)arenaDeco(ctx,performance.now()/1000);
@@ -2852,7 +2853,7 @@ function buildMenu(){
 }
 function refreshMenu(){
   cardsEl.querySelectorAll(".ace").forEach(b=>{const i=picks.indexOf(b.dataset.key); b.setAttribute("aria-pressed",String(i>=0)); b.classList.toggle("focus",b.dataset.key===pick&&i>=0); b.querySelector(".tn").textContent=i>=0?String(i+1):""});
-  teamLineEl.innerHTML=[0,1,2].map(i=>{const k=picks[i]; return k?'<div class="tslot'+(k===pick?" on":"")+'" data-i="'+i+'"><b>'+(i+1)+'</b><img alt="" src="'+PORTRAITS[k]+'"><span>'+SPECIES[k].name+'</span><u data-rm="'+i+'" title="Retirer">×</u></div>':'<div class="tslot empty"><b>'+(i+1)+'</b><span>Choisir un Ace</span></div>'}).join("")+'<small>Ordre d\'entrée 1, 2, 3 · Tab : changer d\'Ace en combat</small>';
+  teamLineEl.innerHTML=Array.from({length:pickMode==="ffa"?2:3},(_,i)=>i).map(i=>{const k=picks[i]; return k?'<div class="tslot'+(k===pick?" on":"")+'" data-i="'+i+'"><b>'+(i+1)+'</b><img alt="" src="'+PORTRAITS[k]+'"><span>'+SPECIES[k].name+'</span><u data-rm="'+i+'" title="Retirer">×</u></div>':'<div class="tslot empty"><b>'+(i+1)+'</b><span>Choisir un Ace</span></div>'}).join("")+'<small>'+(pickMode==="ffa"?'Ordre d\'entrée 1, 2 · Tab : changer d\'Ace en combat':'Ordre d\'entrée 1, 2, 3 · Tab : changer d\'Ace en combat')+'</small>';
   document.querySelectorAll("#menu .modes button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===pickMode)));
   document.querySelectorAll("#menu .diffs button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.diff===diff)));
   document.querySelector("#menu .diffs").hidden=pickMode!=="duel"&&pickMode!=="ffa";
@@ -4547,7 +4548,7 @@ function ffaStart(keys,roster){ // roster (en ligne) : liste de combattants déj
   resetRound();
   fighters.forEach(e=>{if(e.bot)botEquip(e,foeOf(e))});
   if(typeof applyKit==="function")applyKit();
-  if(typeof showVersus==="function")showVersus(player.team?player.team.map(s=>s.key):[player.key],fighters.filter(e=>e!==player).map(e=>e.key),"TOI",fighters.length+" JOUEURS");
+  ffaVersus();
   ffaHud();
 }
 function ffaOut(t,att){ // plus aucun Pokémon : le combattant est éliminé
@@ -4582,8 +4583,8 @@ const ffaCol=e=>e.col||FFA_COL[fighters.indexOf(e)%4];
 const ffaName=e=>e===player?(playerName()||(LANG==="en"?"You":"Toi")):(e.pname||(e.bot?"Bot "+e.sp.name:e.sp.name));
 function ffaHud(){
   const on=matchMode==="ffa"&&!menuOpen; ffaEl.hidden=!on; if(!on)return;
-  const rows=fighters.map(e=>{const hp=e.out?0:Math.max(0,e.hp/e.maxHp), c=hp>.5?"#5fd35f":hp>.2?"#f0c030":"#e84040", T=e.team||[{dead:!alive(e)}];
-    return '<div class="fp'+(e===player?' me':'')+(e.out?' out':'')+(e===foe&&e!==player&&!e.out?' tg':'')+'" style="--c:'+ffaCol(e)+'"><img alt="" src="'+(PORTRAITS[e.key]||"")+'"><div class="fi"><div class="fn"><b>'+ffaName(e).replace(/[<>&]/g,"")+'</b><em>'+(e.out?"OUT":e.sp.name)+'</em></div><u><s style="width:'+Math.round(hp*100)+'%;background:'+c+'"></s></u><div class="fd">'+T.map(s=>'<i'+(s.dead?' class="x"':'')+'></i>').join("")+'</div></div></div>'});
+  const rows=fighters.map((e,i)=>{const hp=e.out?0:Math.max(0,e.hp/e.maxHp), c=hp>.5?"#5fd35f":hp>.2?"#f0c030":"#e84040", T=e.team||[{dead:!alive(e)}];
+    return '<div class="fp'+(ffaDim[i]?' dim':'')+(e===player?' me':'')+(e.out?' out':'')+(e===foe&&e!==player&&!e.out?' tg':'')+'" style="--c:'+ffaCol(e)+'"><img alt="" src="'+(PORTRAITS[e.key]||"")+'"><div class="fi"><div class="fn"><b>'+ffaName(e).replace(/[<>&]/g,"")+'</b><em>'+(e.out?"OUT":e.sp.name)+'</em></div><u><s style="width:'+Math.round(hp*100)+'%;background:'+c+'"></s></u><div class="fd">'+T.map(s=>'<i'+(s.dead?' class="x"':'')+'></i>').join("")+'</div></div></div>'});
   const sig=rows.join(""); if(sig!==ffaSig){ffaSig=sig; ffaEl.innerHTML=sig}
 }
 // ---- Fin de partie : classement ----
@@ -4600,6 +4601,33 @@ setTimeout(()=>{const _sr=showResult; showResult=function(){
 {const st=document.createElement("style"); st.textContent='#endscr .frank{margin:0;padding:0 0 0 22px;text-align:left;color:#cfd8ff;font-size:15px}#endscr .frank li{margin:2px 0}#endscr .frank li.me{color:#ffe45e}#endscr .frank img{width:22px;height:22px;image-rendering:pixelated;vertical-align:middle;margin-right:6px}'; document.head.appendChild(st)}
 // ---- bouton « Mêlée » dans la sélection solo ----
 {const modes=document.querySelector("#menu .modes"); if(modes){const b=document.createElement("button"); b.type="button"; b.dataset.mode="ffa"; b.innerHTML='Mêlée<small>4 combattants, chacun pour soi</small>'; const after=modes.querySelector('[data-mode="duel"]'); modes.insertBefore(b,after?after.nextSibling:null); b.addEventListener("click",()=>{pickMode="ffa";refreshMenu()})}}
+
+// ---- écran d'annonce de la mêlée : tous les joueurs côte à côte ----
+function ffaVersus(){
+  if(typeof vsEl==="undefined")return;
+  vsEl.className="ffa"; vsEl.innerHTML='<div class="fvh">'+(LANG==="en"?"BRAWL":"MÊLÉE")+' · '+fighters.length+(LANG==="en"?" PLAYERS":" JOUEURS")+'</div><div class="fvr">'+fighters.map(e=>{const T=e.team?e.team.map(s=>s.key):[e.key];
+    return '<div class="fvc'+(e===player?' me':'')+'" style="--c:'+ffaCol(e)+'"><b>'+ffaName(e).replace(/[<>&]/g,"")+'</b><img alt="" src="'+(PORTRAITS[T[0]]||"")+'"><div class="fvs">'+T.slice(1).map(k=>'<img alt="" src="'+(PORTRAITS[k]||"")+'">').join("")+'</div><span>'+T.map(k=>SPECIES[k].name).join(" · ")+'</span></div>'}).join("")+'</div>';
+  vsEl.hidden=false; void vsEl.offsetWidth; vsEl.classList.add("go"); vsT=2.6;
+}
+{const st=document.createElement("style"); st.textContent='#vs.ffa{flex-direction:column;gap:22px}#vs.ffa::before{background:linear-gradient(135deg,#1f3a9e,#5a2a9e 50%,#a02a2a)}#vs.ffa .fvh{position:relative;z-index:1;font-size:clamp(28px,5vw,56px);color:#ffe45e;text-shadow:4px 4px 0 #000;letter-spacing:4px}#vs.ffa .fvr{position:relative;z-index:1;display:flex;gap:clamp(8px,2vw,24px);flex-wrap:wrap;justify-content:center;padding:0 16px}#vs.ffa .fvc{display:flex;flex-direction:column;align-items:center;gap:6px;background:rgba(7,12,36,.7);border:4px solid var(--c);padding:10px 12px;width:clamp(130px,18vw,220px);box-shadow:6px 6px 0 rgba(0,0,0,.5)}#vs.ffa .fvc.me{outline:3px solid #fff;outline-offset:3px}#vs.ffa .fvc b{color:var(--c);font-size:clamp(14px,1.6vw,20px);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#vs.ffa .fvc>img{width:clamp(80px,10vw,140px);height:auto;aspect-ratio:1;image-rendering:pixelated;border:3px solid #000;background:#0b1340}#vs.ffa .fvs img{width:40px;height:40px;image-rendering:pixelated;border:2px solid #000}#vs.ffa .fvc span{font-size:12px;color:#cfd8ff;text-align:center}#vs.ffa.go .fvc{animation:fvin .4s steps(6) both}#vs.ffa.go .fvc:nth-child(2){animation-delay:.08s}#vs.ffa.go .fvc:nth-child(3){animation-delay:.16s}#vs.ffa.go .fvc:nth-child(4){animation-delay:.24s}@keyframes fvin{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}'; document.head.appendChild(st)}
+// remettre l'écran d'annonce du 1v1 dans son état normal
+{const _sv=typeof showVersus==="function"?null:null; setTimeout(()=>{const o=showVersus; showVersus=function(){vsEl.className=""; return o.apply(this,arguments)}},0)}
+// ---- spectateur : une fois éliminé, la caméra suit le combat et la barre de sorts disparaît ----
+function ffaSpect(){ const A=fighters.filter(e=>!e.out); return (foe&&!foe.out&&foe!==player?foe:null)||A[0]||null }
+const spEl=document.createElement("div"); spEl.id="ffaSpect"; spEl.hidden=true; spEl.textContent="Tu es éliminé : tu regardes la fin du combat"; (document.getElementById("stage")||document.body).appendChild(spEl);
+{const st=document.createElement("style"); st.textContent='#ffaSpect{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:4;background:rgba(14,16,28,.85);border:2px solid #ff8a8a;color:#ffd0d0;padding:6px 14px;font:700 14px "Pixelify Sans",system-ui,sans-serif;pointer-events:none}#ffaBar .fp.dim{opacity:.3}'; document.head.appendChild(st)}
+let ffaDimN=0; const ffaDim=[];
+FX_UPDATERS.push(()=>{
+  const out=matchMode==="ffa"&&player&&player.out&&!endShown&&!menuOpen;
+  spEl.hidden=!out; const bar=document.getElementById("bar"); if(bar)bar.style.visibility=out?"hidden":"";
+  if(out&&typeof retranslateAll==="function"&&LANG==="en"&&!spEl.__t){spEl.__t=1; retranslateAll()}
+  // un panneau de la barre s'efface quand un Pokémon passe dessous
+  if(matchMode!=="ffa"||ffaEl.hidden||(ffaDimN=(ffaDimN+1)%6))return;
+  const r=stage.getBoundingClientRect(), k=PX/(window.devicePixelRatio||1);
+  ffaEl.querySelectorAll(".fp").forEach((el,i)=>{const b=el.getBoundingClientRect();
+    ffaDim[i]=fighters.some(e=>{if(e.gone)return false; const sx=r.left+(e.x-cam.x)*k, sy=r.top+(e.y-cam.y)*k, h=(e.sp.body*2+30)*k; return sx>b.left-10&&sx<b.right+10&&sy-h<b.bottom+6&&sy>b.top});
+    el.classList.toggle("dim",fighters.some(e=>{if(e.gone)return false; const sx=r.left+(e.x-cam.x)*k, sy=r.top+(e.y-cam.y)*k, h=(e.sp.body*2+30)*k; return sx>b.left-10&&sx<b.right+10&&sy-h<b.bottom+6&&sy>b.top}))});
+});
 
 /* ===== Danse (taunt), pseudos au-dessus des Pokémon et cercles de couleur au sol ===== */
 const TAUNT={dur:2.2,cd:3};
@@ -5648,6 +5676,7 @@ const EN={
 "Paramètres":"Settings","⚙ Paramètres":"⚙ Settings","Fermer":"Close","Général":"General","Son":"Sound","Jeu":"Game","Touches":"Keys","Bloquer la souris dans la fenêtre pendant le combat":"Lock the mouse in the window during fights","Touches par défaut":"Default keys","Clique sur une action puis appuie sur la nouvelle touche. Échap annule. Échap et P restent réservés à la pause.":"Click an action then press the new key. Esc cancels. Esc and P stay reserved for pause.","Sort 1":"Move 1","Sort 2":"Move 2","Sort 3":"Move 3","Sort 4":"Move 4","Bouclier (maintenir)":"Shield (hold)","Changer d'Ace":"Switch Ace","Mode de visée":"Aim mode","Espace":"Space","Maj":"Shift","Verr. Maj":"Caps Lock",
 "Mêlée":"Brawl","4 combattants, chacun pour soi":"4 fighters, free-for-all","JOUEURS":"PLAYERS",
 "Danser (taunt)":"Dance (taunt)","Pseudo":"Name","Ton pseudo":"Your name",
+"Ordre d'entrée 1, 2 · Tab : changer d'Ace en combat":"Entry order 1, 2 · Tab: switch Ace in battle","MÊLÉE":"BRAWL","Tu es éliminé : tu regardes la fin du combat":"You're out: watching the end of the fight",
 "Jeu prévu pour ordinateur : souris + clavier":"Made for computer: mouse + keyboard",
 "Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code.":"Unofficial, non-commercial fan game, not affiliated with Nintendo, Game Freak, Creatures or The Pokémon Company. Pokémon and its characters © Nintendo / Creatures / Game Freak. Sprites: PMDCollab SpriteCollab (CC BY-NC 4.0), originals Chunsoft. Sound effects: Pokémon Mystery Dungeon © Chunsoft / The Pokémon Company; music generated by code.",
 "Sélectionne ton équipe puis valide avec Prêt.":"Pick your team, then confirm with Ready.","Sélectionne 4 sorts. Les plus puissants ont un temps de recharge plus long.":"Select 4 moves. The most powerful ones have a longer cooldown.","4 sorts maximum : retire-en un d'abord.":"4 moves maximum: remove one first.","Pas assez de PP !":"Not enough PP!",

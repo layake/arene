@@ -292,7 +292,8 @@ function shotLane(px,py,ux,uy,from,len,hw,col){
 const channeling=()=>!!player&&((player.rush&&player.rush.ph==="chan")||!!player.chan);
 function draw(){
   const vw=cv.width/PX, vh=cv.height/PX, sk=shake>0?(Math.floor(shake*45)%2?1:-1):0;
-  cam.x=axis(snap(player.x),vw,WORLD.w)+sk; cam.y=axis(snap(player.y),vh,WORLD.h);
+  const CT=(matchMode==="ffa"&&player.out&&typeof ffaSpect==="function"&&ffaSpect())||player; // éliminé : la caméra suit la fin du combat
+  cam.x=axis(snap(CT.x),vw,WORLD.w)+sk; cam.y=axis(snap(CT.y),vh,WORLD.h);
   ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle=BG; ctx.fillRect(0,0,cv.width,cv.height);
   ctx.setTransform(PX,0,0,PX,-cam.x*PX,-cam.y*PX); ctx.imageSmoothingEnabled=false;
   ctx.drawImage(ground,0,0); if(arenaDeco)arenaDeco(ctx,performance.now()/1000);

@@ -22,7 +22,7 @@ function ffaStart(keys,roster){ // roster (en ligne) : liste de combattants déj
   resetRound();
   fighters.forEach(e=>{if(e.bot)botEquip(e,foeOf(e))});
   if(typeof applyKit==="function")applyKit();
-  if(typeof showVersus==="function")showVersus(player.team?player.team.map(s=>s.key):[player.key],fighters.filter(e=>e!==player).map(e=>e.key),"TOI",fighters.length+" JOUEURS");
+  ffaVersus();
   ffaHud();
 }
 function ffaOut(t,att){ // plus aucun Pokémon : le combattant est éliminé
@@ -57,8 +57,8 @@ const ffaCol=e=>e.col||FFA_COL[fighters.indexOf(e)%4];
 const ffaName=e=>e===player?(playerName()||(LANG==="en"?"You":"Toi")):(e.pname||(e.bot?"Bot "+e.sp.name:e.sp.name));
 function ffaHud(){
   const on=matchMode==="ffa"&&!menuOpen; ffaEl.hidden=!on; if(!on)return;
-  const rows=fighters.map(e=>{const hp=e.out?0:Math.max(0,e.hp/e.maxHp), c=hp>.5?"#5fd35f":hp>.2?"#f0c030":"#e84040", T=e.team||[{dead:!alive(e)}];
-    return '<div class="fp'+(e===player?' me':'')+(e.out?' out':'')+(e===foe&&e!==player&&!e.out?' tg':'')+'" style="--c:'+ffaCol(e)+'"><img alt="" src="'+(PORTRAITS[e.key]||"")+'"><div class="fi"><div class="fn"><b>'+ffaName(e).replace(/[<>&]/g,"")+'</b><em>'+(e.out?"OUT":e.sp.name)+'</em></div><u><s style="width:'+Math.round(hp*100)+'%;background:'+c+'"></s></u><div class="fd">'+T.map(s=>'<i'+(s.dead?' class="x"':'')+'></i>').join("")+'</div></div></div>'});
+  const rows=fighters.map((e,i)=>{const hp=e.out?0:Math.max(0,e.hp/e.maxHp), c=hp>.5?"#5fd35f":hp>.2?"#f0c030":"#e84040", T=e.team||[{dead:!alive(e)}];
+    return '<div class="fp'+(ffaDim[i]?' dim':'')+(e===player?' me':'')+(e.out?' out':'')+(e===foe&&e!==player&&!e.out?' tg':'')+'" style="--c:'+ffaCol(e)+'"><img alt="" src="'+(PORTRAITS[e.key]||"")+'"><div class="fi"><div class="fn"><b>'+ffaName(e).replace(/[<>&]/g,"")+'</b><em>'+(e.out?"OUT":e.sp.name)+'</em></div><u><s style="width:'+Math.round(hp*100)+'%;background:'+c+'"></s></u><div class="fd">'+T.map(s=>'<i'+(s.dead?' class="x"':'')+'></i>').join("")+'</div></div></div>'});
   const sig=rows.join(""); if(sig!==ffaSig){ffaSig=sig; ffaEl.innerHTML=sig}
 }
 // ---- Fin de partie : classement ----
@@ -75,3 +75,30 @@ setTimeout(()=>{const _sr=showResult; showResult=function(){
 {const st=document.createElement("style"); st.textContent='#endscr .frank{margin:0;padding:0 0 0 22px;text-align:left;color:#cfd8ff;font-size:15px}#endscr .frank li{margin:2px 0}#endscr .frank li.me{color:#ffe45e}#endscr .frank img{width:22px;height:22px;image-rendering:pixelated;vertical-align:middle;margin-right:6px}'; document.head.appendChild(st)}
 // ---- bouton « Mêlée » dans la sélection solo ----
 {const modes=document.querySelector("#menu .modes"); if(modes){const b=document.createElement("button"); b.type="button"; b.dataset.mode="ffa"; b.innerHTML='Mêlée<small>4 combattants, chacun pour soi</small>'; const after=modes.querySelector('[data-mode="duel"]'); modes.insertBefore(b,after?after.nextSibling:null); b.addEventListener("click",()=>{pickMode="ffa";refreshMenu()})}}
+
+// ---- écran d'annonce de la mêlée : tous les joueurs côte à côte ----
+function ffaVersus(){
+  if(typeof vsEl==="undefined")return;
+  vsEl.className="ffa"; vsEl.innerHTML='<div class="fvh">'+(LANG==="en"?"BRAWL":"MÊLÉE")+' · '+fighters.length+(LANG==="en"?" PLAYERS":" JOUEURS")+'</div><div class="fvr">'+fighters.map(e=>{const T=e.team?e.team.map(s=>s.key):[e.key];
+    return '<div class="fvc'+(e===player?' me':'')+'" style="--c:'+ffaCol(e)+'"><b>'+ffaName(e).replace(/[<>&]/g,"")+'</b><img alt="" src="'+(PORTRAITS[T[0]]||"")+'"><div class="fvs">'+T.slice(1).map(k=>'<img alt="" src="'+(PORTRAITS[k]||"")+'">').join("")+'</div><span>'+T.map(k=>SPECIES[k].name).join(" · ")+'</span></div>'}).join("")+'</div>';
+  vsEl.hidden=false; void vsEl.offsetWidth; vsEl.classList.add("go"); vsT=2.6;
+}
+{const st=document.createElement("style"); st.textContent='#vs.ffa{flex-direction:column;gap:22px}#vs.ffa::before{background:linear-gradient(135deg,#1f3a9e,#5a2a9e 50%,#a02a2a)}#vs.ffa .fvh{position:relative;z-index:1;font-size:clamp(28px,5vw,56px);color:#ffe45e;text-shadow:4px 4px 0 #000;letter-spacing:4px}#vs.ffa .fvr{position:relative;z-index:1;display:flex;gap:clamp(8px,2vw,24px);flex-wrap:wrap;justify-content:center;padding:0 16px}#vs.ffa .fvc{display:flex;flex-direction:column;align-items:center;gap:6px;background:rgba(7,12,36,.7);border:4px solid var(--c);padding:10px 12px;width:clamp(130px,18vw,220px);box-shadow:6px 6px 0 rgba(0,0,0,.5)}#vs.ffa .fvc.me{outline:3px solid #fff;outline-offset:3px}#vs.ffa .fvc b{color:var(--c);font-size:clamp(14px,1.6vw,20px);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#vs.ffa .fvc>img{width:clamp(80px,10vw,140px);height:auto;aspect-ratio:1;image-rendering:pixelated;border:3px solid #000;background:#0b1340}#vs.ffa .fvs img{width:40px;height:40px;image-rendering:pixelated;border:2px solid #000}#vs.ffa .fvc span{font-size:12px;color:#cfd8ff;text-align:center}#vs.ffa.go .fvc{animation:fvin .4s steps(6) both}#vs.ffa.go .fvc:nth-child(2){animation-delay:.08s}#vs.ffa.go .fvc:nth-child(3){animation-delay:.16s}#vs.ffa.go .fvc:nth-child(4){animation-delay:.24s}@keyframes fvin{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}'; document.head.appendChild(st)}
+// remettre l'écran d'annonce du 1v1 dans son état normal
+{const _sv=typeof showVersus==="function"?null:null; setTimeout(()=>{const o=showVersus; showVersus=function(){vsEl.className=""; return o.apply(this,arguments)}},0)}
+// ---- spectateur : une fois éliminé, la caméra suit le combat et la barre de sorts disparaît ----
+function ffaSpect(){ const A=fighters.filter(e=>!e.out); return (foe&&!foe.out&&foe!==player?foe:null)||A[0]||null }
+const spEl=document.createElement("div"); spEl.id="ffaSpect"; spEl.hidden=true; spEl.textContent="Tu es éliminé : tu regardes la fin du combat"; (document.getElementById("stage")||document.body).appendChild(spEl);
+{const st=document.createElement("style"); st.textContent='#ffaSpect{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:4;background:rgba(14,16,28,.85);border:2px solid #ff8a8a;color:#ffd0d0;padding:6px 14px;font:700 14px "Pixelify Sans",system-ui,sans-serif;pointer-events:none}#ffaBar .fp.dim{opacity:.3}'; document.head.appendChild(st)}
+let ffaDimN=0; const ffaDim=[];
+FX_UPDATERS.push(()=>{
+  const out=matchMode==="ffa"&&player&&player.out&&!endShown&&!menuOpen;
+  spEl.hidden=!out; const bar=document.getElementById("bar"); if(bar)bar.style.visibility=out?"hidden":"";
+  if(out&&typeof retranslateAll==="function"&&LANG==="en"&&!spEl.__t){spEl.__t=1; retranslateAll()}
+  // un panneau de la barre s'efface quand un Pokémon passe dessous
+  if(matchMode!=="ffa"||ffaEl.hidden||(ffaDimN=(ffaDimN+1)%6))return;
+  const r=stage.getBoundingClientRect(), k=PX/(window.devicePixelRatio||1);
+  ffaEl.querySelectorAll(".fp").forEach((el,i)=>{const b=el.getBoundingClientRect();
+    ffaDim[i]=fighters.some(e=>{if(e.gone)return false; const sx=r.left+(e.x-cam.x)*k, sy=r.top+(e.y-cam.y)*k, h=(e.sp.body*2+30)*k; return sx>b.left-10&&sx<b.right+10&&sy-h<b.bottom+6&&sy>b.top});
+    el.classList.toggle("dim",fighters.some(e=>{if(e.gone)return false; const sx=r.left+(e.x-cam.x)*k, sy=r.top+(e.y-cam.y)*k, h=(e.sp.body*2+30)*k; return sx>b.left-10&&sx<b.right+10&&sy-h<b.bottom+6&&sy>b.top}))});
+});

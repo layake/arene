@@ -250,7 +250,7 @@ function buildMenu(){
 }
 function refreshMenu(){
   cardsEl.querySelectorAll(".ace").forEach(b=>{const i=picks.indexOf(b.dataset.key); b.setAttribute("aria-pressed",String(i>=0)); b.classList.toggle("focus",b.dataset.key===pick&&i>=0); b.querySelector(".tn").textContent=i>=0?String(i+1):""});
-  teamLineEl.innerHTML=[0,1,2].map(i=>{const k=picks[i]; return k?'<div class="tslot'+(k===pick?" on":"")+'" data-i="'+i+'"><b>'+(i+1)+'</b><img alt="" src="'+PORTRAITS[k]+'"><span>'+SPECIES[k].name+'</span><u data-rm="'+i+'" title="Retirer">×</u></div>':'<div class="tslot empty"><b>'+(i+1)+'</b><span>Choisir un Ace</span></div>'}).join("")+'<small>Ordre d\'entrée 1, 2, 3 · Tab : changer d\'Ace en combat</small>';
+  teamLineEl.innerHTML=Array.from({length:pickMode==="ffa"?2:3},(_,i)=>i).map(i=>{const k=picks[i]; return k?'<div class="tslot'+(k===pick?" on":"")+'" data-i="'+i+'"><b>'+(i+1)+'</b><img alt="" src="'+PORTRAITS[k]+'"><span>'+SPECIES[k].name+'</span><u data-rm="'+i+'" title="Retirer">×</u></div>':'<div class="tslot empty"><b>'+(i+1)+'</b><span>Choisir un Ace</span></div>'}).join("")+'<small>'+(pickMode==="ffa"?'Ordre d\'entrée 1, 2 · Tab : changer d\'Ace en combat':'Ordre d\'entrée 1, 2, 3 · Tab : changer d\'Ace en combat')+'</small>';
   document.querySelectorAll("#menu .modes button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===pickMode)));
   document.querySelectorAll("#menu .diffs button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.diff===diff)));
   document.querySelector("#menu .diffs").hidden=pickMode!=="duel"&&pickMode!=="ffa";
