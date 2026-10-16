@@ -238,7 +238,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Choisis ton Ace</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>Tortipousse, mannequin</small></button><button type="button" data-mode="duel" aria-pressed="false">Duel<small>contre l'autre Ace</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div>
 </div>
-<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.15 · 16/10/2026</b></footer>
+<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.16 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -2093,7 +2093,7 @@ function applyKit(){
     SLOT_T.delete(btn);
   });
   const kit=player.kit.map((id,i)=>"<b>"+SLOT_KEYS[i]+"</b> "+SPL[id].name+" ("+SPL[id].cost+")").join(" · ");
-  helpEl.innerHTML="<b>Clic droit</b> se déplacer (maintenir pour suivre)<br><b>Survoler l'ennemi</b> + clic droit : le poursuivre<br><b>Espace</b> bouclier (maintenir)<br><b>F</b> Flash : blink vers le curseur, court cast puis intouchable 0,25 s (recharge 12 s)<br>"+kit+"<br><b>Clic gauche</b> lance le sort visé · <b>Clic droit</b> ou <b>Échap</b> annule<br>Le mode de lancer (clic, rapide, maintenir) se change avec le bouton à côté.";
+  helpEl.innerHTML="<b>Clic droit</b> se déplacer (maintenir pour suivre)<br><b>Survoler l'ennemi</b> + clic droit : le poursuivre<br><b>Espace</b> bouclier (maintenir)<br><b>F</b> Flash : blink vers le curseur, cast 0,5 s puis blink (recharge 12 s)<br>"+kit+"<br><b>Clic gauche</b> lance le sort visé · <b>Clic droit</b> ou <b>Échap</b> annule<br>Le mode de lancer (clic, rapide, maintenir) se change avec le bouton à côté.";
   scoreEl.textContent=""; scoreTxt="";
 }
 const SLOT_T=new WeakMap();
@@ -2711,7 +2711,7 @@ function botAce2(e,t,d,threat,go,ok,rnd){
 }
 
 /* ===== Flash (touche F) : court cast avec destination visible, puis blink; pas de recuperation ===== */
-const FLASH={dist:110,cast:.3,inv:.25,cd:12,pal:["#fff6b0","#ffe060","#ffffff","#f0b020","#ffd23c"]};
+const FLASH={dist:110,cast:.5,inv:0,cd:12,pal:["#fff6b0","#ffe060","#ffffff","#f0b020","#ffd23c"]};
 function castFlash(e){
   if(e.ko>0||e.stun>0||e.tunnel||e.rush||e.chan||e.counter||e.flashC||e.lock>0||(e.anim==="attack"&&!e.hit)||cdOf(e,"flash")>0)return;
   e.cd.flash=FLASH.cd;
