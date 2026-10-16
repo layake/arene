@@ -248,6 +248,57 @@ img,canvas{image-rendering:pixelated}
 #fhud .bench i{border-width:2px}
 .slot{box-shadow:0 0 0 2px #000,0 4px 0 2px #000a}
 @media(max-width:560px){#fhud .ht{border-width:2px;box-shadow:2px 0 0 #000,-2px 0 0 #000,0 2px 0 #000,0 -2px 0 #000}#fhud .hbar{height:14px}}
+/* ===== Menu : une seule page (PC) ===== */
+.mbox{display:grid;grid-template-columns:minmax(0,1fr) 400px;grid-template-areas:"h h" "t t" "o o" "tl tl" "c d" "b b";gap:10px 16px;align-items:start;max-width:1060px;width:100%;padding:14px 22px 18px}
+.mbox h2{grid-area:h;font-size:24px}
+.mbox .tabs{grid-area:t;margin:0}
+.mbox #onl{grid-area:o}
+.mbox #teamLine{grid-area:tl}
+.mbox #cards{grid-area:c;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0;align-content:start}
+.mbox #equip{grid-area:d;margin:0}
+.mbox .bar{grid-area:b;display:grid;grid-template-columns:1fr auto;gap:8px 16px;align-items:center;border-top:2px solid #4a68c8;padding-top:10px}
+.bar>.modes,.bar>.diffs,.bar>.foes{grid-column:1;margin:0;justify-content:flex-start}
+.bar>#go{grid-column:2;grid-row:1/4;align-self:stretch;min-width:190px;font-size:24px}
+.ace{width:auto;padding:6px 6px 8px}
+.ace img{display:block;width:56px;height:56px;margin:0 auto 2px;image-rendering:pixelated}
+.ace h3{font-size:15px;margin:0 0 3px}
+.ace .ty{display:flex;gap:3px;justify-content:center;flex-wrap:wrap}.ace .ty i{font-size:10px;padding:0 4px}
+.ace .st,.ace ul{display:none}
+#teamLine{gap:8px;align-items:stretch}
+#teamLine .tslot{display:flex;align-items:center;gap:6px;min-width:190px;background:rgba(7,12,36,.55);border:2px solid #4a68c8;padding:3px 8px;cursor:pointer;font-size:14px}
+#teamLine .tslot.on{border-color:#ffe45e}
+#teamLine .tslot.empty{opacity:.5;border-style:dashed;cursor:default}
+#teamLine .tslot b{background:#ffe45e;color:#101830;min-width:20px;text-align:center}
+#teamLine .tslot img{width:32px;height:32px;image-rendering:pixelated}
+#teamLine .tslot span{flex:1;text-align:left}
+#teamLine .tslot u{text-decoration:none;color:#ff9a8a;padding:0 4px}
+#teamLine.full{animation:tfull .35s steps(4) 2}
+@keyframes tfull{50%{background:#5a1a14}}
+#teamLine small{flex-basis:auto;align-self:center;margin-left:auto}
+.dhead{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+.dhead img{width:64px;height:64px;image-rendering:pixelated;background:#1a2a66;border:2px solid #4a68c8}
+.dhead h3{margin:0 0 4px;font-size:20px}
+.dhead .ty{display:flex;gap:4px}.dhead .ty i{font-style:normal;font-size:11px;padding:1px 6px;color:#fff}
+.dstats{display:grid;grid-template-columns:1fr 1fr;gap:2px 14px;margin-bottom:8px;font-size:12px}
+.dsr{display:grid;grid-template-columns:62px 1fr 28px;gap:4px;align-items:center}
+.dsr u{display:block;height:7px;background:#10121c;border:1px solid #000}.dsr s{display:block;height:100%;background:#5fd35f}
+.dsr em{font-style:normal;text-align:right}
+.mbox .eqg{grid-template-columns:1fr 1fr}
+.mbox{gap:8px 16px;padding:10px 22px 12px}
+.mbox .bar{grid-template-columns:auto 1fr auto;padding-top:8px;gap:6px 14px}
+.bar>.modes{grid-column:1;grid-row:1}.bar>.diffs{grid-column:2;grid-row:1}.bar>.foes{grid-column:1/3;grid-row:2}
+.bar>#go{grid-column:3;grid-row:1/3;min-width:170px;font-size:22px;padding:6px 18px}
+.bar .modes button{min-height:38px;padding:3px 12px}.bar .modes small{display:none}
+.bar .foes{flex-wrap:nowrap}.bar #foeBtns{flex-wrap:wrap}
+.mbox #teamLine{margin:0}
+.dhead{margin-bottom:6px}.dstats{margin-bottom:6px}
+.mbox .tabs button{min-height:34px;padding:3px 20px}
+.mbox #equip{padding:8px 10px}
+.mv{padding:4px 8px}
+.bar .foes{gap:6px}.bar #foeBtns{flex-wrap:nowrap;gap:4px}.bar #foeBtns button{font-size:11px;padding:2px 6px;min-height:28px}
+.bar>.foes{grid-column:1/3}
+.mbox>*{min-width:0}
+@media(max-width:1000px){.mbox{grid-template-columns:minmax(0,1fr);grid-template-areas:"h" "t" "o" "tl" "c" "d" "b"}.mbox #cards{grid-template-columns:repeat(4,1fr)}#teamLine .tslot{min-width:0;flex:1}#teamLine small{display:none}.bar>.modes,.bar>.diffs,.bar>.foes{grid-column:1/3}.bar>#go{grid-column:1/3;grid-row:auto}.bar .foes,.bar #foeBtns{flex-wrap:wrap}}
 footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </style>
 
@@ -270,9 +321,9 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 <div id="bar">
 <button id="atk" class="slot dragon" type="button" aria-disabled="false"><span class="k">A</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#1a0f3d" stroke-width="1.4" stroke-linejoin="round"><path d="M4 4 L9 3 L15 27 L12 28 Z" fill="#f3eaff"/><path d="M11 4 L16 3 L22 27 L19 28 Z" fill="#f3eaff"/><path d="M18 4 L23 3 L29 27 L26 28 Z" fill="#f3eaff"/></svg><span class="c">10</span><span class="n">Draco-Griffe</span><span class="cd"></span><span class="t"></span></button><button id="pls" class="slot ground" type="button" aria-disabled="false"><span class="k">Z</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#2a1608" stroke-width="1.4"><circle cx="17" cy="17" r="9" fill="#7a4a22"/><ellipse cx="13" cy="13" rx="3.2" ry="2" fill="#c08a50" stroke="none"/><circle cx="5.5" cy="21" r="2.2" fill="#7a4a22"/><circle cx="27.5" cy="9" r="1.8" fill="#7a4a22"/><circle cx="6" cy="10" r="1.4" fill="#7a4a22"/></svg><span class="c">20</span><span class="n">Tir de Boue</span><span class="cd"></span><span class="t"></span></button><button id="tun" class="slot ground" type="button" aria-disabled="false"><span class="k">E</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#2a1608" stroke-width="1.4" stroke-linejoin="round"><path d="M3 27 Q16 3 29 27 Z" fill="#b98a4e"/><path d="M9 20 Q13 12 17 10" fill="none" stroke="#e3bd82" stroke-width="2" stroke-linecap="round"/><ellipse cx="16" cy="25" rx="6.5" ry="2.8" fill="#2a1608"/></svg><span class="c">25</span><span class="n">Tunnel</span><span class="cd"></span><span class="t"></span></button><button id="rsh" class="slot dragon" type="button" aria-disabled="false"><span class="k">R</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#1a0f3d" stroke-width="1.4" stroke-linejoin="round"><path d="M3 12 H16 V5 L29 16 L16 27 V20 H3 Z" fill="#f3eaff"/><path d="M6 15 H18 V11" fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round"/></svg><span class="c">50</span><span class="n">Draco-Charge</span><span class="cd"></span><span class="t"></span></button><span class="sep"></span><button id="shd" class="slot shield" type="button" aria-pressed="false" aria-disabled="false"><span class="k">Esp</span><svg viewBox="0 0 32 32" aria-hidden="true" stroke="#0b2a40" stroke-width="1.4" stroke-linejoin="round"><path d="M16 3 L28 7 V16 C28 23 22 27 16 30 C10 27 4 23 4 16 V7 Z" fill="#d6f2ff"/><path d="M16 7 L24 10 V16 C24 21 20 24 16 26 Z" fill="#5cc0f0" stroke="none"/></svg><span class="n">Bouclier</span><span class="cd"></span><span class="t"></span></button>
 </div>
-<div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Choisis ton équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>Tortipousse, mannequin</small></button><button type="button" data-mode="duel" aria-pressed="false">Duel<small>contre l'autre Ace</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div>
+<div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Choisis ton équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>Tortipousse, mannequin</small></button><button type="button" data-mode="duel" aria-pressed="false">Duel<small>contre l'autre Ace</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
 </div>
-<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.19 · 16/10/2026</b></footer>
+<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.20 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -2272,10 +2323,13 @@ const draft={}; // panoplie en cours de choix, par Ace
 const draftOf=k=>draft[k]||(draft[k]=kitOf(k).slice());
 const equipEl=document.getElementById("equip");
 const teamLineEl=document.createElement("div"); teamLineEl.id="teamLine"; equipEl.parentNode.insertBefore(teamLineEl,equipEl);
+teamLineEl.addEventListener("click",e=>{const rm=e.target.closest("[data-rm]"), sl=e.target.closest(".tslot[data-i]"); if(rm){const i=+rm.dataset.rm; picks.splice(i,1); if(!picks.includes(pick))pick=picks[picks.length-1]||pick; refreshMenu()} else if(sl){pick=picks[+sl.dataset.i]; refreshMenu()}});
 function moveInfo(id){const s=SPL[id];return catFr(s.cat)+" · "+TYPE_FR[s.type]+(s.power?" · Puiss. "+s.power:"")+" · Recharge "+s.cd+" s"}
 function buildEquip(){
   const k=pick, sp=SPECIES[k], dk=draftOf(k);
-  equipEl.innerHTML='<div class="eqh"><span>Sorts de '+sp.name+' <em>'+dk.length+' / 4</em></span><button type="button" id="eqDef">Par défaut</button></div><div class="eqg"></div><p class="eqi" id="eqInfo">Choisis 4 sorts. Les plus puissants rechargent plus lentement.</p>';
+  const stt=STAT_ROWS.map(([l,s])=>'<div class="dsr"><span>'+l+'</span><u><s style="width:'+Math.round(sp.base[s]/190*100)+'%"></s></u><em>'+sp.base[s]+'</em></div>').join("");
+  const tys=sp.types.map(t=>'<i style="background:'+TYPE_COL[t]+'">'+TYPE_FR[t]+'</i>').join("");
+  equipEl.innerHTML='<div class="dhead"><img alt="" src="'+PORTRAITS[k]+'"><div><h3>'+sp.name+'</h3><div class="ty">'+tys+'</div></div></div><div class="dstats">'+stt+'</div><div class="eqh"><span>Sorts <em>'+dk.length+' / 4</em></span><button type="button" id="eqDef">Par défaut</button></div><div class="eqg"></div><p class="eqi" id="eqInfo">Choisis 4 sorts. Les plus puissants rechargent plus lentement.</p>';
   const grid=equipEl.querySelector(".eqg"), info=equipEl.querySelector("#eqInfo");
   sp.pool.forEach(id=>{
     const s=SPL[id], b=document.createElement("button"), n=dk.indexOf(id); b.type="button"; b.className="mv"; b.setAttribute("aria-pressed",String(n>=0));
@@ -2304,7 +2358,7 @@ function buildMenu(){
       const i=picks.indexOf(k);
       if(i>=0){if(pick===k){picks.splice(i,1);if(picks.length)pick=picks[picks.length-1]}else pick=k}
       else if(picks.length<3){picks.push(k);pick=k}
-      else{teamLineEl.textContent="3 Aces maximum : clique sur un Ace choisi (déjà sélectionné) pour le retirer.";return}
+      else{teamLineEl.classList.add("full");setTimeout(()=>teamLineEl.classList.remove("full"),700);return}
       refreshMenu();
     });
     cardsEl.appendChild(b);
@@ -2320,7 +2374,7 @@ function buildMenu(){
 }
 function refreshMenu(){
   cardsEl.querySelectorAll(".ace").forEach(b=>{const i=picks.indexOf(b.dataset.key); b.setAttribute("aria-pressed",String(i>=0)); b.classList.toggle("focus",b.dataset.key===pick&&i>=0); b.querySelector(".tn").textContent=i>=0?String(i+1):""});
-  teamLineEl.innerHTML="<b>Équipe</b> "+[0,1,2].map(i=>picks[i]?'<span class="tl">'+(i+1)+" "+SPECIES[picks[i]].name+"</span>":'<span class="tl empty">'+(i+1)+" ?</span>").join("")+'<small>Clique un Ace pour l\'ajouter (ordre 1, 2, 3). Tab : changer d\'Ace en combat.</small>';
+  teamLineEl.innerHTML=[0,1,2].map(i=>{const k=picks[i]; return k?'<div class="tslot'+(k===pick?" on":"")+'" data-i="'+i+'"><b>'+(i+1)+'</b><img alt="" src="'+PORTRAITS[k]+'"><span>'+SPECIES[k].name+'</span><u data-rm="'+i+'" title="Retirer">×</u></div>':'<div class="tslot empty"><b>'+(i+1)+'</b><span>Choisis un Ace</span></div>'}).join("")+'<small>Ordre 1, 2, 3 · Tab change d\'Ace en combat</small>';
   document.querySelectorAll("#menu .modes button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===pickMode)));
   document.querySelectorAll("#menu .diffs button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.diff===diff)));
   document.querySelector("#menu .diffs").hidden=pickMode!=="duel";
