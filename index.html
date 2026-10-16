@@ -1,5 +1,4 @@
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Carchacrok Arena</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Arène des Aces</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Pixelify+Sans:wght@500;700&display=swap">
 <style>
@@ -299,12 +298,65 @@ img,canvas{image-rendering:pixelated}
 .bar>.foes{grid-column:1/3}
 .mbox>*{min-width:0}
 @media(max-width:1000px){.mbox{grid-template-columns:minmax(0,1fr);grid-template-areas:"h" "t" "o" "tl" "c" "d" "b"}.mbox #cards{grid-template-columns:repeat(4,1fr)}#teamLine .tslot{min-width:0;flex:1}#teamLine small{display:none}.bar>.modes,.bar>.diffs,.bar>.foes{grid-column:1/3}.bar>#go{grid-column:1/3;grid-row:auto}.bar .foes,.bar #foeBtns{flex-wrap:wrap}}
+/* ===== Ecran titre ===== */
+#title{position:absolute;inset:0;z-index:11;overflow:hidden;background:#1b2368}
+#title[hidden]{display:none}
+#tcv{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
+#title .tbox{position:absolute;left:0;right:0;top:7%;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px}
+#title .tpre{font:500 15px "Pixelify Sans",monospace;letter-spacing:.25em;text-transform:uppercase;color:#fff6c8;text-shadow:2px 2px 0 #101830}
+#title h1{margin:0;display:flex;flex-direction:column;align-items:center;line-height:.95;font-family:"Pixelify Sans",monospace}
+#title h1 span{font-size:clamp(28px,5vw,48px);color:#fff;letter-spacing:.3em;text-shadow:3px 3px 0 #101830}
+#title h1 b{font-size:clamp(52px,10vw,104px);color:#ffe45e;letter-spacing:.06em;text-shadow:0 4px 0 #b8740a,4px 4px 0 #101830,-3px 0 0 #101830,3px 0 0 #101830,0 -3px 0 #101830,6px 8px 0 #101830;animation:tbob 1.6s steps(4) infinite alternate}
+@keyframes tbob{to{transform:translateY(-6px)}}
+#title .tbtns{display:flex;flex-direction:column;gap:10px;margin-top:20px}
+#title .tbtns button{min-width:260px;font:700 22px "Pixelify Sans",monospace;letter-spacing:.08em;color:#fff;background:#1f3290;border:3px solid #e6eeff;box-shadow:0 0 0 3px #070c24,0 6px 0 3px #070c24;padding:10px 24px;cursor:pointer;text-transform:uppercase}
+#title .tbtns button:hover,#title .tbtns button:focus-visible{background:#ffe45e;color:#101830;border-color:#fff;outline:none}
+#title .tbtns button:active{transform:translateY(3px)}
+#title .tfoot{position:absolute;left:0;right:0;bottom:8px;text-align:center;font:500 12px "Pixelify Sans",monospace;color:#fff;text-shadow:1px 1px 0 #101830}
+#toTitle{position:absolute;left:14px;top:12px;z-index:2;font:500 13px "Pixelify Sans",monospace;color:#c9d6ff;background:rgba(7,12,36,.55);border:2px solid #4a68c8;padding:4px 10px;cursor:pointer}
+#toTitle:hover{color:#ffe45e;border-color:#ffe45e}
+.mbox{position:relative}
+/* ===== Ecran de versus ===== */
+#vs{position:absolute;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;background:#0a0d22;overflow:hidden;font-family:"Pixelify Sans",monospace;color:#fff}
+#vs[hidden]{display:none}
+#vs::before{content:"";position:absolute;inset:0;background:linear-gradient(105deg,#1f3a9e 0 49%,transparent 49% 51%,#a02a2a 51% 100%);opacity:.85}
+#vs::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 2px,transparent 2px 4px);pointer-events:none}
+.vsside{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 20px}
+.vsside h4{margin:0;font-size:20px;letter-spacing:.3em;color:#fff6c8;text-shadow:2px 2px 0 #101830}
+.vslead{display:flex;flex-direction:column;align-items:center;gap:6px}
+.vslead img{width:min(210px,24vw);height:min(210px,24vw);image-rendering:pixelated;background:#101830;border:4px solid #fff;box-shadow:0 0 0 4px #000,8px 8px 0 4px #000a}
+.vslead b{font-size:clamp(24px,3.6vw,38px);text-shadow:3px 3px 0 #101830}
+.vst{display:flex;gap:6px}.vst i{font-style:normal;font-size:13px;padding:2px 8px;color:#fff;border:2px solid #0008}
+.vsbn{display:flex;gap:12px;margin-top:6px}
+.vsbn div{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:13px}
+.vsbn img{width:64px;height:64px;image-rendering:pixelated;background:#101830;border:3px solid #fff;box-shadow:0 0 0 3px #000}
+.vsx{position:relative;z-index:2;font-size:clamp(60px,11vw,120px);font-weight:700;color:#ffe45e;text-shadow:0 5px 0 #b8740a,5px 5px 0 #101830,-4px 0 0 #101830,4px 0 0 #101830,0 -4px 0 #101830,8px 10px 0 #101830;padding:0 6px}
+#vs.go .vsside.l{animation:vsl .45s steps(9) both}
+#vs.go .vsside.r{animation:vsr .45s steps(9) both}
+#vs.go .vsx{animation:vsp .7s steps(7) .35s both}
+@keyframes vsl{from{transform:translateX(-120%)}}
+@keyframes vsr{from{transform:translateX(120%)}}
+@keyframes vsp{0%{transform:scale(0)}60%{transform:scale(1.5)}100%{transform:scale(1)}}
+/* ===== Banniere de manche ===== */
+#roundban{position:absolute;left:0;right:0;top:34%;z-index:6;text-align:center;font:700 clamp(46px,9vw,110px) "Pixelify Sans",monospace;letter-spacing:.08em;pointer-events:none}
+#roundban[hidden]{display:none}
+#roundban.win{color:#ffe45e;text-shadow:0 5px 0 #b8740a,5px 5px 0 #101830,-4px 0 0 #101830,4px 0 0 #101830,0 -4px 0 #101830}
+#roundban.lose{color:#ff6a5a;text-shadow:0 5px 0 #7a1810,5px 5px 0 #101830,-4px 0 0 #101830,4px 0 0 #101830,0 -4px 0 #101830}
+#roundban.in{animation:ban .5s steps(6) both}
+@keyframes ban{from{transform:scale(2.4);opacity:0}to{transform:scale(1);opacity:1}}
+/* ===== Salon en ligne façon versus ===== */
+.lbduo{align-items:center;gap:18px}
+.lbslot{padding:14px 18px;min-width:260px}
+.lbm{gap:12px;margin:8px 0;font-size:18px}.lbm img{width:56px;height:56px;border:3px solid #fff;box-shadow:0 0 0 3px #000}
+.lbvs{font-size:56px;color:#ffe45e;text-shadow:0 4px 0 #b8740a,4px 4px 0 #101830}
+.lbslot.ok{border-color:#5fd35f;box-shadow:0 0 0 3px #070c24,0 0 18px rgba(95,211,95,.55)}
+.lbslot .lbrdy{display:inline-block;margin-top:6px;padding:2px 14px;background:#5fd35f;color:#08220a;font-style:normal;font-weight:700;letter-spacing:.15em;text-transform:uppercase}
 footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </style>
 
 <header>
   <h1>Arène <span>des Aces</span></h1><span id="score"></span>
-  <div class="tools"><button id="menuBtn" type="button">Changer d'Ace</button><button id="pauseBtn" type="button" aria-pressed="false">Pause</button><button id="mode" type="button" title="Mode de lancer des sorts"></button><button id="helpBtn" type="button" aria-expanded="false" aria-controls="help">Commandes</button>
+  <div class="tools"><button id="menuBtn" type="button">Menu</button><button id="pauseBtn" type="button" aria-pressed="false">Pause</button><button id="mode" type="button" title="Mode de lancer des sorts"></button><button id="helpBtn" type="button" aria-expanded="false" aria-controls="help">Commandes</button>
     <div id="help" hidden>
       <b>Clic droit</b> se déplacer (maintenir pour suivre)<br><b>Survoler l'ennemi</b> + clic droit : le poursuivre<br>
       <b>Espace</b> bouclier (maintenir)<br><b>A</b> Draco-Griffe · <b>Z</b> Tir de Boue · <b>E</b> Tunnel · <b>R</b> Draco-Charge<br>
@@ -323,7 +375,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Choisis ton équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>Tortipousse, mannequin</small></button><button type="button" data-mode="duel" aria-pressed="false">Duel<small>contre l'autre Ace</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
 </div>
-<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.20 · 16/10/2026</b></footer>
+<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.21 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -716,6 +768,7 @@ function makeDummy(x,y){
 }
 const START_A=[WORLD.w/2-55,WORLD.h/2+10], START_B=[WORLD.w/2+55,WORLD.h/2+20];
 function resetRound(){
+  if(typeof hideBanner==="function")hideBanner();
   entities.forEach((e,i)=>{
     if(e.team)resetTeam(e);
     const s=i===0?START_A:START_B; e.x=s[0]; e.y=s[1]; e.hp=e.maxHp; e.hpShow=0; e.ko=0; e.kb=null; e.stun=0; e.dizzy=false; e.flash=0; e.lock=0; e.hit=false; e.run=false;
@@ -749,6 +802,7 @@ function startMatch(key,mode){musicSet("battle");
   resetRound(); player.dir=2; foe.dir=6;
   if(typeof applyKit==="function")applyKit();
   if(mode==="duel"&&foe.bot)botEquip(foe,player);
+  if(mode==="duel"&&typeof showVersus==="function")showVersus(player.team?player.team.map(s=>s.key):[player.key],foe.team?foe.team.map(s=>s.key):[foe.key],"TOI","BOT "+({easy:"FACILE",normal:"NORMAL",hard:"DIFFICILE"}[diff]||""));
 }
 
 // ---- Animation ----
@@ -932,6 +986,7 @@ function knockOut(t,att){
   sfxUI("ko");
   t.ko=1.6; t.kb=null; t.counter=null; t.rush=null; t.chan=null; t.tunnel=null; t.shieldOn=false;
   const more=teamKO(t);
+  if(!more&&matchMode==="duel"){t.ko=2.6; if(typeof showBanner==="function")showBanner(t===player?"DÉFAITE":"VICTOIRE !",t===player?"lose":"win")}
   if(!more&&matchMode==="duel"&&!NET.guest){if(t===player)score.foe++;else score.me++}
   showLog(t.sp.name+" est K.O. !",1600);
 }
@@ -1442,7 +1497,7 @@ function fireBeam(e){
 }
 // Lance un sort par son identifiant
 function cast(e,id){
-  if(e.counter||e.ko>0)return;
+  if(e.counter||e.ko>0||vsT>0)return;
   if(id==="swap"){if(NET.guest&&e===player){NET.sendCast(id);return}startSwap(e);return}
   if(id==="flash"){if(NET.guest&&e===player)NET.sendCast(id);castFlash(e);return}
   if(!e.kit.includes(id))return;
@@ -2398,6 +2453,7 @@ document.getElementById("menuBtn").addEventListener("click",openMenu);
 // ---- Boucle ----
 function frame(now){
   const dt=Math.min(.05,(now-last)/1000); last=now;
+  if(vsT>0&&!menuOpen){vsT-=dt; if(vsT<=0)hideVersus(); draw(); requestAnimationFrame(frame); return}
   if((paused&&!NET.on)||menuOpen){draw();requestAnimationFrame(frame);return}
   if(lastE){if(held)setMoveTarget(lastE,false);else mouse=toWorld(lastE)}
   foe.hover=hoverEnemy(); stage.style.cursor=foe.hover?"crosshair":"default";
@@ -3176,6 +3232,7 @@ function begin(hostH,guestH,asHost){
   if(asHost){player=A;foe=B;B.remote=true}else{player=B;foe=A;A.remote=true}
   playerKey=player.key; resetRound();
   if(typeof applyKit==="function")applyKit();
+  if(typeof showVersus==="function")showVersus(player.team.map(s=>s.key),foe.team.map(s=>s.key),"TOI","ADVERSAIRE");
   NET.on=true;NET.host=asHost;NET.guest=!asHost;NET.started=true;
   menuOpen=false; menuEl.hidden=true; last=performance.now(); info.hidden=false; say(""); menuBtn.textContent="Retour au salon";
 }
@@ -3291,5 +3348,77 @@ btnJ.addEventListener("click",()=>{
 });
 // Tout message relayé avant le démarrage passe par le serveur ; ensuite le canal direct prend le relais.
 })();
+
+/* ===== Habillage : ecran titre, ecran de versus, bannieres, favicon ===== */
+var vsT=0;
+const stageEl=document.getElementById("stage");
+// --- favicon : la Pokeball en pixel art ---
+(function(){
+  try{const c=document.createElement("canvas");c.width=c.height=36;const x=c.getContext("2d");
+    BALL_PIX.forEach((row,j)=>{for(let i=0;i<9;i++){const ch=row[i]; if(ch==="."||!ch)continue; x.fillStyle=BALL_COL[ch]; x.fillRect(i*4,j*4,4,4)}});
+    const l=document.createElement("link");l.rel="icon";l.href=c.toDataURL("image/png");document.head.appendChild(l)}catch(_){}
+})();
+// --- ecran titre ---
+var titleEl=document.createElement("div"); titleEl.id="title"; titleEl.hidden=true;
+titleEl.innerHTML='<canvas id="tcv"></canvas><div class="tbox"><div class="tpre">Combat en arène · 3 contre 3</div><h1><span>ARÈNE</span><b>DES ACES</b></h1><div class="tbtns"><button type="button" id="tPlay">Jouer</button><button type="button" id="tOnline">En ligne</button><button type="button" id="tHelp">Commandes</button></div></div><div class="tfoot">Entrée : jouer · <span id="tVer"></span></div>';
+stageEl.appendChild(titleEl);
+const tcv=titleEl.querySelector("#tcv"), tctx2=tcv.getContext("2d");
+const T_SKY=["#1b2368","#26338a","#3a4fb0","#5c6fd0","#8d8ae0","#d98fb0","#f0a478"];
+const T_KEYS=Object.keys(SPECIES).filter(k=>SPECIES[k].playable);
+let tRaf=0, tT0=0;
+function titleResize(){const r=stageEl.getBoundingClientRect(); tcv.height=180; tcv.width=Math.max(240,Math.round(180*r.width/Math.max(1,r.height)))}
+function titleDraw(now){
+  if(titleEl.hidden){tRaf=0;return}
+  const W=tcv.width,H=tcv.height,c=tctx2, t=Math.max(0,(now-tT0)/1000); c.imageSmoothingEnabled=false;
+  const gy=Math.round(H*.74);
+  T_SKY.forEach((col,i)=>{c.fillStyle=col;c.fillRect(0,Math.round(gy*i/T_SKY.length),W,Math.ceil(gy/T_SKY.length)+1)});
+  c.fillStyle="#fff6c8"; for(let i=0;i<26;i++){const x=(i*97+13)%W,y=(i*53)%Math.round(gy*.5); if((Math.floor(t*2+i)%5)!==0)c.fillRect(x,y,1,1)}
+  c.fillStyle="rgba(255,255,255,.85)"; for(let i=0;i<4;i++){const x=Math.round(((i*140+t*6)%(W+80))-40),y=20+i*22; c.fillRect(x,y,34,4);c.fillRect(x+6,y-3,22,3);c.fillRect(x+10,y+4,24,3)}
+  c.fillStyle="#2a4a7a"; for(let x=0;x<W;x+=2){const h=14+Math.round(10*Math.sin(x*.035)+6*Math.sin(x*.11)); c.fillRect(x,gy-h,2,h)}
+  c.fillStyle="#3f8f3a"; c.fillRect(0,gy,W,H-gy); c.fillStyle="#58b04a"; c.fillRect(0,gy,W,3); c.fillStyle="#2f7230"; for(let x=0;x<W;x+=6)c.fillRect(x+(x>>2&3),gy+8+(x%3)*9,3,1);
+  c.fillStyle="#7a5a32"; c.fillRect(0,gy+Math.round((H-gy)*.55),W,10);
+  const sp=44, span=T_KEYS.length*sp, off=(t*18)%span;
+  for(let k=0;k<T_KEYS.length+3;k++){
+    const key=T_KEYS[k%T_KEYS.length], S=SPECIES[key], s=S.sheets.walk, n=s.dur.length, fr=Math.floor((t*8+k*3)%n), a=S.anch.walk[2][fr];
+    const x=Math.round(-sp+k*sp+off-span*0+ (off>0?-off*0:0));
+    const px=Math.round(((k*sp+off)%(span+sp*3))-sp*1.5), y=gy+Math.round((H-gy)*.55)+8;
+    if(s.img.complete){c.fillStyle="rgba(0,0,0,.25)";c.fillRect(px-8,y-1,16,3);c.drawImage(s.img,fr*s.w,2*s.h,s.w,s.h,px-a[0],y-a[1],s.w,s.h)}
+  }
+  tRaf=requestAnimationFrame(titleDraw);
+}
+function showTitle(){
+  titleEl.hidden=false; menuEl.hidden=true; menuOpen=true; try{musicSet("menu")}catch(_){}
+  const v=document.getElementById("ver"); document.getElementById("tVer").textContent=v?v.textContent:"";
+  titleResize(); tT0=performance.now(); if(!tRaf)tRaf=requestAnimationFrame(titleDraw);
+}
+function leaveTitle(tab){
+  titleEl.hidden=true; menuEl.hidden=false; menuOpen=true; if(NET&&NET.tab)NET.tab(tab||"solo"); refreshMenu(); try{sfxUI("click")}catch(_){}
+}
+titleEl.querySelector("#tPlay").addEventListener("click",()=>leaveTitle("solo"));
+titleEl.querySelector("#tOnline").addEventListener("click",()=>leaveTitle("online"));
+titleEl.querySelector("#tHelp").addEventListener("click",()=>{const b=document.getElementById("helpBtn")||[...document.querySelectorAll("button")].find(x=>/Commandes/.test(x.textContent)&&!titleEl.contains(x)); if(b)b.click()});
+addEventListener("keydown",e=>{if(!titleEl.hidden&&(e.key==="Enter"||e.key===" ")){e.preventDefault();e.stopPropagation();leaveTitle("solo")}},true);
+addEventListener("resize",()=>{if(!titleEl.hidden)titleResize()});
+// retour a l'accueil depuis le menu
+(function(){const b=document.createElement("button");b.type="button";b.id="toTitle";b.textContent="← Accueil";const m=document.querySelector("#menu .mbox"); if(m){m.insertBefore(b,m.firstChild); b.addEventListener("click",()=>{if(NET.on)NET.leave(); showTitle()})}})();
+// --- ecran de versus ---
+var vsEl=document.createElement("div"); vsEl.id="vs"; vsEl.hidden=true; stageEl.appendChild(vsEl);
+function vsSide(keys,label,cls){
+  const lead=SPECIES[keys[0]], rest=keys.slice(1);
+  return '<div class="vsside '+cls+'"><h4>'+label+'</h4><div class="vslead"><img alt="" src="'+PORTRAITS[keys[0]]+'"><b>'+lead.name+'</b><div class="vst">'+lead.types.map(t=>'<i style="background:'+TYPE_COL[t]+'">'+TYPE_FR[t]+'</i>').join("")+'</div></div><div class="vsbn">'+rest.map(k=>'<div><img alt="" src="'+PORTRAITS[k]+'"><span>'+SPECIES[k].name+'</span></div>').join("")+'</div></div>';
+}
+function showVersus(meKeys,foeKeys,meL,foeL){
+  vsEl.innerHTML=vsSide(meKeys,meL,"l")+'<div class="vsx"><b>VS</b></div>'+vsSide(foeKeys,foeL,"r");
+  vsEl.hidden=false; vsEl.classList.remove("go"); void vsEl.offsetWidth; vsEl.classList.add("go"); vsT=2.6;
+}
+function hideVersus(){vsT=0; if(vsEl)vsEl.hidden=true}
+vsEl.addEventListener("click",()=>{if(vsT>0&&vsT<2.2)hideVersus()});
+addEventListener("keydown",e=>{if(!vsEl.hidden&&vsT<2.2&&(e.key==="Enter"||e.key===" ")){e.preventDefault();e.stopPropagation();hideVersus()}},true);
+// --- banniere de manche ---
+var banEl=document.createElement("div"); banEl.id="roundban"; banEl.hidden=true; stageEl.appendChild(banEl);
+function showBanner(txt,cls){banEl.textContent=txt;banEl.className=cls||"";banEl.hidden=false;void banEl.offsetWidth;banEl.classList.add("in")}
+function hideBanner(){if(banEl)banEl.hidden=true}
+// affiche le titre au chargement
+showTitle();
 
 </script>
