@@ -1,0 +1,14 @@
+name = "arene-ranked"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+[[durable_objects.bindings]]
+name = "ARENA"
+class_name = "Arena"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Arena"]
+
+# Optionnel : une adresse à toi (le domaine doit être dans ton compte Cloudflare), puis mettre la même dans src/build/new/ranked.js
+# routes = [{ pattern = "rank.lensslo.com", custom_domain = true }]

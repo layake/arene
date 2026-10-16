@@ -25,7 +25,9 @@ function send(o,reliable){
   wsSend({t:"rel",d:s});
 }
 NET.send=o=>send(o,o.t!=="snap"&&o.t!=="mv");
+NET.rk=null; NET.rankedEvent=null;
 NET.leave=function(){
+  if(NET.rk&&NET.rankedEvent)NET.rankedEvent("leave",NET.started); NET.rk=null;
   NET.on=false;NET.host=false;NET.guest=false;NET.started=false;role="";info.hidden=true;
   try{if(pc)pc.close()}catch(_){} pc=dcR=dcF=null; pend=[];
   if(ws){try{ws.onclose=null;ws.close()}catch(_){} ws=null}
@@ -160,8 +162,13 @@ function sendPick(force){
 }
 setInterval(()=>{if(inLobby&&!NET.started){refreshLobby();sendPick(false)}},300);
 function openRoom(code){inLobby=true;roomCode=code;peerHere=false;myReady=oppReady=false;oppHello=oppPick=null;say("");refreshLobby()}
-function lobbyOn(){peerHere=true;myReady=oppReady=false;oppHello=oppPick=null;say("");refreshLobby();sendPick(true)}
+function lobbyOn(){peerHere=true;myReady=oppReady=false;oppHello=oppPick=null;say("");refreshLobby();sendPick(true); if(NET.rk)setTimeout(autoReady,600)}
+function autoReady(){ // combat classé : pas de salon à valider, chacun se déclare prêt tout de suite
+  if(!NET.rk||!inLobby||myReady||NET.started||!peerHere)return;
+  myReady=true; myHello=mineHello(); relay({t:"ready",on:true,team:myHello.team}); refreshLobby(); maybeStart();
+}
 function peerGone(){
+  if(NET.rk&&NET.rankedEvent)NET.rankedEvent("peergone",NET.started);
   if(role!=="host"){const was=NET.started;NET.leave();say("L'adversaire a quitté le salon");if(was)openMenu();return}
   const was=NET.started; NET.started=false; info.hidden=true; peerHere=false; myReady=oppReady=false; oppHello=oppPick=null;
   try{if(pc)pc.close()}catch(_){} pc=dcR=dcF=null; pend=[]; if(mode==="peer")connR=connF=null;
@@ -218,7 +225,7 @@ function begin(hostH,guestH,asHost){
 function beginHost(){
   myHello=mineHello(); const h=myHello, g=oppHello;
   if(!h||!g||!validTeam(g.team)){say("Équipe de l'adversaire invalide");return}
-  setArena(ARENA_PICK); relay({t:"start",h:{team:h.team},g:{team:g.team},a:ARENA_PICK});
+  const arena=NET.rk?"colisee":ARENA_PICK; setArena(arena); relay({t:"start",h:{team:h.team},g:{team:g.team},a:arena});
   begin(h,g,true);
 }
 function beginGuest(m){ if(!m.h||!validTeam(m.h.team)||!validTeam(m.g&&m.g.team))return; setArena(ARENAS[m.a]?m.a:"colisee"); begin(m.h,m.g,false) }
@@ -263,13 +270,13 @@ function attach(c){
   c.on("data",d=>{try{onMsg(d)}catch(_){}});
   c.on("close",()=>{if(c===connR)onLeft()});
 }
-function peerFail(msg){say(msg);btnC.disabled=btnJ.disabled=false;if(peer){try{peer.destroy()}catch(_){}peer=null}}
-function peerHost(){
+function peerFail(msg){say(msg); if(NET.rk&&NET.rankedEvent)NET.rankedEvent("fail",msg);btnC.disabled=btnJ.disabled=false;if(peer){try{peer.destroy()}catch(_){}peer=null}}
+function peerHost(fixed){
   const go=n=>{
     if(n>5)return peerFail("Courtier injoignable");
-    const code=rcode(); const p=new Peer("arene-"+code,peerOpts()); peer=p;
+    const code=fixed||rcode(); const p=new Peer("arene-"+code,peerOpts()); peer=p;
     p.on("open",()=>openRoom(code));
-    p.on("error",e=>{ if(e.type==="unavailable-id"){try{p.destroy()}catch(_){}go(n+1)} else peerFail("Courtier injoignable ("+e.type+")") });
+    p.on("error",e=>{ if(e.type==="unavailable-id"&&!fixed){try{p.destroy()}catch(_){}go(n+1)} else peerFail("Courtier injoignable ("+e.type+")") });
     p.on("connection",c=>{
       const k=c.metadata&&c.metadata.c; if(peerHere&&k==="r"){c.close();return} attach(c);
       if(k==="r"){connR=c; c.on("open",()=>lobbyOn())} else connF=c;
@@ -277,9 +284,12 @@ function peerHost(){
   };
   go(0);
 }
-function peerJoin(code){
-  const p=new Peer(peerOpts()); peer=p;
-  p.on("error",e=>peerFail(e.type==="peer-unavailable"?"Salon introuvable":"Courtier injoignable ("+e.type+")"));
+function peerJoin(code,tries){
+  const p=new Peer(peerOpts()); peer=p; tries=tries||0;
+  p.on("error",e=>{
+    if(NET.rk&&e.type==="peer-unavailable"&&tries<15){try{p.destroy()}catch(_){} peer=null; return setTimeout(()=>{if(NET.rk&&!peer)peerJoin(code,tries+1)},1500)} // l'hôte n'est peut-être pas encore prêt
+    peerFail(e.type==="peer-unavailable"?"Salon introuvable":"Courtier injoignable ("+e.type+")");
+  });
   p.on("open",()=>{
     const id="arene-"+code;
     connR=p.connect(id,{reliable:true,metadata:{c:"r"}}); connF=p.connect(id,{reliable:false,metadata:{c:"f"}});
@@ -325,5 +335,12 @@ btnJ.addEventListener("click",()=>{
   const c=(codeIn.value||"").trim().toUpperCase(); if(c.length!==4){say("Saisis le code du salon (4 lettres)");return}
   if(!saveKit())return; role="guest"; connectAny(false,c);
 });
+// Combat classé : la liaison passe toujours par PeerJS avec le code donné par le serveur de classement.
+NET.saveKit=saveKit;
+NET.rankedStart=function(info){
+  NET.leave(); NET.rk={matchId:info.matchId,code:info.code,role:info.role}; role=info.role; myHello=mineHello(); mode="peer";
+  btnC.disabled=btnJ.disabled=true; say("Connexion à l'adversaire…");
+  loadPeerLib().then(()=>{ if(!NET.rk)return; if(info.role==="host")peerHost(info.code); else peerJoin(info.code,0) },()=>peerFail("Bibliothèque PeerJS injoignable"));
+};
 // Tout message relayé avant le démarrage passe par le serveur ; ensuite le canal direct prend le relais.
 })();

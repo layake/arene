@@ -1,0 +1,1 @@
+{"name":"arene-ranked","private":true,"type":"module","scripts":{"dev":"node dev.js","test":"node ../tests/server.test.mjs","deploy":"npx wrangler deploy"}}

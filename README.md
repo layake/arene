@@ -17,3 +17,6 @@ Clic droit : se déplacer. Q, Z, E, R : les 4 sorts (clic gauche pour lancer). E
 - Tests : `python3 tests/run.py` (playwright). À lancer avant chaque push.
 - Ajouter une capacité, un archétype (mêlée, jet, rayon, vague, lien, volée) ou un Pokémon : `docs/AJOUTER_UNE_CAPACITE.md`. Sons : `docs/SONS.md`.
 - Les archétypes enregistrent leur dessin dans `FX_DRAW` et leur mise à jour dans `FX_UPDATERS` (voir `src/build/new/moves.js`).
+
+## Classé en ligne
+Matchmaking et Elo comme aux échecs : voir [docs/CLASSE.md](docs/CLASSE.md).
