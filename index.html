@@ -237,7 +237,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Choisis ton Ace</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>Tortipousse, mannequin</small></button><button type="button" data-mode="duel" aria-pressed="false">Duel<small>contre l'autre Ace</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div>
 </div>
-<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.10 · 16/10/2026</b></footer>
+<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.11 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -448,6 +448,7 @@ Object.assign(SPECIES,{
 
 // ===== Dracaufeu (Feu/Vol, Piqueur) et Mammochon (Glace/Sol, Briseur) =====
 Object.assign(SPL,{
+  flash:{name:"Flash",type:"normal",cat:"status",power:0,cost:0,cd:12,self:true,ground:false},
   flame:{name:"Lance-Flammes",type:"fire",cat:"spec",power:18,cost:15,cd:2.5,ground:false},
   fly:{name:"Vol",type:"flying",cat:"phys",power:32,cost:25,cd:5.5,ground:true},
   heat:{name:"Canicule",type:"fire",cat:"spec",power:20,cost:25,cd:7,ground:true},
@@ -1341,6 +1342,7 @@ function fireBeam(e){
 // Lance un sort par son identifiant
 function cast(e,id){
   if(e.counter||e.ko>0)return;
+  if(id==="flash"){if(NET.guest&&e===player)NET.sendCast(id);castFlash(e);return}
   if(!e.kit.includes(id))return;
   if(NET.guest&&e===player)NET.sendCast(id);
   SND.pe=e;SND.pend=id;
@@ -2088,10 +2090,14 @@ function applyKit(){
     SLOT_T.delete(btn);
   });
   const kit=player.kit.map((id,i)=>"<b>"+SLOT_KEYS[i]+"</b> "+SPL[id].name+" ("+SPL[id].cost+")").join(" · ");
-  helpEl.innerHTML="<b>Clic droit</b> se déplacer (maintenir pour suivre)<br><b>Survoler l'ennemi</b> + clic droit : le poursuivre<br><b>Espace</b> bouclier (maintenir)<br>"+kit+"<br><b>PP</b> : chaque sort en coûte, ils se régénèrent (8 par s)<br><b>Clic gauche</b> lance le sort visé · <b>Clic droit</b> ou <b>Échap</b> annule<br>Le mode de lancer (clic, rapide, maintenir) se change avec le bouton à côté.";
+  helpEl.innerHTML="<b>Clic droit</b> se déplacer (maintenir pour suivre)<br><b>Survoler l'ennemi</b> + clic droit : le poursuivre<br><b>Espace</b> bouclier (maintenir)<br><b>F</b> Flash : blink vers le curseur, intouchable 0,25 s (recharge 12 s)<br>"+kit+"<br><b>PP</b> : chaque sort en coûte, ils se régénèrent (8 par s)<br><b>Clic gauche</b> lance le sort visé · <b>Clic droit</b> ou <b>Échap</b> annule<br>Le mode de lancer (clic, rapide, maintenir) se change avec le bouton à côté.";
   scoreEl.textContent=""; scoreTxt="";
 }
 const SLOT_T=new WeakMap();
+const flashBtn=document.createElement("button"); flashBtn.type="button"; flashBtn.className="slot flashb"; flashBtn.title="Flash (F) : blink vers le curseur";
+flashBtn.innerHTML='<span class="k">F</span><span class="n">Flash</span><span class="cd"></span><span class="t"></span>'; flashBtn.style.setProperty("--g1","#f4d24a"); flashBtn.style.setProperty("--g2","#6a5410");
+shdBtn.parentNode.insertBefore(flashBtn,shdBtn);
+flashBtn.addEventListener("click",()=>{if(!menuOpen&&!paused&&player.ko<=0)cast(player,"flash")});
 function setSlot(btn,cd,max,active,cost){
   let t=SLOT_T.get(btn); if(!t){t={cd:btn.querySelector(".cd"),t:btn.querySelector(".t"),last:""};SLOT_T.set(btn,t)}
   const f=cd>0?clamp(cd/max,0,1):0, txt=cd>0?(cd<10?cd.toFixed(1):String(Math.ceil(cd))):"", afford=cost===undefined||player.pp>=cost, key=f.toFixed(3)+txt+active+afford;
@@ -2130,6 +2136,7 @@ function updateHud(){
     const id=player.kit[i], sp=SPL[id], ch=(id==="rush"&&player.rush&&player.rush.ph==="chan")||(id==="gleam"&&!!player.chan)||(!!SPL[id].buff&&!!player.bf[SPL[id].buff])||((id==="mburst"||id==="riposte")&&!!player.counter);
     setSlot(btn,cdOf(player,id),sp.cd,aiming===id||ch,sp.cost);
   });
+  setSlot(flashBtn,cdOf(player,"flash"),12,false);
   const pr=String(!!player.shieldOn); if(shdBtn.getAttribute("aria-pressed")!==pr)shdBtn.setAttribute("aria-pressed",pr);
   const txt="";
   if(txt!==scoreTxt){scoreTxt=txt;scoreEl.textContent=txt}
@@ -2153,6 +2160,7 @@ addEventListener("keydown",e=>{const k=e.key.toLowerCase();
   if(paused)return;
   if(k==="t"){const i=AIM.modes.findIndex(x=>x[0]===AIM.mode),n=AIM.modes[(i+1)%3];setAimMode(n[0]);showLog("Visée : "+n[1],900);return}
   if(k===" "){e.preventDefault();keys.add(" ");return}
+  if(k==="f"){e.preventDefault();if(!e.repeat&&player.ko<=0)cast(player,"flash");return}
   const s=slotOf(e); if(s!==undefined){e.preventDefault();if(!e.repeat)pressSpell(s);return}
   if(["arrowup","arrowdown","arrowleft","arrowright"].includes(k))e.preventDefault();
   keys.add(k)});
@@ -2697,6 +2705,24 @@ function botAce2(e,t,d,threat,go,ok,rnd){
   if(ok("avalanche")&&d<AVAL.range+8&&rnd(.5)){go("avalanche",false,AVAL.delay*.8);return true}
   if(ok("flame")&&d<FLAME.reach-6&&rnd(.85)){go("flame",true);return true}
   return false;
+}
+
+/* ===== Flash (touche F) : blink vers le curseur, intouchable bref, puis recuperation ===== */
+const FLASH={dist:110,inv:.25,rec:.45,cd:12,pal:["#fff6b0","#ffe060","#ffffff","#f0b020","#ffd23c"]};
+function castFlash(e){
+  if(e.ko>0||e.stun>0||e.tunnel||e.rush||e.chan||e.counter||e.lock>0||(e.anim==="attack"&&!e.hit)||cdOf(e,"flash")>0)return;
+  e.cd.flash=FLASH.cd;
+  const pt=e===player&&!e.bot?mouse:e.aimPt, o=e===player?foe:player;
+  let dx=pt?pt.wx-e.x:o.x-e.x, dy=pt?pt.wy-e.y:o.y-e.y, d=Math.hypot(dx,dy);
+  if(d<4){dx=o.x-e.x;dy=o.y-e.y;d=Math.hypot(dx,dy)||1}
+  const k=Math.min(FLASH.dist,d)/d, nx=clampX(e.x+dx*k), ny=clampY(e.y+dy*k), ox=e.x, oy=e.y;
+  for(let i=0;i<=8;i++){const f=i/8; colorBurst(ox+(nx-ox)*f,oy+(ny-oy)*f,3,FLASH.pal,12,60)}
+  rings.push({x:ox,y:oy,t:0,dur:.3,max:20,c:"#ffe060"});
+  e.shieldOn=false; e.x=nx; e.y=ny; e.kb=null; e.moveTarget=null; if(e===player)marker=null; e.lx=e.x; e.ly=e.y; setAnim(e,"idle");
+  e.inv=Math.max(e.inv||0,FLASH.inv); e.lock=FLASH.rec;
+  colorBurst(nx,ny,22,FLASH.pal,28,120); rings.push({x:nx,y:ny,t:0,dur:.35,max:26,c:"#ffffff"});
+  SND.pe=e;SND.pend="tele";
+  logFor(e,e.sp.name+" utilise Flash !",900);
 }
 
 // ---- Multijoueur en ligne : l'hôte fait autorité, l'invité joue en prédiction locale et se recale sur les instantanés ----
