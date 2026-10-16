@@ -1,5 +1,5 @@
 /* ===== Classé : file d'attente, combat par Elo (comme aux échecs), classement. Serveur : dossier server/ du dépôt ===== */
-const RANKED_API=(()=>{try{const a=new URLSearchParams(location.search).get("api"); if(a)return a.replace(/\/$/,"")}catch(_){} return "https://rank.lensslo.com"})();
+const RANKED_API=(()=>{try{const a=new URLSearchParams(location.search).get("api"); if(a)return a.replace(/\/$/,"")}catch(_){} return "https://arene-ranked.lensslo.workers.dev"})();
 const RK={prof:null,state:"idle",poll:0,match:null,since:0,board:false};
 try{RK.prof=JSON.parse(localStorage.getItem("aceRk"))}catch(_){}
 const rkSave=()=>{try{localStorage.setItem("aceRk",JSON.stringify(RK.prof))}catch(_){}};
