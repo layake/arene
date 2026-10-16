@@ -438,7 +438,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Sélection d'équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>mannequin d'entraînement</small></button><button type="button" data-mode="duel" aria-pressed="false">Versus<small>contre un adversaire</small></button><button type="button" data-mode="rush" aria-pressed="false">Marathon<small>16 adversaires d'affilée, au chrono</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="rounds" role="group" aria-label="Rounds"><span>Rounds</span><button type="button" data-r="1">1</button><button type="button" data-r="3" aria-pressed="true">3</button><button type="button" data-r="5">5</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
 </div>
-<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.55 · 16/10/2026</b></footer>
+<footer>Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux CHUNSOFT. Pokémon © Nintendo / Game Freak. Usage privé. <b id="ver">v1.56 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -4845,7 +4845,7 @@ function rkRender(){
     const q=RK.state==="queue", m=RK.state==="found";
     h+='<div class="rkrow"><button type="button" id="rkGo"'+(m?" disabled":"")+'>'+(q?(L?"Cancel search":"Annuler la recherche"):(L?"Find a ranked fight":"Chercher un combat classé"))+'</button><button type="button" id="rkTop">'+(L?"Leaderboard":"Classement")+'</button></div>';
   }
-  h+='<div id="rkMsg"></div>'+(RK.board?'<table id="rkLb"></table>':'');
+  h+='<small id="rkVer" style="opacity:.6">'+(RK.sv?"Serveur "+RK.sv:"")+'</small><div id="rkMsg"></div>'+(RK.board?'<table id="rkLb"></table>':'');
   rkBox.innerHTML=h;
   const g=id=>document.getElementById(id);
   if(g("rkReg"))g("rkReg").onclick=rkRegister;
@@ -4877,6 +4877,7 @@ async function rkPoll(){
     if(r.status==="matched"){
       RK.state="found"; RK.match={matchId:r.matchId,reported:false,started:false,oppName:r.opp.name}; async function rkMe(){if(!RK.prof)return; try{const m=await rkCall("/api/me",{id:RK.prof.id,token:RK.prof.token}); if(m&&m.elo){RK.prof.elo=m.elo;rkSave();if(RK.state==="idle")rkRender()}}catch(_){}}
 rkRender(); rkMe();
+rkCall("/api/health",null,true).then(h=>{const v=document.getElementById("rkVer");RK.sv=h.version;if(v)v.textContent="Serveur "+h.version}).catch(()=>{});
       rkMsg((LANG==="en"?"Opponent found: ":"Adversaire trouvé : ")+r.opp.name+" ("+r.opp.elo+")");
       NET.rankedStart({matchId:r.matchId,code:r.code,role:r.role}); NET.rankedEvent=rkEvent; return;
     }
@@ -4932,6 +4933,7 @@ const rankedFinished=rkFinished;
 setInterval(()=>{rkBox.hidden=!!(rkRow&&rkRow.hidden)},300);
 async function rkMe(){if(!RK.prof)return; try{const m=await rkCall("/api/me",{id:RK.prof.id,token:RK.prof.token}); if(m&&m.elo){RK.prof.elo=m.elo;rkSave();if(RK.state==="idle")rkRender()}}catch(_){}}
 rkRender(); rkMe();
+rkCall("/api/health",null,true).then(h=>{const v=document.getElementById("rkVer");RK.sv=h.version;if(v)v.textContent="Serveur "+h.version}).catch(()=>{});
 
 /* ===== Souris verrouillée dans la fenêtre pendant le combat : curseur virtuel, Échap libère et met en pause ===== */
 const PL={on:false,x:0,y:0,rel:false};

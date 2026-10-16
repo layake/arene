@@ -29,7 +29,7 @@ function rkRender(){
     const q=RK.state==="queue", m=RK.state==="found";
     h+='<div class="rkrow"><button type="button" id="rkGo"'+(m?" disabled":"")+'>'+(q?(L?"Cancel search":"Annuler la recherche"):(L?"Find a ranked fight":"Chercher un combat classé"))+'</button><button type="button" id="rkTop">'+(L?"Leaderboard":"Classement")+'</button></div>';
   }
-  h+='<div id="rkMsg"></div>'+(RK.board?'<table id="rkLb"></table>':'');
+  h+='<small id="rkVer" style="opacity:.6">'+(RK.sv?"Serveur "+RK.sv:"")+'</small><div id="rkMsg"></div>'+(RK.board?'<table id="rkLb"></table>':'');
   rkBox.innerHTML=h;
   const g=id=>document.getElementById(id);
   if(g("rkReg"))g("rkReg").onclick=rkRegister;
@@ -61,6 +61,7 @@ async function rkPoll(){
     if(r.status==="matched"){
       RK.state="found"; RK.match={matchId:r.matchId,reported:false,started:false,oppName:r.opp.name}; async function rkMe(){if(!RK.prof)return; try{const m=await rkCall("/api/me",{id:RK.prof.id,token:RK.prof.token}); if(m&&m.elo){RK.prof.elo=m.elo;rkSave();if(RK.state==="idle")rkRender()}}catch(_){}}
 rkRender(); rkMe();
+rkCall("/api/health",null,true).then(h=>{const v=document.getElementById("rkVer");RK.sv=h.version;if(v)v.textContent="Serveur "+h.version}).catch(()=>{});
       rkMsg((LANG==="en"?"Opponent found: ":"Adversaire trouvé : ")+r.opp.name+" ("+r.opp.elo+")");
       NET.rankedStart({matchId:r.matchId,code:r.code,role:r.role}); NET.rankedEvent=rkEvent; return;
     }
@@ -116,3 +117,4 @@ const rankedFinished=rkFinished;
 setInterval(()=>{rkBox.hidden=!!(rkRow&&rkRow.hidden)},300);
 async function rkMe(){if(!RK.prof)return; try{const m=await rkCall("/api/me",{id:RK.prof.id,token:RK.prof.token}); if(m&&m.elo){RK.prof.elo=m.elo;rkSave();if(RK.state==="idle")rkRender()}}catch(_){}}
 rkRender(); rkMe();
+rkCall("/api/health",null,true).then(h=>{const v=document.getElementById("rkVer");RK.sv=h.version;if(v)v.textContent="Serveur "+h.version}).catch(()=>{});
