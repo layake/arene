@@ -30,7 +30,7 @@ function ffaOut(t,att){ // plus aucun Pokémon : le combattant est éliminé
   const left=fighters.filter(e=>!e.out);
   if(typeof showBanner==="function"){
     if(t===player)showBanner(LANG==="en"?"ELIMINATED":"ÉLIMINÉ","lose");
-    else if(left.length>1)showLog((t.name||t.sp.name)+" est éliminé !",1600);
+    else if(left.length>1)showLog((t.pname||t.sp.name)+(LANG==="en"?" is out!":" est éliminé !"),1600);
   }
   if(left.length<=1&&!NET.guest)FFA.endT=2.4;
 }
@@ -64,7 +64,7 @@ setTimeout(()=>{const _sr=showResult; showResult=function(){
   if(endShown)return; endShown=true; hideBanner();
   const r=ffaRank(player), win=r===1, order=fighters.slice().sort((a,b)=>ffaRank(a)-ffaRank(b));
   endEl.className=win?"win":"lose";
-  endEl.innerHTML='<div class="ebox"><h2>'+(win?"VICTOIRE":r+(r===1?"er":"e")+" / "+fighters.length)+'</h2><ol class="frank">'+order.map(e=>'<li'+(e===player?' class="me"':'')+'><img alt="" src="'+(PORTRAITS[e.key]||"")+'">'+(e===player?"Toi":(e.pname||e.sp.name))+'</li>').join("")+'</ol><div class="ebtn">'+(NET.on?"":'<button type="button" id="eRe">Rejouer</button>')+'<button type="button" id="eMenu">'+(NET.on?"Retour au salon":"Sélection d'équipe")+'</button></div></div>';
+  endEl.innerHTML='<div class="ebox"><h2>'+(win?"VICTOIRE":(LANG==="en"?r+(["","st","nd","rd"][r]||"th"):r+"e")+" / "+fighters.length)+'</h2><ol class="frank">'+order.map(e=>'<li'+(e===player?' class="me"':'')+'><img alt="" src="'+(PORTRAITS[e.key]||"")+'">'+(e===player?"Toi":(e.pname||e.sp.name))+'</li>').join("")+'</ol><div class="ebtn">'+(NET.on?"":'<button type="button" id="eRe">Rejouer</button>')+'<button type="button" id="eMenu">'+(NET.on?"Retour au salon":"Sélection d'équipe")+'</button></div></div>';
   endEl.hidden=false; try{sfxUI(win?"ko":"click")}catch(_){}
   const re=endEl.querySelector("#eRe"); if(re)re.onclick=()=>{hideResult(); startMatch(picks.slice(),"ffa")};
   endEl.querySelector("#eMenu").onclick=()=>{hideResult(); openMenu()};

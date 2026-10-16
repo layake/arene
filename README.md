@@ -6,6 +6,8 @@ Jouer : https://arena.lensslo.com (ou https://layake.github.io/arene/)
 ## Modes
 - **Entraînement** : mannequin.
 - **Versus** : contre un bot (facile, normal, difficile), en 1, 3 ou 5 rounds, équipes de 3.
+- **Mêlée** : 4 combattants contre des bots, chacun pour soi, 2 Pokémon chacun. Le dernier debout gagne.
+- **Mêlée en ligne** : 3 ou 4 joueurs (onglet En ligne, « Créer une mêlée »), même règles. L'hôte fait autorité.
 - **Marathon** : tous les Aces à la suite avec ton équipe (1 à 3), sans soin entre les duels, bots de plus en plus durs. Classement : adversaires vaincus, puis temps. Record sauvegardé dans le navigateur.
 - **En ligne** : salon à code, hôte et invité.
 
