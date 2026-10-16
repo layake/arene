@@ -3,6 +3,10 @@
 // et envoie 20 fois par seconde l'état de jeu (combattants, boules, zones). L'invité applique cet état sans saccade.
 (function(){
 const SNAP_DT=.05, PING_DT=2;
+// version du jeu : les deux joueurs doivent avoir exactement la même, sinon les règles diffèrent et la partie se désynchronise
+const GV=(((document.getElementById("ver")||{}).textContent)||"").trim().split(" ")[0]||"?";
+let oppVerOk=false;
+const verMsg=v=>"Versions différentes (toi "+GV+", l'autre joueur "+(v||"ancienne")+") : rechargez tous les deux la page (Ctrl+F5).";
 const SKIP=new Set(["sp","hover","lx","ly","vx","vy","x","y","tick","frame","hpShow","flash","rest","hit","key","anim","remote"]);
 const OWN_SKIP=new Set(["moveTarget","wantShield","aimPt","run"]);
 const PRED=new Set(["cast","rush","chan","tunnel","counter","pp","cd","comboT","lock","lockPt","shieldOn","shieldE","dir","stun"]);
@@ -27,6 +31,7 @@ function send(o,reliable){
 NET.send=o=>send(o,o.t!=="snap"&&o.t!=="mv");
 NET.rk=null; NET.rankedEvent=null;
 NET.leave=function(){
+  oppVerOk=false;
   if(NET.rk&&NET.rankedEvent)NET.rankedEvent("leave",NET.started); NET.rk=null;
   NET.on=false;NET.host=false;NET.guest=false;NET.started=false;role="";info.hidden=true;
   try{if(pc)pc.close()}catch(_){} pc=dcR=dcF=null; pend=[];
@@ -158,14 +163,14 @@ function sendPick(force){
   if(!inLobby||!peerHere||NET.started)return;
   const team=teamPicks(), sig=JSON.stringify(team), now=performance.now();
   if(!force&&sig===lastSig&&now-pickAt<2000)return;
-  lastSig=sig; pickAt=now; relay({t:"pick",team});
+  lastSig=sig; pickAt=now; relay({t:"pick",team,v:GV});
 }
 setInterval(()=>{if(inLobby&&!NET.started){refreshLobby();sendPick(false)}},300);
 function openRoom(code){inLobby=true;roomCode=code;peerHere=false;myReady=oppReady=false;oppHello=oppPick=null;say("");refreshLobby()}
-function lobbyOn(){peerHere=true;myReady=oppReady=false;oppHello=oppPick=null;say("");refreshLobby();sendPick(true); if(NET.rk)setTimeout(autoReady,600)}
+function lobbyOn(){oppVerOk=false;peerHere=true;myReady=oppReady=false;oppHello=oppPick=null;say("");refreshLobby();sendPick(true); if(NET.rk)setTimeout(autoReady,600)}
 function autoReady(){ // combat classé : pas de salon à valider, chacun se déclare prêt tout de suite
   if(!NET.rk||!inLobby||myReady||NET.started||!peerHere)return;
-  myReady=true; myHello=mineHello(); relay({t:"ready",on:true,team:myHello.team}); refreshLobby(); maybeStart();
+  myReady=true; myHello=mineHello(); relay({t:"ready",on:true,team:myHello.team,v:GV}); refreshLobby(); maybeStart();
 }
 function peerGone(){
   if(NET.rk&&NET.rankedEvent)NET.rankedEvent("peergone",NET.started);
@@ -178,8 +183,9 @@ function maybeStart(){ if(role==="host"&&myReady&&oppReady&&oppHello&&!NET.start
 btnR.addEventListener("click",()=>{
   if(!inLobby||NET.started)return;
   if(!myReady&&!saveKit())return;
+  if(!myReady&&!oppVerOk&&peerHere){say(verMsg());return}
   myReady=!myReady; myHello=mineHello();
-  relay({t:"ready",on:myReady,team:myHello.team});
+  relay({t:"ready",on:myReady,team:myHello.team,v:GV});
   refreshLobby(); maybeStart();
 });
 // Retour au salon sans quitter la connexion : l'autre joueur est prévenu et revient aussi.
@@ -199,6 +205,8 @@ function onMsg(m){
   else if(m.t==="back"){NET.toLobby(true)}
   else if(m.t==="pick"||m.t==="ready"){
     if(NET.started)return;
+    if(m.v!==GV){oppVerOk=false; say(verMsg(m.v)); if(NET.rk&&NET.rankedEvent)NET.rankedEvent("badteam"); return}
+    oppVerOk=true;
     if(!validTeam(m.team)){if(NET.rk&&NET.rankedEvent)NET.rankedEvent("badteam");return}
     oppPick={team:m.team,key:m.team[0].key,kit:m.team[0].kit};
     if(m.t==="ready"){oppReady=!!m.on; if(m.on)oppHello=oppPick}
@@ -229,7 +237,7 @@ function beginHost(){
   const arena=NET.rk?"colisee":ARENA_PICK; setArena(arena); relay({t:"start",h:{team:h.team},g:{team:g.team},a:arena});
   begin(h,g,true);
 }
-function beginGuest(m){ if(!m.h||!validTeam(m.h.team)||!validTeam(m.g&&m.g.team))return; setArena(ARENAS[m.a]?m.a:"colisee"); begin(m.h,m.g,false) }
+function beginGuest(m){ if(!oppVerOk){say(verMsg());return} if(!m.h||!validTeam(m.h.team)||!validTeam(m.g&&m.g.team))return; setArena(ARENAS[m.a]?m.a:"colisee"); begin(m.h,m.g,false) }
 const validTeam=t=>Array.isArray(t)&&t.length===3&&new Set(t.map(x=>x&&x.key)).size===3&&t.every(x=>x&&SPECIES[x.key]&&SPECIES[x.key].playable&&validKit(x.key,x.kit));
 const validKit=(key,kit)=>Array.isArray(kit)&&kit.length===4&&kit.every(id=>SPECIES[key].pool.includes(id))&&new Set(kit).size===4;
 // ---- Connexion : serveur de signalisation (WebSocket) puis liaison directe WebRTC ----
@@ -341,7 +349,7 @@ NET.saveKit=saveKit;
 NET.teamOk=()=>{try{return validTeam(teamPicks())}catch(_){return false}};
 NET.rankedKick=()=>{ // combat classé : on renvoie "prêt" tant que le match n'a pas démarré (message perdu, hôte lent)
   if(!NET.rk||NET.started||!peerHere||!inLobby)return;
-  myReady=true; myHello=mineHello(); relay({t:"ready",on:true,team:myHello.team}); maybeStart();
+  myReady=true; myHello=mineHello(); relay({t:"ready",on:true,team:myHello.team,v:GV}); maybeStart();
 };
 NET.rankedStart=function(info){
   NET.leave(); NET.rk={matchId:info.matchId,code:info.code,role:info.role}; role=info.role; myHello=mineHello(); mode="peer";

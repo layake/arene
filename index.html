@@ -450,7 +450,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Sélection d'équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>mannequin d'entraînement</small></button><button type="button" data-mode="duel" aria-pressed="false">Versus<small>contre un adversaire</small></button><button type="button" data-mode="rush" aria-pressed="false">Marathon<small>Tous les Pokémon d'affilée, au chrono</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="rounds" role="group" aria-label="Rounds"><span>Rounds</span><button type="button" data-r="1">1</button><button type="button" data-r="3" aria-pressed="true">3</button><button type="button" data-r="5">5</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
 </div>
-<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.70 · 16/10/2026</b></footer>
+<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.71 · 16/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -4491,6 +4491,10 @@ function botSwapDecide(e,dt){
 // et envoie 20 fois par seconde l'état de jeu (combattants, boules, zones). L'invité applique cet état sans saccade.
 (function(){
 const SNAP_DT=.05, PING_DT=2;
+// version du jeu : les deux joueurs doivent avoir exactement la même, sinon les règles diffèrent et la partie se désynchronise
+const GV=(((document.getElementById("ver")||{}).textContent)||"").trim().split(" ")[0]||"?";
+let oppVerOk=false;
+const verMsg=v=>"Versions différentes (toi "+GV+", l'autre joueur "+(v||"ancienne")+") : rechargez tous les deux la page (Ctrl+F5).";
 const SKIP=new Set(["sp","hover","lx","ly","vx","vy","x","y","tick","frame","hpShow","flash","rest","hit","key","anim","remote"]);
 const OWN_SKIP=new Set(["moveTarget","wantShield","aimPt","run"]);
 const PRED=new Set(["cast","rush","chan","tunnel","counter","pp","cd","comboT","lock","lockPt","shieldOn","shieldE","dir","stun"]);
@@ -4515,6 +4519,7 @@ function send(o,reliable){
 NET.send=o=>send(o,o.t!=="snap"&&o.t!=="mv");
 NET.rk=null; NET.rankedEvent=null;
 NET.leave=function(){
+  oppVerOk=false;
   if(NET.rk&&NET.rankedEvent)NET.rankedEvent("leave",NET.started); NET.rk=null;
   NET.on=false;NET.host=false;NET.guest=false;NET.started=false;role="";info.hidden=true;
   try{if(pc)pc.close()}catch(_){} pc=dcR=dcF=null; pend=[];
@@ -4646,14 +4651,14 @@ function sendPick(force){
   if(!inLobby||!peerHere||NET.started)return;
   const team=teamPicks(), sig=JSON.stringify(team), now=performance.now();
   if(!force&&sig===lastSig&&now-pickAt<2000)return;
-  lastSig=sig; pickAt=now; relay({t:"pick",team});
+  lastSig=sig; pickAt=now; relay({t:"pick",team,v:GV});
 }
 setInterval(()=>{if(inLobby&&!NET.started){refreshLobby();sendPick(false)}},300);
 function openRoom(code){inLobby=true;roomCode=code;peerHere=false;myReady=oppReady=false;oppHello=oppPick=null;say("");refreshLobby()}
-function lobbyOn(){peerHere=true;myReady=oppReady=false;oppHello=oppPick=null;say("");refreshLobby();sendPick(true); if(NET.rk)setTimeout(autoReady,600)}
+function lobbyOn(){oppVerOk=false;peerHere=true;myReady=oppReady=false;oppHello=oppPick=null;say("");refreshLobby();sendPick(true); if(NET.rk)setTimeout(autoReady,600)}
 function autoReady(){ // combat classé : pas de salon à valider, chacun se déclare prêt tout de suite
   if(!NET.rk||!inLobby||myReady||NET.started||!peerHere)return;
-  myReady=true; myHello=mineHello(); relay({t:"ready",on:true,team:myHello.team}); refreshLobby(); maybeStart();
+  myReady=true; myHello=mineHello(); relay({t:"ready",on:true,team:myHello.team,v:GV}); refreshLobby(); maybeStart();
 }
 function peerGone(){
   if(NET.rk&&NET.rankedEvent)NET.rankedEvent("peergone",NET.started);
@@ -4666,8 +4671,9 @@ function maybeStart(){ if(role==="host"&&myReady&&oppReady&&oppHello&&!NET.start
 btnR.addEventListener("click",()=>{
   if(!inLobby||NET.started)return;
   if(!myReady&&!saveKit())return;
+  if(!myReady&&!oppVerOk&&peerHere){say(verMsg());return}
   myReady=!myReady; myHello=mineHello();
-  relay({t:"ready",on:myReady,team:myHello.team});
+  relay({t:"ready",on:myReady,team:myHello.team,v:GV});
   refreshLobby(); maybeStart();
 });
 // Retour au salon sans quitter la connexion : l'autre joueur est prévenu et revient aussi.
@@ -4687,6 +4693,8 @@ function onMsg(m){
   else if(m.t==="back"){NET.toLobby(true)}
   else if(m.t==="pick"||m.t==="ready"){
     if(NET.started)return;
+    if(m.v!==GV){oppVerOk=false; say(verMsg(m.v)); if(NET.rk&&NET.rankedEvent)NET.rankedEvent("badteam"); return}
+    oppVerOk=true;
     if(!validTeam(m.team)){if(NET.rk&&NET.rankedEvent)NET.rankedEvent("badteam");return}
     oppPick={team:m.team,key:m.team[0].key,kit:m.team[0].kit};
     if(m.t==="ready"){oppReady=!!m.on; if(m.on)oppHello=oppPick}
@@ -4717,7 +4725,7 @@ function beginHost(){
   const arena=NET.rk?"colisee":ARENA_PICK; setArena(arena); relay({t:"start",h:{team:h.team},g:{team:g.team},a:arena});
   begin(h,g,true);
 }
-function beginGuest(m){ if(!m.h||!validTeam(m.h.team)||!validTeam(m.g&&m.g.team))return; setArena(ARENAS[m.a]?m.a:"colisee"); begin(m.h,m.g,false) }
+function beginGuest(m){ if(!oppVerOk){say(verMsg());return} if(!m.h||!validTeam(m.h.team)||!validTeam(m.g&&m.g.team))return; setArena(ARENAS[m.a]?m.a:"colisee"); begin(m.h,m.g,false) }
 const validTeam=t=>Array.isArray(t)&&t.length===3&&new Set(t.map(x=>x&&x.key)).size===3&&t.every(x=>x&&SPECIES[x.key]&&SPECIES[x.key].playable&&validKit(x.key,x.kit));
 const validKit=(key,kit)=>Array.isArray(kit)&&kit.length===4&&kit.every(id=>SPECIES[key].pool.includes(id))&&new Set(kit).size===4;
 // ---- Connexion : serveur de signalisation (WebSocket) puis liaison directe WebRTC ----
@@ -4829,7 +4837,7 @@ NET.saveKit=saveKit;
 NET.teamOk=()=>{try{return validTeam(teamPicks())}catch(_){return false}};
 NET.rankedKick=()=>{ // combat classé : on renvoie "prêt" tant que le match n'a pas démarré (message perdu, hôte lent)
   if(!NET.rk||NET.started||!peerHere||!inLobby)return;
-  myReady=true; myHello=mineHello(); relay({t:"ready",on:true,team:myHello.team}); maybeStart();
+  myReady=true; myHello=mineHello(); relay({t:"ready",on:true,team:myHello.team,v:GV}); maybeStart();
 };
 NET.rankedStart=function(info){
   NET.leave(); NET.rk={matchId:info.matchId,code:info.code,role:info.role}; role=info.role; myHello=mineHello(); mode="peer";
@@ -5118,7 +5126,7 @@ function rkAbort(msg,retry){ // le combat n'a pas pu démarrer : on nettoie, on 
 function rkEvent(ev,arg){
   const M=RK.match; if(!M)return;
   if(ev==="fail"&&!M.started&&!M.finished)return rkAbort(LANG==="en"?"Could not connect to the opponent. No rating change.":"Connexion impossible avec l'adversaire. Aucun changement d'Elo.",true);
-  if(ev==="badteam"&&!M.finished&&!NET.started)return rkAbort(LANG==="en"?"The opponent's team is invalid (or outdated version). No rating change.":"L'équipe de l'adversaire est invalide (ou version du jeu différente). Aucun changement d'Elo.",true);
+  if(ev==="badteam"&&!M.finished&&!NET.started)return rkAbort(LANG==="en"?"Opponent's team invalid or different game version: reload the page (Ctrl+F5). No rating change.":"Équipe adverse invalide ou version du jeu différente : rechargez la page (Ctrl+F5). Aucun changement d'Elo.",true);
   if(ev==="peergone"&&!arg&&!M.finished)return rkAbort(LANG==="en"?"Opponent left before the fight. No rating change.":"L'adversaire est parti avant le combat. Aucun changement d'Elo.",true);
   if(ev==="peergone"&&arg&&!M.reported&&!M.finished){rkReport("win",true)}   // l'adversaire est parti en plein combat
   if(ev==="leave"&&arg&&!M.reported&&!M.finished){rkReport("loss",true)}      // je quitte en plein combat : défaite

@@ -99,7 +99,7 @@ function rkAbort(msg,retry){ // le combat n'a pas pu démarrer : on nettoie, on 
 function rkEvent(ev,arg){
   const M=RK.match; if(!M)return;
   if(ev==="fail"&&!M.started&&!M.finished)return rkAbort(LANG==="en"?"Could not connect to the opponent. No rating change.":"Connexion impossible avec l'adversaire. Aucun changement d'Elo.",true);
-  if(ev==="badteam"&&!M.finished&&!NET.started)return rkAbort(LANG==="en"?"The opponent's team is invalid (or outdated version). No rating change.":"L'équipe de l'adversaire est invalide (ou version du jeu différente). Aucun changement d'Elo.",true);
+  if(ev==="badteam"&&!M.finished&&!NET.started)return rkAbort(LANG==="en"?"Opponent's team invalid or different game version: reload the page (Ctrl+F5). No rating change.":"Équipe adverse invalide ou version du jeu différente : rechargez la page (Ctrl+F5). Aucun changement d'Elo.",true);
   if(ev==="peergone"&&!arg&&!M.finished)return rkAbort(LANG==="en"?"Opponent left before the fight. No rating change.":"L'adversaire est parti avant le combat. Aucun changement d'Elo.",true);
   if(ev==="peergone"&&arg&&!M.reported&&!M.finished){rkReport("win",true)}   // l'adversaire est parti en plein combat
   if(ev==="leave"&&arg&&!M.reported&&!M.finished){rkReport("loss",true)}      // je quitte en plein combat : défaite
