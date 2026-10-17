@@ -27,6 +27,6 @@ Matchmaking et Elo comme aux échecs : voir [docs/CLASSE.md](docs/CLASSE.md).
 Jeu de fans **non officiel et non commercial**, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages sont © Nintendo / Creatures / Game Freak.
 - **Sprites et portraits :** [PMDCollab SpriteCollab](https://github.com/PMDCollab/SpriteCollab) (CC BY-NC 4.0), originaux Chunsoft. Merci aux artistes de la communauté. Usage commercial interdit.
 - **Effets sonores :** extraits de Pokémon Donjon Mystère, © Chunsoft / The Pokémon Company. Ils ne sont pas couverts par la licence du code et peuvent être retirés à la demande des ayants droit.
-- **Musique :** générée par le code.
+- **Musique :** compositions originales, synthétisées par le code (`tools/music/`, sans échantillon ni soundfont) : lobby `music/lobby.ogg`, combat `music/donjon.ogg`. Les musiques de Pokémon ne sont pas reprises.
 - **Code :** MIT (fichier LICENSE), hors contenus tiers ci-dessus.
 - Retrait de contenu : si vous êtes ayant droit, ouvrez une issue et le contenu sera retiré rapidement.

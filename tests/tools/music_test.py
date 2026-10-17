@@ -5,6 +5,8 @@ from playwright.sync_api import sync_playwright
 ROOT=os.path.dirname(os.path.abspath(__file__)); REPO=os.path.abspath(os.path.join(ROOT,"..",".."))
 D=os.path.join(ROOT,"out","music_site"); shutil.rmtree(D,ignore_errors=True); os.makedirs(D+"/music")
 shutil.copy(REPO+"/index.html",D+"/index.html")
+for f in("lobby.ogg","donjon.ogg"):
+    if os.path.exists(REPO+"/music/"+f):shutil.copy(REPO+"/music/"+f,D+"/music/"+f)
 sr=22050; n=sr*3; f=220  # 660 périodes exactes : la fin enchaîne sur le début sans à-coup
 with wave.open(D+"/music/test.wav","wb") as w:
     w.setnchannels(1); w.setsampwidth(2); w.setframerate(sr)
@@ -25,6 +27,7 @@ with sync_playwright() as p:
     pg.goto(f"http://127.0.0.1:{port}/index.html"); pg.wait_for_timeout(800); pg.mouse.click(300,300); pg.wait_for_timeout(500)
     sfx0=pg.evaluate("[Object.keys(SND_B64).length,SND.bus.fight.gain.value,SND.bus.ui.gain.value,JSON.stringify(SFX_MAP).length]")
     # 1. sans piste configurée : comportement actuel (chiptune)
+    pg.evaluate("()=>{window.__saved=Object.assign({},MUSIC_TRACKS);for(const k in MUSIC_TRACKS)delete MUSIC_TRACKS[k]}")
     pg.evaluate(START,[['garchomp','gengar','lucario'],None]); pg.wait_for_timeout(600)
     check("sans piste : le chiptune de combat joue",pg.evaluate("[MUS.mode,!!MFILE.src]")==["battle",False],pg.evaluate("[MUS.mode,!!MFILE.src]"))
     # 2. avec piste : démarre, boucle, fondu d'entrée
@@ -58,6 +61,11 @@ with sync_playwright() as p:
     pg.evaluate("()=>{MUSIC_TRACKS.battle='music/absent.ogg'}")
     pg.evaluate(START,[['garchomp','gengar','lucario'],None]); pg.wait_for_timeout(1500)
     check("fichier absent : le chiptune continue",pg.evaluate("[MUS.mode,!!MFILE.src]")==["battle",False],pg.evaluate("[MUS.mode,!!MFILE.src]"))
+    # 6b. vraies pistes livrées : durée, raccord de boucle sans clic
+    pg.evaluate("()=>{Object.assign(MUSIC_TRACKS,window.__saved)}")
+    real=pg.evaluate("""async()=>{const o={};for(const [k,u] of Object.entries(MUSIC_TRACKS)){const ab=await (await fetch(u)).arrayBuffer();const b=await SND.ctx.decodeAudioData(ab);const d=b.getChannelData(0),n=d.length;let m=0;for(let i=1;i<n;i++){const x=Math.abs(d[i]-d[i-1]);if(x>m)m=x}
+      const ds=[];for(let i=1;i<n;i+=7)ds.push(Math.abs(d[i]-d[i-1]));ds.sort((a,c)=>a-c);o[k]={dur:+b.duration.toFixed(2),seam:+Math.abs(d[0]-d[n-1]).toFixed(3),p999:+ds[Math.floor(ds.length*.999)].toFixed(3),}}return o}""")
+    for k,v in real.items(): check(f"piste livrée {k} : durée {v['dur']} s, raccord sans clic",40<v['dur']<50 and v['seam']<=max(v['p999'],.05)*1.5,v)
     # 7. bruitages intacts
     sfx1=pg.evaluate("[Object.keys(SND_B64).length,SND.bus.fight.gain.value,SND.bus.ui.gain.value,JSON.stringify(SFX_MAP).length]")
     check("bruitages inchangés (nombre, bus, table)",sfx0==sfx1,[sfx0,sfx1])

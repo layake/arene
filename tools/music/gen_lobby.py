@@ -138,6 +138,10 @@ with wave.open(out+"/lobby.wav","wb") as w:
 rep={"duree_s":round(N/SR,2),"pic_dBFS":round(20*math.log10(np.max(np.abs(mix))),1),"rms_dBFS":round(20*math.log10(np.sqrt(np.mean(mix**2))),1),
      "raccord_ecart":round(float(np.max(np.abs(mix[:,0]-mix[:,-1]))),4)}
 try:
-    import soundfile as sf; sf.write(out+"/lobby.ogg",mix.T,SR,format="OGG",subtype="VORBIS"); rep["ogg"]=True
+    import soundfile as sf
+    x32=np.ascontiguousarray(mix.T.astype("float32"))
+    with sf.SoundFile(out+"/lobby.ogg","w",samplerate=SR,channels=2,format="OGG",subtype="VORBIS") as fo:  # par blocs : l'écriture d'un seul bloc plante libsndfile
+        for i in range(0,len(x32),SR):fo.write(x32[i:i+SR])
+    rep["ogg"]=True
 except Exception: rep["ogg"]=False
 print(rep)

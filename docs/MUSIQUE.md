@@ -3,6 +3,11 @@
 Le jeu a toujours sa musique synthétisée (chiptune : menu calme, combat rapide). Une piste en fichier la remplace pour un contexte donné.
 Une musique = un fichier qui boucle. Pas de musique dynamique, rien n'est synchronisé en réseau (y compris en ligne et en classé).
 
+## Pistes livrées
+- `menu` : `music/lobby.ogg` (Do majeur, 108 BPM, 44,4 s, synthés et basse). Générée par `tools/music/gen_lobby.py`.
+- `battle` : `music/donjon.ogg` (Mi mineur, 148 BPM, 45,4 s, cuivres, cordes staccato, timbales). Générée par `tools/music/gen_donjon.py`.
+- Régénérer : `python tools/music/gen_lobby.py` et `gen_donjon.py` (numpy, scipy, soundfile). Les `.wav` intermédiaires ne sont pas versionnés. Les compositions sont originales, sans échantillon : aucune licence tierce.
+
 ## Ajouter une piste
 1. Déposer le fichier dans `music/` à la racine du dépôt (à côté de `index.html`). Format conseillé : `.ogg` (la boucle est sans trou, contrairement au MP3).
 2. Ajouter UNE ligne dans `MUSIC_TRACKS` (`src/build/new/music.js`), par exemple `battle:"music/combat_arene.ogg",`.
@@ -21,4 +26,4 @@ Clés : `battle` (tous les combats), `menu`, ou `battle:<id d'arène>` (ex. `bat
 `python tests/tools/music_test.py` : serveur local + piste de test jetable (générée, jamais livrée) : démarrage, boucle sur 7 s (niveau jamais nul), volume, coupure, fondu de sortie, repli, bruitages inchangés.
 
 ## Crédits
-Avant d'ajouter une vraie piste, mettre à jour le README (ligne « Musique ») et le pied de page : la musique actuelle est « générée par le code ». Si la piste est rendue avec la soundfont FluidR3_GM, vérifier sa licence avant publication et la noter dans les crédits.
+Les pistes livrées sont synthétisées par le code (aucune licence tierce). Pour une piste venant d'ailleurs : mettre à jour le README (ligne « Musique ») ; si elle est rendue avec la soundfont FluidR3_GM, vérifier sa licence avant publication et la noter dans les crédits.

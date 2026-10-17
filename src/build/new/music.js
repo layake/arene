@@ -3,7 +3,8 @@
 // Clés : "battle" (tous les combats), "menu", ou "battle:<id d'arène>" pour une arène précise (ex. "battle:glace").
 // Sans ligne pour un contexte, l'écran garde son comportement actuel (chiptune synthétisé). Aucune musique dynamique, rien n'est synchronisé en réseau.
 const MUSIC_TRACKS={
-  // battle:"music/combat_arene.ogg",
+  menu:"music/lobby.ogg",    // lobby et menus : chaleureux, synthés et basse (tools/music/gen_lobby.py)
+  battle:"music/donjon.ogg", // combats : cuivres, cordes staccato, timbales, esprit « donjon » (tools/music/gen_donjon.py)
 };
 const MUSIC_FADE=1; // secondes de fondu à l'entrée et à la sortie
 const MFILE={key:null,src:null,gain:null,buf:{},bad:{},want:null,fading:false};
