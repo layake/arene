@@ -86,7 +86,7 @@ Concepts clés :
 - Entités de mêlée : indicateurs `out` (éliminé), `gone` (sorti de l'arène), `col`, `pname`, `slotId`. État global `FFA={n,out,endT,w,round,need,nextT,t,...}`.
 - Réseau : l'hôte simule, les invités envoient leurs ordres (`mv`, `cast`, `sh`, `hold`) et reçoivent des snapshots. Tout nouvel état de jeu synchronisé doit être ajouté au snapshot (`netffa.js` : champs `fw`, `fn`, `fr`, `ft`, `out`).
 - Les incohérences de version entre joueurs sont bloquées par `GV` : recharger les deux avec Ctrl+F5 après une mise à jour.
-- Stockage local : `aceKeys`, `aceLock`, `aceName`, `aceKits`, `aceTeam`, `aceRk`, `aceBest`, `aceBo`, `aceMode`, `aceKey`, `aceDiff`, `aceFoe`, `aceArena`, `castMode`.
+- Stockage local : `aceKeys`, `aceUi` (taille interface 70-150), `aceLock`, `aceName`, `aceKits`, `aceTeam`, `aceRk`, `aceBest`, `aceBo`, `aceMode`, `aceKey`, `aceDiff`, `aceFoe`, `aceArena`, `castMode`.
 - Ajouter une capacité : suivre `docs/AJOUTER_UNE_CAPACITE.md` (fiche de contrôle en 6 étapes : fidélité au vrai jeu, archétype, visuel, son, ressenti, test).
 
 ## 5. État actuel (version v1.77, 17/10/2026)

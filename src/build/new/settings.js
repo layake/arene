@@ -5,6 +5,7 @@ const RESERVED=new Set(["Escape","KeyP"]);
 const ov=document.createElement("div"); ov.id="settings"; ov.hidden=true; ov.setAttribute("role","dialog"); ov.setAttribute("aria-label","Paramètres");
 ov.innerHTML='<div class="sbox"><h2>Paramètres</h2><button type="button" class="sclose" id="sClose">Fermer</button>'+
   '<section id="sGen"><h3>Général</h3><label class="srow"><span>Pseudo</span> <input id="sName" maxlength="16" autocomplete="off" spellcheck="false" placeholder="Ton pseudo"></label></section>'+
+  '<section id="sUi"><h3>Affichage</h3><label class="srow"><span>Taille de l\'interface</span> <input type="range" id="sUiSize" min="70" max="150" step="10"> <b id="sUiVal"></b></label></section>'+
   '<section id="sSnd"></section>'+
   '<section id="sPlay"><h3>Jeu</h3><label class="srow"><input type="checkbox" id="sLock"> <span>Bloquer la souris dans la fenêtre pendant le combat</span></label></section>'+
   '<section id="sKeys"><h3>Touches</h3><div class="kgrid"></div><button type="button" id="sKeyReset">Touches par défaut</button><p class="shint">Clique sur une action puis appuie sur la nouvelle touche. Échap annule. Échap et P restent réservés à la pause.</p></section></div>';
@@ -26,6 +27,13 @@ if(pb){const b=document.createElement("button"); b.type="button"; b.id="pSet"; b
 // entrées : accueil et sélection d'équipe
 {const tb=document.querySelector("#title .tbtns"); if(tb){const b=document.createElement("button"); b.type="button"; b.id="tSet"; b.textContent="Paramètres"; tb.appendChild(b); b.onclick=e=>{e.stopPropagation();openSettings()}}}
 {const mb=document.querySelector("#menu .mbox"); if(mb){const b=document.createElement("button"); b.type="button"; b.id="sOpen"; b.textContent="⚙ Paramètres"; mb.insertBefore(b,mb.firstChild); b.onclick=()=>openSettings()}}
+// taille de l'interface : zoom CSS sur les éléments d'interface (le canvas garde son échelle)
+{const U="aceUi", sel="#bar,#fhud,#ffaBar,#ffaSpect,#rushhud,#log,#endscr,#menu .mbox",
+  apply=v=>{document.documentElement.style.setProperty("--ui",String(v/100)); $("#sUiSize").value=v; $("#sUiVal").textContent=v+" %"};
+  const sz=document.createElement("style"); sz.textContent=sel+"{zoom:var(--ui,1)}"; document.head.appendChild(sz);
+  let v=100; try{const n=+localStorage.getItem(U); if(n>=70&&n<=150)v=n}catch(_){}
+  apply(v);
+  $("#sUiSize").oninput=e=>{const n=+e.target.value; apply(n); try{localStorage.setItem(U,String(n))}catch(_){}; if(typeof resize==="function")resize()}}
 // souris
 try{$("#sName").value=localStorage.getItem("aceName")||""}catch(_){}
 $("#sName").oninput=e=>{const v=e.target.value.replace(/[<>&]/g,"").slice(0,16); try{localStorage.setItem("aceName",v)}catch(_){}};
