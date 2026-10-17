@@ -107,7 +107,7 @@ function onGuestMsg(m){
   if(m.t==="lobby"){ M.players=m.players; render(); return }
   if(m.t==="fstart"){ begin(m.roster,m.arena); return }
   if(m.t==="snap"&&M.started){ applySnap(m); return }
-  if(m.t==="fround"&&M.started){ FFA.w=m.w; FFA.round=m.r; ffaRoundMsg(m.win); introPending=true; return }
+  if(m.t==="fround"&&M.started){ FFA.w=m.w; FFA.round=m.r; ffaRoundMsg(m.win); setTimeout(()=>{if(M.started)introPending=true},2600); return } // même délai que l'hôte (FFA.nextT) : le décompte ne démarre pas tout de suite chez les invités
   if(m.t==="fend"&&M.started){ FFA.out=m.out.map(i=>entities[i]); if(m.w)FFA.w=m.w; if(typeof showResult==="function")showResult(); return }
 }
 // ---------- départ ----------
