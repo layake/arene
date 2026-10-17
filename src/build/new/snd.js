@@ -65,6 +65,9 @@ function sfxHit(att,tgt,spell,dmg){
   if(r>.1)sfx(336,"fight",.7,.8,tgt.x); // gros dégât : impact lourd en plus
   if(m.hit&&m.hit!==base&&k>1.01)sfx(336,"fight",.5);
 }
+// Action impossible (sort en recharge, pas assez de PP) : un son du jeu d'origine (307), plus grave et discret, jamais plus d'un toutes les 0,3 s
+let _denyAt=0;
+function sfxDeny(){ const n=performance.now(); if(n-_denyAt<300)return; _denyAt=n; try{sfx(307,"ui",.8,.55)}catch(_){} }
 function sfxUI(k){ sfx(SFX_UI[k],k==="click"||k==="go"||k==="win"?"ui":"fight",k==="shield"?.5:1) }
 // Jauges du menu pause
 function initVolumeUI(){

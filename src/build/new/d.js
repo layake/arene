@@ -76,7 +76,7 @@ const PP_MAX=100, PP_REGEN=8;
 let ppLogAt=0;
 function spendPP(e,n){
   if(e.pp>=n){e.pp-=n;if(SND.pe===e&&SND.pend){sfxCast(e,SND.pend);SND.pend=null}return true}
-  if(e===player&&performance.now()-ppLogAt>600){ppLogAt=performance.now();showLog("Pas assez de PP !",900)}
+  if(e===player&&performance.now()-ppLogAt>600){ppLogAt=performance.now();showLog("Pas assez de PP !",900);if(typeof sfxDeny==="function")sfxDeny()}
   return false;
 }
 const cdOf=(e,id)=>e.cd[id]||0;
@@ -185,6 +185,7 @@ function applyDamage(t,att,from,dmg,o){
   if(t.hp<=0)knockOut(t,att);
 }
 function knockOut(t,att){
+  if(t.out)return;
   sfxUI("ko");
   t.ko=1.6; t.kb=null; t.counter=null; t.rush=null; t.chan=null; t.tunnel=null; t.shieldOn=false;
   const more=teamKO(t);

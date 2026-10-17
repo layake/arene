@@ -249,7 +249,7 @@ function drawEntity(e){
     const bx=snap(e.x)-9, by=snap(e.y)-e.sp.bar, w=Math.round(16*e.hp/e.maxHp);
     ctx.fillStyle="#14171c"; ctx.fillRect(bx,by,18,4);
     ctx.fillStyle="#3a4048"; ctx.fillRect(bx+1,by+1,16,2);
-    ctx.fillStyle=e.hp/e.maxHp>.5?"#6fd35a":e.hp/e.maxHp>.25?"#f0c040":"#e0503c"; ctx.fillRect(bx+1,by+1,w,2);
+    ctx.fillStyle=(e.fighter&&e!==player)?(e.hp/e.maxHp>.25?"#e0403a":"#ff7a5a"):e.hp/e.maxHp>.5?"#6fd35a":e.hp/e.maxHp>.25?"#f0c040":"#e0503c"; ctx.fillRect(bx+1,by+1,w,2);
     if(false){ // barre de PP (retiree) : plus étroite, juste dessous
       ctx.fillStyle="#14171c"; ctx.fillRect(bx+2,by+3,14,3);
       ctx.fillStyle="#2a3050"; ctx.fillRect(bx+3,by+4,12,1);

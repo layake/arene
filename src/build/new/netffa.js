@@ -106,7 +106,8 @@ function onGuestMsg(m){
   if(m.t==="lobby"){ M.players=m.players; render(); return }
   if(m.t==="fstart"){ begin(m.roster,m.arena); return }
   if(m.t==="snap"&&M.started){ applySnap(m); return }
-  if(m.t==="fend"&&M.started){ FFA.out=m.out.map(i=>entities[i]); if(typeof showResult==="function")showResult(); return }
+  if(m.t==="fround"&&M.started){ FFA.w=m.w; FFA.round=m.r; ffaRoundMsg(m.win); introPending=true; return }
+  if(m.t==="fend"&&M.started){ FFA.out=m.out.map(i=>entities[i]); if(m.w)FFA.w=m.w; if(typeof showResult==="function")showResult(); return }
 }
 // ---------- départ ----------
 function hostStart(){
@@ -141,7 +142,7 @@ function dec(v){ if(v===null||typeof v!=="object")return v; if(Array.isArray(v))
 function snapshot(ack){
   const idx=new Map(entities.map((e,i)=>[e,i])); player.aimPt=mouse?{wx:mouse.wx,wy:mouse.wy}:null;
   const E=entities.map(e=>{const o={}; for(const k in e){if(k==="sp"||k==="hover"||k==="tgt")continue; const r=enc(e[k],idx,0); if(r!==undefined)o[k]=r} o.x=rd(e.x);o.y=rd(e.y);o.anim=e.anim;o.frame=e.frame;o.tick=rd(e.tick);o.hit=e.hit;o.key=e.key; return o});
-  return {t:"snap",n:++M.seq,E,O:enc(orbs,idx,0),Z:enc(zones,idx,0),B:OBST.map(c=>Math.round(c.hp)),out:FFA.out.map(e=>entities.indexOf(e))};
+  return {t:"snap",n:++M.seq,E,O:enc(orbs,idx,0),Z:enc(zones,idx,0),B:OBST.map(c=>Math.round(c.hp)),out:FFA.out.map(e=>entities.indexOf(e)),fw:FFA.w,fn:FFA.need,fr:FFA.round,ft:Math.round(FFA.t*10)/10};
 }
 const pending=()=>M.castSeq>(M.ackMine||0)&&performance.now()-M.castAt<500;
 function applyEnt(e,s,own,pend){
@@ -161,6 +162,7 @@ function applySnap(m){
   const mix=(dst,src)=>{const loc=keep(dst), h=dec(src||[]).filter(o=>!(pend&&o.o===player)); dst.length=0; dst.push(...h,...loc)};
   mix(orbs,m.O); mix(zones,m.Z); if(m.B&&typeof obstSet==="function")m.B.forEach((h,i)=>obstSet(i,h));
   if(m.out)FFA.out=m.out.map(i=>entities[i]).filter(Boolean);
+  if(m.fw){FFA.w=m.fw; FFA.need=m.fn||1; FFA.round=m.fr||1; if(m.ft!==undefined)FFA.t=m.ft}
 }
 // ---------- branchement sur le réseau existant (NET) ----------
 const _tick=NET.tick, _send=NET.send, _sendCast=NET.sendCast, _leave=NET.leave, _toLobby=NET.toLobby;
@@ -180,6 +182,7 @@ NET.tick=function(dt){
     if(player.holdKey!==M.lastHold){M.lastHold=player.holdKey; sendHost({t:"hold",v:!!player.holdKey})}
   }
 };
+NET.ffaSend=function(o){ if(NET.host)sendAll(o) };
 NET.send=function(o,rel){ if(!NET.ffa)return _send(o,rel); if(NET.host)sendAll(o,!rel); else sendHost(o,!rel) };
 NET.sendCast=function(id){ if(!NET.ffa)return _sendCast(id); M.castSeq++; M.castAt=performance.now(); const hov=hoverEnemy(), p=hov?{wx:foe.x,wy:foe.y}:((player.bot&&player.aimPt)||mouse||{wx:player.x,wy:player.y}); sendHost({t:"cast",id,seq:M.castSeq,wx:p.wx,wy:p.wy,am:AIM.mode}) };
 function leave(){
@@ -191,7 +194,7 @@ NET.leave=function(){ if(NET.ffa||M.role)leave(); return _leave.apply(this,argum
 NET.toLobby=function(){ if(!NET.ffa)return _toLobby&&_toLobby.apply(this,arguments); // fin de partie : tout le monde revient au salon
   M.started=false; NET.started=false; M.ready=false; if(NET.host){M.players.forEach(p=>{if(p)p.ready=false}); broadcastLobby()} else sendHello(); render() };
 // l'hôte annonce la fin aux invités
-setTimeout(()=>{const _sr=showResult; showResult=function(){ if(NET.ffa&&NET.host&&!endShown)sendAll({t:"fend",out:FFA.out.map(e=>entities.indexOf(e))}); return _sr.apply(this,arguments) }},0);
+setTimeout(()=>{const _sr=showResult; showResult=function(){ if(NET.ffa&&NET.host&&!endShown)sendAll({t:"fend",out:FFA.out.map(e=>entities.indexOf(e)),w:FFA.w}); return _sr.apply(this,arguments) }},0);
 setInterval(()=>{ if(M.role&&!M.started){ box.hidden=false } },500);
 render();
 NET.ffaState=M;

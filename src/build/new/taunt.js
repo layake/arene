@@ -20,6 +20,7 @@ FX_UPDATERS.push(tauntTick);
 // cercle de couleur sous chaque joueur en mêlée
 function drawRings(){
   if(matchMode!=="ffa")return;
+  ffaRingDraw();
   fighters.forEach(e=>{ if(e.gone||e.out)return; const c=e.col||"#fff", x=Math.round(e.x), y=Math.round(e.y), R=Math.round(e.sp.body*.9)+4, ry=Math.max(2,Math.round(R*ISO));
     ctx.globalAlpha=.85; ellipseLine(x,y+1,R,ry,c); if(e===player){ctx.globalAlpha=.4; ellipseLine(x,y+1,R+2,ry+1,c)} ctx.globalAlpha=1 });
 }

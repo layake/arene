@@ -131,3 +131,12 @@ try{if(matchMedia("(pointer:coarse)").matches&&!matchMedia("(any-pointer:fine)")
   };
   try{refreshMenu()}catch(_){}
 })();
+
+// ---- retour sonore quand une action du joueur est impossible : sort ou échange en recharge ----
+{const _cast=cast; cast=function(e,id){
+  if(e===player&&!e.bot&&e.ko<=0&&!menuOpen&&typeof sfxDeny==="function"){
+    const cd=id==="swap"?(e.swapCd||0):id==="flash"?cdOf(e,"flash"):(e.kit&&e.kit.includes(id)?cdOf(e,id):0);
+    if(cd>.45)sfxDeny();
+  }
+  return _cast.apply(this,arguments);
+}}

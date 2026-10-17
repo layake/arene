@@ -29,6 +29,8 @@ function rkRender(){
     const q=RK.state==="queue", m=RK.state==="found";
     h+='<div class="rkrow"><button type="button" id="rkGo"'+(m?" disabled":"")+'>'+(q?(L?"Cancel search":"Annuler la recherche"):(L?"Find a ranked fight":"Chercher un combat classé"))+'</button><button type="button" id="rkTop">'+(L?"Leaderboard":"Classement")+'</button></div>';
   }
+  h+='<div class="rkrules">'+(L?"1v1 duel, best of 3, team of 3 Aces, Colosseum arena. Your rating changes after every ranked game; leaving mid-fight counts as a loss.":"Duel 1v1, meilleur des 3, équipe de 3 Aces, arène Colisée. Ton Elo change à chaque partie classée ; quitter en plein combat compte comme une défaite.")+'</div>';
+  {const ok=typeof NET!=="undefined"&&NET.teamOk&&(()=>{try{return NET.teamOk()}catch(_){return false}})(); h+='<div class="rkteam"><span>'+(L?"Your team":"Ton équipe")+'</span>'+picks.slice(0,3).map(k=>'<img alt="" title="'+SPECIES[k].name+'" src="'+(PORTRAITS[k]||"")+'">').join("")+'<em class="'+(ok?"ok":"ko")+'">'+(ok?(L?"Ready":"Prête"):(L?"Pick 3 Aces with 4 moves each":"Choisis 3 Aces avec 4 sorts chacun"))+'</em></div>'}
   h+='<small id="rkVer" style="opacity:.6">'+(RK.sv?"Serveur "+RK.sv:"")+'</small><div id="rkMsg"></div>'+(RK.board?'<table id="rkLb"></table>':'');
   rkBox.innerHTML=h;
   const g=id=>document.getElementById(id);
@@ -49,7 +51,7 @@ async function rkBoard(){
   }catch(_){rkMsg(LANG==="en"?"Ranking server unreachable":"Serveur de classement injoignable",true)}
 }
 function rkSearch(auto){
-  if(!RK.prof)return; if(!auto)RK.retries=0;
+  if(!RK.prof)return; RK.wasRanked=true; if(!auto)RK.retries=0;
   if(!NET.saveKit()||!NET.teamOk()){RK.retries=99;rkMsg(LANG==="en"?"Invalid team: pick 3 different Aces with 4 valid moves each":"Équipe invalide : choisis 3 Aces différents avec 4 sorts valides chacun",true);return}
   RK.state="queue"; RK.since=performance.now(); RK.fresh=true; rkRender(); rkPoll();
 }
@@ -137,3 +139,19 @@ setInterval(()=>{const M=RK.match; if(RK.state!=="found"||!M||M.finished||NET.st
 async function rkMe(){if(!RK.prof)return; try{const m=await rkCall("/api/me",{id:RK.prof.id,token:RK.prof.token}); if(m&&m.elo){RK.prof.elo=m.elo;rkSave();if(RK.state==="idle")rkRender()}}catch(_){}}
 rkRender(); rkMe();
 rkCall("/api/health",null,true).then(h=>{const v=document.getElementById("rkVer");RK.sv=h.version;if(v)v.textContent="Serveur "+h.version}).catch(()=>{});
+
+// ---- onglet « Classé » dédié : le cadre classé quitte l'onglet En ligne ----
+{
+  const tabs=document.querySelector("#menu .tabs"), menu=document.getElementById("menu");
+  if(tabs&&menu){
+    const b=document.createElement("button"); b.type="button"; b.dataset.tab="ranked"; b.setAttribute("aria-pressed","false"); b.textContent=LANG==="en"?"Ranked":"Classé"; tabs.appendChild(b);
+    const st=document.createElement("style"); st.textContent='#menu:not(.tab-ranked) #rkBox{display:none!important}#menu.tab-ranked #netRow,#menu.tab-ranked #netRoom,#menu.tab-ranked #ffaBox{display:none!important}#rkBox .rkrules{font-weight:500;font-size:13px;color:#9fb4ff}#rkBox .rkteam{display:flex;gap:6px;align-items:center}#rkBox .rkteam img{width:34px;height:34px;image-rendering:pixelated;background:#050a28;border:2px solid #4a68c8}#rkBox .rkteam em{font-style:normal;margin-left:6px}#rkBox .rkteam em.ok{color:#8aff9a}#rkBox .rkteam em.ko{color:#ff8a8a}'; document.head.appendChild(st);
+    const apply=t=>{ const r=t==="ranked"; if(r){RK.wasRanked=true} else if(t==="solo"||t==="online")RK.wasRanked=false;
+      menu.classList.toggle("tab-ranked",r); if(r){menu.classList.add("tab-online"); const h=menu.querySelector("h2"); if(h)h.textContent=LANG==="en"?"Ranked":"Classé"; rkRender()}
+      tabs.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x.dataset.tab===t))) };
+    tabs.querySelectorAll("button").forEach(x=>x.addEventListener("click",()=>{ if(!x.disabled)apply(x.dataset.tab) }));
+    const _tab=NET.tab; NET.tab=function(t){ if(t==="online"&&RK.wasRanked)t="ranked"; _tab(t==="ranked"?"online":t); apply(t) };
+    let _sig=""; setInterval(()=>{ if(!menu.classList.contains("tab-ranked")||!RK.prof)return; const g=picks.join()+"|"+(NET.teamOk()?1:0)+"|"+RK.state; if(g!==_sig){_sig=g; const m=document.getElementById("rkMsg"), t=m&&m.textContent, er=m&&m.className==="err"; rkRender(); if(t)rkMsg(t,er)} },400);
+    setInterval(()=>{const r=tabs.querySelector('[data-tab="ranked"]'); if(r)r.textContent=LANG==="en"?"Ranked":"Classé"; const lob=document.getElementById("netRoom"); if(r)r.disabled=!!(lob&&!lob.hidden)},300);
+  }
+}

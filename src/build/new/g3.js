@@ -73,7 +73,7 @@ const HT={me:hudEl.querySelector(".ht.me"),foe:hudEl.querySelector(".ht.foe")};
 Object.values(HT).forEach(t=>{t.img=t.querySelector("img");t.nm=t.querySelector(".hn b");t.ty=t.querySelector(".hty");t.st=t.querySelector(".hst");t.gh=t.querySelector(".gh");t.fl=t.querySelector(".fl");t.num=t.querySelector(".hbar em");t.pp=t.querySelector(".pbar i");t.pips=t.querySelector(".pips");t.bn=t.querySelector(".bench");t.k=""});
 function hudTile(t,e,pts,show){
   const key=e.key+"|"+e.sp.name; if(t.k!==key){t.k=key;t.img.src=PORTRAITS[e.key]||"";t.nm.textContent=e.sp.name;t.ty.innerHTML=e.sp.types.map(x=>'<u style="background:'+(HUD_TC[x]||"#888")+'">'+TYPE_FR[x]+'</u>').join("")}
-  const f=clamp(e.hp/e.maxHp,0,1), c=f>.5?"#5fd35f":f>.2?"#f0c030":"#e84040";
+  const f=clamp(e.hp/e.maxHp,0,1), c=(e!==player&&matchMode!=="ffa")?(f>.2?"#e0403a":"#ff7a5a"):f>.5?"#5fd35f":f>.2?"#f0c030":"#e84040";
   t.fl.style.width=(f*100).toFixed(1)+"%"; t.fl.style.background=c; t.gh.style.width=(f*100).toFixed(1)+"%";
   t.classList.toggle("low",f<=.2&&e.ko<=0); t.classList.toggle("ko",e.ko>0);
   const n=Math.max(0,Math.ceil(e.hp))+" / "+e.maxHp; if(t.num.textContent!==n)t.num.textContent=n;
@@ -226,9 +226,10 @@ function buildMenu(){
     const spells="";
     b.innerHTML='<span class="tn"></span><img alt="" src="'+PORTRAITS[k]+'"><h3>'+sp.name+'</h3><div class="ty">'+types+'</div><div class="st">'+stats+'</div><ul>'+spells+'</ul>';
     b.addEventListener("click",()=>{
-      const i=picks.indexOf(k);
+      const cap=teamCap(); let i=picks.indexOf(k);
+      if(i>=cap){picks.splice(i,1); i=-1} // un Ace au-delà de la limite du mode compte comme non choisi
       if(i>=0){if(pick===k){picks.splice(i,1);if(picks.length)pick=picks[picks.length-1]}else pick=k}
-      else if(picks.length<3){picks.push(k);pick=k}
+      else if(picks.length<cap){picks.push(k);pick=k}
       else{teamLineEl.classList.add("full");setTimeout(()=>teamLineEl.classList.remove("full"),700);return}
       refreshMenu();
     });
@@ -249,13 +250,13 @@ function buildMenu(){
   refreshMenu();
 }
 function refreshMenu(){
-  cardsEl.querySelectorAll(".ace").forEach(b=>{const i=picks.indexOf(b.dataset.key); b.setAttribute("aria-pressed",String(i>=0)); b.classList.toggle("focus",b.dataset.key===pick&&i>=0); b.querySelector(".tn").textContent=i>=0?String(i+1):""});
+  cardsEl.querySelectorAll(".ace").forEach(b=>{const i=picks.indexOf(b.dataset.key); const on=i>=0&&i<teamCap(); b.setAttribute("aria-pressed",String(on)); b.classList.toggle("focus",b.dataset.key===pick&&on); b.querySelector(".tn").textContent=on?String(i+1):""});
   teamLineEl.innerHTML=Array.from({length:pickMode==="ffa"?2:3},(_,i)=>i).map(i=>{const k=picks[i]; return k?'<div class="tslot'+(k===pick?" on":"")+'" data-i="'+i+'"><b>'+(i+1)+'</b><img alt="" src="'+PORTRAITS[k]+'"><span>'+SPECIES[k].name+'</span><u data-rm="'+i+'" title="Retirer">×</u></div>':'<div class="tslot empty"><b>'+(i+1)+'</b><span>Choisir un Ace</span></div>'}).join("")+'<small>'+(pickMode==="ffa"?'Ordre d\'entrée 1, 2 · Tab : changer d\'Ace en combat':'Ordre d\'entrée 1, 2, 3 · Tab : changer d\'Ace en combat')+'</small>';
   document.querySelectorAll("#menu .modes button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===pickMode)));
   document.querySelectorAll("#menu .diffs button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.diff===diff)));
   document.querySelector("#menu .diffs").hidden=pickMode!=="duel"&&pickMode!=="ffa";
   {const duel=pickMode==="duel", fl=document.querySelector("#menu .foes>span"), fs0=document.getElementById("foeSel"), as=document.getElementById("arenaSel"); if(fl)fl.hidden=!duel; if(fs0)fs0.hidden=!duel; if(as)as.value=ARENA_PICK}
-  document.querySelector("#menu .rounds").hidden=pickMode!=="duel";
+  document.querySelector("#menu .rounds").hidden=pickMode!=="duel"&&pickMode!=="ffa";
   document.querySelectorAll("#menu .rounds button").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.r===bestOf)));
   {const fs=document.getElementById("foeSel"); if(fs){fs.value=foePick; [...fs.options].forEach(o=>{o.disabled=picks.includes(o.value)})}}
   if(picks.includes(foePick)){foePick="rand"}
@@ -264,6 +265,7 @@ function refreshMenu(){
   goBtn.disabled=!teamReady();
   goBtn.textContent=teamReady()?"Combattre":(picks.length<teamNeed()?"Sélectionne "+teamNeed()+(teamNeed()>1?" Aces":" Ace"):"Sélectionne 4 sorts");
 }
+const teamCap=()=>pickMode==="ffa"?2:3;
 const teamNeed=()=>pickMode==="duel"?3:pickMode==="ffa"?2:1;
 const teamReady=()=>picks.length>=teamNeed()&&picks.every(k=>draftOf(k).length===4);
 function openMenu(){if(typeof hideBanner==="function")hideBanner(); if(NET.on){NET.toLobby();NET.tab("online")}musicSet("menu");setPause(false);menuOpen=true;menuEl.hidden=false;refreshMenu()}
