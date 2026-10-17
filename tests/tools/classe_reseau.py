@@ -13,7 +13,7 @@ try:
   pg=[]
   for n in ("Alice","Bob"):
     c=b.new_context(); c.route("**/peerjs.min.js",lambda r:r.fulfill(body=lib,content_type="application/javascript"))
-    g=c.new_page(); g.on("pageerror",lambda e:print("PAGEERR",e)); g.goto(URL); g.wait_for_timeout(800); g.evaluate("leaveTitle(\"online\")"); g.wait_for_timeout(300); pg.append((n,g))
+    g=c.new_page(); g.on("pageerror",lambda e:print("PAGEERR",e)); g.goto(URL); g.wait_for_timeout(800); g.evaluate("leaveTitle(\"ranked\")"); g.wait_for_timeout(300); pg.append((n,g))
   for n,g in pg:
     g.fill("#rkName",n); g.click("#rkReg"); g.wait_for_timeout(500)
     print(n,g.inner_text("#rkBox")[:80].replace("\n"," | "))
