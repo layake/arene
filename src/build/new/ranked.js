@@ -18,7 +18,7 @@ const rkBox=document.createElement("div"); rkBox.id="rkBox";
   document.head.appendChild(st);
 }
 const rkOnl=document.getElementById("onl"), rkRow=document.getElementById("netRow");
-if(rkOnl&&rkRow)rkOnl.insertBefore(rkBox,rkRow);
+if(rkOnl)rkOnl.insertBefore(rkBox,document.getElementById("oneBox")||rkRow||null); // avant la carte du salon 1v1
 const rkMsg=(t,err)=>{const m=document.getElementById("rkMsg"); if(m){m.textContent=t||"";m.className=err?"err":""}};
 function rkRender(){
   const L=LANG==="en", P=RK.prof;
@@ -145,7 +145,7 @@ rkCall("/api/health",null,true).then(h=>{const v=document.getElementById("rkVer"
   const tabs=document.querySelector("#menu .tabs"), menu=document.getElementById("menu");
   if(tabs&&menu){
     const b=document.createElement("button"); b.type="button"; b.dataset.tab="ranked"; b.setAttribute("aria-pressed","false"); b.textContent=LANG==="en"?"Ranked":"Classé"; tabs.appendChild(b);
-    const st=document.createElement("style"); st.textContent='#menu:not(.tab-ranked) #rkBox{display:none!important}#menu.tab-ranked #netRow,#menu.tab-ranked #netRoom,#menu.tab-ranked #ffaBox{display:none!important}#rkBox .rkrules{font-weight:500;font-size:13px;color:#9fb4ff}#rkBox .rkteam{display:flex;gap:6px;align-items:center}#rkBox .rkteam img{width:34px;height:34px;image-rendering:pixelated;background:#050a28;border:2px solid #4a68c8}#rkBox .rkteam em{font-style:normal;margin-left:6px}#rkBox .rkteam em.ok{color:#8aff9a}#rkBox .rkteam em.ko{color:#ff8a8a}'; document.head.appendChild(st);
+    const st=document.createElement("style"); st.textContent='#menu:not(.tab-ranked) #rkBox{display:none!important}#menu.tab-ranked #oneBox,#menu.tab-ranked #netRow,#menu.tab-ranked #netRoom,#menu.tab-ranked #ffaBox{display:none!important}#rkBox .rkrules{font-weight:500;font-size:13px;color:#9fb4ff}#rkBox .rkteam{display:flex;gap:6px;align-items:center}#rkBox .rkteam img{width:34px;height:34px;image-rendering:pixelated;background:#050a28;border:2px solid #4a68c8}#rkBox .rkteam em{font-style:normal;margin-left:6px}#rkBox .rkteam em.ok{color:#8aff9a}#rkBox .rkteam em.ko{color:#ff8a8a}'; document.head.appendChild(st);
     const apply=t=>{ const r=t==="ranked"; if(r){RK.wasRanked=true} else if(t==="solo"||t==="online")RK.wasRanked=false;
       menu.classList.toggle("tab-ranked",r); if(r){menu.classList.add("tab-online"); const h=menu.querySelector("h2"); if(h)h.textContent=LANG==="en"?"Ranked":"Classé"; rkRender()}
       tabs.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x.dataset.tab===t))) };

@@ -13,14 +13,14 @@ const st=document.createElement("style");
 st.textContent='#ffaBox{margin:0 0 10px;padding:10px 12px;border:3px solid #7fe0ff;background:#0b1340;font:600 14px "Pixelify Sans",var(--display);color:#cfd8ff;display:flex;flex-direction:column;gap:8px}#ffaBox h3{margin:0;font-size:16px;color:#7fe0ff}#ffaBox .frow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}#ffaBox input{font:inherit;padding:5px 8px;background:#050a28;color:#fff;border:2px solid #7f95e8;width:90px;text-transform:uppercase}#ffaBox button{font:inherit;color:#7fe0ff;background:#1b2a8a;border:3px solid #7fe0ff;padding:5px 14px;cursor:pointer}#ffaBox button:disabled{opacity:.45;cursor:default}#ffaBox .fslots{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}#ffaBox .fslot{border:2px solid #4a68c8;padding:5px;min-height:62px;font-size:12px;text-align:center}#ffaBox .fslot.ok{border-color:#8aff8a}#ffaBox .fslot img{width:28px;height:28px;image-rendering:pixelated}#ffaBox .fcode{font-size:20px;color:#fff;letter-spacing:3px}#ffaMsg{min-height:16px;color:#9fb4ff}';
 document.head.appendChild(st);
 const onl=document.getElementById("onl"), rowEl=document.getElementById("netRow");
-if(onl)onl.insertBefore(box,rowEl||null);
+if(onl)onl.appendChild(box); // après la carte du salon 1v1 (net.js)
 const say=t=>{const m=document.getElementById("ffaMsg"); if(m)m.textContent=t||""};
 const myTeam=()=>picks.slice(0,2).map(k=>({key:k,kit:draftOf(k).slice()}));
 const validKit=(key,kit)=>Array.isArray(kit)&&kit.length===4&&kit.every(id=>SPECIES[key]&&SPECIES[key].pool.includes(id))&&new Set(kit).size===4;
 const validTeam=t=>Array.isArray(t)&&t.length===2&&t[0].key!==t[1].key&&t.every(x=>x&&SPECIES[x.key]&&SPECIES[x.key].playable&&validKit(x.key,x.kit));
 const myName=()=>playerName()||(typeof RK!=="undefined"&&RK.prof&&RK.prof.name)||((LANG==="en"?"Player ":"Joueur ")+(M.slot+1));
 function render(){
-  const L=LANG==="en"; let h='<h3>'+(L?"Online brawl (3-4 players, free-for-all, 2 Pokémon each)":"Mêlée en ligne (3-4 joueurs, chacun pour soi, 2 Pokémon chacun)")+'</h3>';
+  const L=LANG==="en"; let h='<h3>'+(L?"Free-for-all brawl · 3-4 players · 2 Aces each":"Mêlée · 3 à 4 joueurs · 2 Aces chacun")+'</h3>';
   if(!M.role){
     h+='<div class="frow"><button type="button" id="ffaCreate">'+(L?"Create a brawl":"Créer une mêlée")+'</button><span>'+(L?"or":"ou")+'</span><input id="ffaCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code"><button type="button" id="ffaJoin">'+(L?"Join":"Rejoindre")+'</button></div>';
   }else{

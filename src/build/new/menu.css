@@ -347,3 +347,7 @@ body.paused #roundban{visibility:hidden!important}
 @media(max-width:1000px){.mbox h2{padding:0 175px;font-size:21px}}
 @media(max-width:720px){.mbox h2{padding:36px 0 0;font-size:20px}}
 #teamLine small{font-size:11px}
+
+/* écran titre : mentions légales lisibles, sur un bandeau sombre sous la ligne de sprites */
+.tcredit{bottom:0;padding:6px 18px 8px;background:rgba(7,10,34,.82);color:#c9d6ff;font-size:12px;line-height:1.45;border-top:2px solid #2c3d8f}
+.tcredit b{color:#ffe45e}

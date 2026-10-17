@@ -342,13 +342,19 @@ function mineHello(){const t=teamPicks(); return {key:t[0].key,kit:t[0].kit,team
 function saveKit(){if(picks.length!==3||!picks.every(k=>draftOf(k).length===4))return false; picks.forEach(k=>{KITS[k]=draftOf(k).slice()}); try{localStorage.setItem("aceKits",JSON.stringify(KITS));localStorage.setItem("aceTeam",JSON.stringify(picks));localStorage.setItem("aceKey",pick)}catch(_){} return true}
 const teamMsg=()=>LANG==="en"?"Pick 3 Aces with 4 moves each in the Solo tab (you have "+picks.length+")":"Choisis 3 Aces avec 4 sorts chacun dans l'onglet Solo (tu en as "+picks.length+")";
 const tryKit=()=>{const ok=saveKit(); if(!ok)say(teamMsg()); return ok};
-// rappel permanent du nombre d'Aces attendu dans le salon 1v1
-{const h=document.createElement("div"); h.id="netHint"; h.style.cssText="margin:0 0 8px;font:600 13px 'Pixelify Sans',var(--display);color:#9fb4ff";
- const onl=document.getElementById("onl"), row=document.getElementById("netRow"); if(onl)onl.insertBefore(h,row||null);
- setInterval(()=>{const n=picks.length, L=LANG==="en"; h.hidden=!menuRoot.classList.contains("tab-online"); h.style.color=n===3?"#7fe0a0":"#ffd24a"; // visible seulement dans l'onglet En ligne
-  if(row&&row.previousElementSibling!==h&&row.parentNode===onl)onl.insertBefore(h,row); // juste au-dessus du salon 1v1, sous le cadre mêlée
-  if(n===3&&st&&/^(Choisis 3|Pick 3)/.test(st.textContent))say("");
-  h.textContent=L?"1v1 room: 3 Aces needed (selected: "+n+"/3)":"Salon 1v1 : 3 Aces demandés (sélectionnés : "+n+"/3)"},400)}
+// carte « Salon 1v1 » : titre, rappel du nombre d'Aces attendu, formulaire, état (même style que la carte mêlée)
+{const onl=document.getElementById("onl"), row=document.getElementById("netRow"), room=document.getElementById("netRoom"), stt=document.getElementById("netStatus");
+ const css=document.createElement("style");
+ css.textContent='#oneBox{margin:0 0 10px;padding:10px 12px;border:3px solid #ffe45e;background:#0b1340;font:600 14px "Pixelify Sans",var(--display);color:#cfd8ff;display:flex;flex-direction:column;gap:8px}#oneBox h3{margin:0;font-size:16px;color:#ffe45e}#oneBox #netHint{margin:0}#oneBox #netRow{margin:0}';
+ document.head.appendChild(css);
+ const box=document.createElement("div"); box.id="oneBox";
+ const h3=document.createElement("h3"), h=document.createElement("div"); h.id="netHint";
+ box.appendChild(h3); box.appendChild(h);
+ if(onl&&row){onl.insertBefore(box,row); [row,room,stt].forEach(x=>{if(x)box.appendChild(x)})}
+ setInterval(()=>{const n=picks.length, L=LANG==="en"; box.hidden=!menuRoot.classList.contains("tab-online"); h.style.color=n===3?"#7fe0a0":"#ffd24a";
+  h3.textContent=L?"1v1 room · 2 players · 3 Aces each":"Salon 1v1 · 2 joueurs · 3 Aces chacun";
+  h.textContent=L?"Your team: "+n+"/3 Aces selected"+(n===3?"":" (pick them in the Solo tab)"):"Ton équipe : "+n+"/3 Aces sélectionnés"+(n===3?"":" (choisis-les dans l'onglet Solo)");
+  if(n===3&&st&&/^(Choisis 3|Pick 3)/.test(st.textContent))say("")},400)}
 btnC.addEventListener("click",()=>{ if(!tryKit())return; role="host"; myHello=mineHello(); connectAny(true) });
 btnJ.addEventListener("click",()=>{
   const c=(codeIn.value||"").trim().toUpperCase(); if(c.length!==4){say("Saisis le code du salon (4 lettres)");return}

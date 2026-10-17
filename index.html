@@ -430,6 +430,10 @@ body.paused #roundban{visibility:hidden!important}
 @media(max-width:1000px){.mbox h2{padding:0 175px;font-size:21px}}
 @media(max-width:720px){.mbox h2{padding:36px 0 0;font-size:20px}}
 #teamLine small{font-size:11px}
+
+/* écran titre : mentions légales lisibles, sur un bandeau sombre sous la ligne de sprites */
+.tcredit{bottom:0;padding:6px 18px 8px;background:rgba(7,10,34,.82);color:#c9d6ff;font-size:12px;line-height:1.45;border-top:2px solid #2c3d8f}
+.tcredit b{color:#ffe45e}
 footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </style>
 
@@ -454,7 +458,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Sélection d'équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>mannequin d'entraînement</small></button><button type="button" data-mode="duel" aria-pressed="false">Versus<small>contre un adversaire</small></button><button type="button" data-mode="rush" aria-pressed="false">Marathon<small>Tous les Pokémon d'affilée, au chrono</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="rounds" role="group" aria-label="Rounds"><span>Rounds</span><button type="button" data-r="1">1</button><button type="button" data-r="3" aria-pressed="true">3</button><button type="button" data-r="5">5</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
 </div>
-<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.95 · 17/10/2026</b></footer>
+<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.96 · 17/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -5392,13 +5396,19 @@ function mineHello(){const t=teamPicks(); return {key:t[0].key,kit:t[0].kit,team
 function saveKit(){if(picks.length!==3||!picks.every(k=>draftOf(k).length===4))return false; picks.forEach(k=>{KITS[k]=draftOf(k).slice()}); try{localStorage.setItem("aceKits",JSON.stringify(KITS));localStorage.setItem("aceTeam",JSON.stringify(picks));localStorage.setItem("aceKey",pick)}catch(_){} return true}
 const teamMsg=()=>LANG==="en"?"Pick 3 Aces with 4 moves each in the Solo tab (you have "+picks.length+")":"Choisis 3 Aces avec 4 sorts chacun dans l'onglet Solo (tu en as "+picks.length+")";
 const tryKit=()=>{const ok=saveKit(); if(!ok)say(teamMsg()); return ok};
-// rappel permanent du nombre d'Aces attendu dans le salon 1v1
-{const h=document.createElement("div"); h.id="netHint"; h.style.cssText="margin:0 0 8px;font:600 13px 'Pixelify Sans',var(--display);color:#9fb4ff";
- const onl=document.getElementById("onl"), row=document.getElementById("netRow"); if(onl)onl.insertBefore(h,row||null);
- setInterval(()=>{const n=picks.length, L=LANG==="en"; h.hidden=!menuRoot.classList.contains("tab-online"); h.style.color=n===3?"#7fe0a0":"#ffd24a"; // visible seulement dans l'onglet En ligne
-  if(row&&row.previousElementSibling!==h&&row.parentNode===onl)onl.insertBefore(h,row); // juste au-dessus du salon 1v1, sous le cadre mêlée
-  if(n===3&&st&&/^(Choisis 3|Pick 3)/.test(st.textContent))say("");
-  h.textContent=L?"1v1 room: 3 Aces needed (selected: "+n+"/3)":"Salon 1v1 : 3 Aces demandés (sélectionnés : "+n+"/3)"},400)}
+// carte « Salon 1v1 » : titre, rappel du nombre d'Aces attendu, formulaire, état (même style que la carte mêlée)
+{const onl=document.getElementById("onl"), row=document.getElementById("netRow"), room=document.getElementById("netRoom"), stt=document.getElementById("netStatus");
+ const css=document.createElement("style");
+ css.textContent='#oneBox{margin:0 0 10px;padding:10px 12px;border:3px solid #ffe45e;background:#0b1340;font:600 14px "Pixelify Sans",var(--display);color:#cfd8ff;display:flex;flex-direction:column;gap:8px}#oneBox h3{margin:0;font-size:16px;color:#ffe45e}#oneBox #netHint{margin:0}#oneBox #netRow{margin:0}';
+ document.head.appendChild(css);
+ const box=document.createElement("div"); box.id="oneBox";
+ const h3=document.createElement("h3"), h=document.createElement("div"); h.id="netHint";
+ box.appendChild(h3); box.appendChild(h);
+ if(onl&&row){onl.insertBefore(box,row); [row,room,stt].forEach(x=>{if(x)box.appendChild(x)})}
+ setInterval(()=>{const n=picks.length, L=LANG==="en"; box.hidden=!menuRoot.classList.contains("tab-online"); h.style.color=n===3?"#7fe0a0":"#ffd24a";
+  h3.textContent=L?"1v1 room · 2 players · 3 Aces each":"Salon 1v1 · 2 joueurs · 3 Aces chacun";
+  h.textContent=L?"Your team: "+n+"/3 Aces selected"+(n===3?"":" (pick them in the Solo tab)"):"Ton équipe : "+n+"/3 Aces sélectionnés"+(n===3?"":" (choisis-les dans l'onglet Solo)");
+  if(n===3&&st&&/^(Choisis 3|Pick 3)/.test(st.textContent))say("")},400)}
 btnC.addEventListener("click",()=>{ if(!tryKit())return; role="host"; myHello=mineHello(); connectAny(true) });
 btnJ.addEventListener("click",()=>{
   const c=(codeIn.value||"").trim().toUpperCase(); if(c.length!==4){say("Saisis le code du salon (4 lettres)");return}
@@ -5626,7 +5636,7 @@ const rkBox=document.createElement("div"); rkBox.id="rkBox";
   document.head.appendChild(st);
 }
 const rkOnl=document.getElementById("onl"), rkRow=document.getElementById("netRow");
-if(rkOnl&&rkRow)rkOnl.insertBefore(rkBox,rkRow);
+if(rkOnl)rkOnl.insertBefore(rkBox,document.getElementById("oneBox")||rkRow||null); // avant la carte du salon 1v1
 const rkMsg=(t,err)=>{const m=document.getElementById("rkMsg"); if(m){m.textContent=t||"";m.className=err?"err":""}};
 function rkRender(){
   const L=LANG==="en", P=RK.prof;
@@ -5753,7 +5763,7 @@ rkCall("/api/health",null,true).then(h=>{const v=document.getElementById("rkVer"
   const tabs=document.querySelector("#menu .tabs"), menu=document.getElementById("menu");
   if(tabs&&menu){
     const b=document.createElement("button"); b.type="button"; b.dataset.tab="ranked"; b.setAttribute("aria-pressed","false"); b.textContent=LANG==="en"?"Ranked":"Classé"; tabs.appendChild(b);
-    const st=document.createElement("style"); st.textContent='#menu:not(.tab-ranked) #rkBox{display:none!important}#menu.tab-ranked #netRow,#menu.tab-ranked #netRoom,#menu.tab-ranked #ffaBox{display:none!important}#rkBox .rkrules{font-weight:500;font-size:13px;color:#9fb4ff}#rkBox .rkteam{display:flex;gap:6px;align-items:center}#rkBox .rkteam img{width:34px;height:34px;image-rendering:pixelated;background:#050a28;border:2px solid #4a68c8}#rkBox .rkteam em{font-style:normal;margin-left:6px}#rkBox .rkteam em.ok{color:#8aff9a}#rkBox .rkteam em.ko{color:#ff8a8a}'; document.head.appendChild(st);
+    const st=document.createElement("style"); st.textContent='#menu:not(.tab-ranked) #rkBox{display:none!important}#menu.tab-ranked #oneBox,#menu.tab-ranked #netRow,#menu.tab-ranked #netRoom,#menu.tab-ranked #ffaBox{display:none!important}#rkBox .rkrules{font-weight:500;font-size:13px;color:#9fb4ff}#rkBox .rkteam{display:flex;gap:6px;align-items:center}#rkBox .rkteam img{width:34px;height:34px;image-rendering:pixelated;background:#050a28;border:2px solid #4a68c8}#rkBox .rkteam em{font-style:normal;margin-left:6px}#rkBox .rkteam em.ok{color:#8aff9a}#rkBox .rkteam em.ko{color:#ff8a8a}'; document.head.appendChild(st);
     const apply=t=>{ const r=t==="ranked"; if(r){RK.wasRanked=true} else if(t==="solo"||t==="online")RK.wasRanked=false;
       menu.classList.toggle("tab-ranked",r); if(r){menu.classList.add("tab-online"); const h=menu.querySelector("h2"); if(h)h.textContent=LANG==="en"?"Ranked":"Classé"; rkRender()}
       tabs.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x.dataset.tab===t))) };
@@ -5779,14 +5789,14 @@ const st=document.createElement("style");
 st.textContent='#ffaBox{margin:0 0 10px;padding:10px 12px;border:3px solid #7fe0ff;background:#0b1340;font:600 14px "Pixelify Sans",var(--display);color:#cfd8ff;display:flex;flex-direction:column;gap:8px}#ffaBox h3{margin:0;font-size:16px;color:#7fe0ff}#ffaBox .frow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}#ffaBox input{font:inherit;padding:5px 8px;background:#050a28;color:#fff;border:2px solid #7f95e8;width:90px;text-transform:uppercase}#ffaBox button{font:inherit;color:#7fe0ff;background:#1b2a8a;border:3px solid #7fe0ff;padding:5px 14px;cursor:pointer}#ffaBox button:disabled{opacity:.45;cursor:default}#ffaBox .fslots{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}#ffaBox .fslot{border:2px solid #4a68c8;padding:5px;min-height:62px;font-size:12px;text-align:center}#ffaBox .fslot.ok{border-color:#8aff8a}#ffaBox .fslot img{width:28px;height:28px;image-rendering:pixelated}#ffaBox .fcode{font-size:20px;color:#fff;letter-spacing:3px}#ffaMsg{min-height:16px;color:#9fb4ff}';
 document.head.appendChild(st);
 const onl=document.getElementById("onl"), rowEl=document.getElementById("netRow");
-if(onl)onl.insertBefore(box,rowEl||null);
+if(onl)onl.appendChild(box); // après la carte du salon 1v1 (net.js)
 const say=t=>{const m=document.getElementById("ffaMsg"); if(m)m.textContent=t||""};
 const myTeam=()=>picks.slice(0,2).map(k=>({key:k,kit:draftOf(k).slice()}));
 const validKit=(key,kit)=>Array.isArray(kit)&&kit.length===4&&kit.every(id=>SPECIES[key]&&SPECIES[key].pool.includes(id))&&new Set(kit).size===4;
 const validTeam=t=>Array.isArray(t)&&t.length===2&&t[0].key!==t[1].key&&t.every(x=>x&&SPECIES[x.key]&&SPECIES[x.key].playable&&validKit(x.key,x.kit));
 const myName=()=>playerName()||(typeof RK!=="undefined"&&RK.prof&&RK.prof.name)||((LANG==="en"?"Player ":"Joueur ")+(M.slot+1));
 function render(){
-  const L=LANG==="en"; let h='<h3>'+(L?"Online brawl (3-4 players, free-for-all, 2 Pokémon each)":"Mêlée en ligne (3-4 joueurs, chacun pour soi, 2 Pokémon chacun)")+'</h3>';
+  const L=LANG==="en"; let h='<h3>'+(L?"Free-for-all brawl · 3-4 players · 2 Aces each":"Mêlée · 3 à 4 joueurs · 2 Aces chacun")+'</h3>';
   if(!M.role){
     h+='<div class="frow"><button type="button" id="ffaCreate">'+(L?"Create a brawl":"Créer une mêlée")+'</button><span>'+(L?"or":"ou")+'</span><input id="ffaCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code"><button type="button" id="ffaJoin">'+(L?"Join":"Rejoindre")+'</button></div>';
   }else{
