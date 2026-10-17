@@ -5,6 +5,7 @@ Auteur : Lancelot (`layake` sur GitHub, game designer, francophone). Site : `are
 Lis ce fichier en entier avant de toucher au code. L'historique détaillé, les pièges et les chiffres sont dans `docs/JOURNAL.md`.
 
 ## 1. Comment travailler avec Lancelot (priorité maximale)
+- **Début de chaque session** : lancer toi-même `git pull` (Lancelot ne doit pas avoir à le faire), vérifier `git status` et `git log --oneline | head -5`, puis relire ce fichier. En fin de session : tests, build, commit, push.
 - Réponses **courtes, en français**. **Jamais de tiret cadratin** (le caractère long). Utiliser `:`, `-`, parenthèses ou virgules.
 - Esprit sceptique : il n'a pas toujours raison, toi non plus. Vérifier par test, simulation ou capture d'écran avant d'affirmer. Ne jamais dire « ça marche » sans l'avoir exécuté.
 - Avant une décision de **game design** : poser **au plus 3 questions** (outil de questions à choix si disponible), puis agir. Pour un bug ou une évidence : ne pas demander, corriger.
