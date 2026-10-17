@@ -195,7 +195,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelate
 #fhud .hn{display:flex;gap:5px;align-items:center;white-space:nowrap;overflow:hidden}
 #fhud .foe .hn{flex-direction:row-reverse}
 #fhud .hn b{font-size:13px;letter-spacing:.3px;overflow:hidden;text-overflow:ellipsis}
-#fhud .hty u{text-decoration:none;font-size:9px;padding:1px 4px;border-radius:3px;margin:0 1px;color:#fff;text-shadow:0 1px 0 #0008}
+#fhud .hty u{text-decoration:none;font-size:10px;padding:1px 4px;border-radius:3px;margin:0 1px;color:#fff;text-shadow:0 1px 0 #0008}
 #fhud .hst{font-size:11px}
 #fhud .hbar{position:relative;height:14px;background:#10121c;border:2px solid #000;border-radius:3px;overflow:hidden}
 #fhud .hbar i{position:absolute;left:0;top:0;bottom:0;width:100%}
@@ -423,12 +423,13 @@ body.paused #roundban{visibility:hidden!important}
 .mbox .ace{padding:5px 4px 6px}
 .mbox .ace img{width:48px;height:48px}
 .mbox .ace h3{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mbox .ace .ty i{font-size:9px;padding:0 3px}
+.mbox .ace .ty i{font-size:10px;padding:0 3px}
 @media(max-width:1000px){.mbox #cards{grid-template-columns:repeat(5,minmax(0,1fr))}}
 .dsr.adj s{background:#ffd23c!important}.dsr.adj em{color:#ffd23c}.adjnote{display:block;color:#ffd23c;font-size:10px;margin-top:2px;opacity:.85}
 /* titre du menu : ne touche pas les boutons Accueil / Paramètres / langue en fenêtre étroite */
 @media(max-width:1000px){.mbox h2{padding:0 175px;font-size:21px}}
 @media(max-width:720px){.mbox h2{padding:36px 0 0;font-size:20px}}
+#teamLine small{font-size:11px}
 footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </style>
 
@@ -453,7 +454,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Sélection d'équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>mannequin d'entraînement</small></button><button type="button" data-mode="duel" aria-pressed="false">Versus<small>contre un adversaire</small></button><button type="button" data-mode="rush" aria-pressed="false">Marathon<small>Tous les Pokémon d'affilée, au chrono</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="rounds" role="group" aria-label="Rounds"><span>Rounds</span><button type="button" data-r="1">1</button><button type="button" data-r="3" aria-pressed="true">3</button><button type="button" data-r="5">5</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
 </div>
-<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.94 · 17/10/2026</b></footer>
+<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.95 · 17/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -927,7 +928,7 @@ function musicFileLoad(tr,then){
 setInterval(()=>{ if(MFILE.src&&!MFILE.fading&&typeof endShown!=="undefined"&&endShown){MFILE.fading=true; musicFileStop(MUSIC_FADE); MFILE.fading=false} },250);
 // coupure de la musique, séparée du curseur de volume (et des bruitages)
 {const el=document.getElementById("vMusic"); if(el&&el.parentNode){
-  const lab=document.createElement("label"); lab.className="mmute"; lab.style.cssText="display:flex;gap:8px;align-items:center;margin:2px 0 6px;font-size:13px";
+  const lab=document.createElement("label"); lab.className="mmute"; lab.style.cssText="display:flex!important;gap:8px;align-items:center;justify-content:flex-start!important;justify-self:start;grid-column:1/-1;text-align:left;margin:2px 0 6px;font-size:13px";
   lab.innerHTML='<input type="checkbox" id="vMusicMute"> <span>Couper la musique</span>';
   el.parentNode.insertBefore(lab,el.nextSibling);
   const cb=lab.querySelector("input"); cb.checked=!!SND.muteMusic;
@@ -2749,6 +2750,8 @@ function setSlot(btn,cd,max,active,cost){
 }
 
 /* ===== HUD de combat ===== */
+// texte lisible sur une pastille de type : sombre sur fond clair, blanc sur fond foncé (contraste WCAG)
+const chipFg=h=>{const m=/#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i.exec(h||"");if(!m)return"#fff";const l=[1,2,3].map(i=>{const v=parseInt(m[i],16)/255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)}),L=.2126*l[0]+.7152*l[1]+.0722*l[2];return L>.3?"#10152a":"#fff"};
 const HUD_TC={normal:"#a8a878",fire:"#f08030",water:"#6890f0",electric:"#f8d030",grass:"#78c850",ice:"#98d8d8",fighting:"#c03028",poison:"#a040a0",ground:"#e0c068",flying:"#a890f0",psychic:"#f85888",bug:"#a8b820",rock:"#b8a038",ghost:"#705898",dragon:"#7038f8",dark:"#705848",steel:"#b8b8d0",fairy:"#ee99ac"};
 const hudEl=document.createElement("div"); hudEl.id="fhud";
 hudEl.innerHTML=["me","foe"].map(s=>'<div class="ht '+s+'"><div class="hp-pt"><img alt=""></div><div class="hb"><div class="hn"><b></b><span class="hty"></span><span class="hst"></span></div><div class="hbar"><i class="gh"></i><i class="fl"></i><em></em></div><div class="pbar"><i></i></div><div class="pips"></div><div class="bench"></div></div></div>').join("");
@@ -2756,7 +2759,7 @@ document.getElementById("stage").appendChild(hudEl);
 const HT={me:hudEl.querySelector(".ht.me"),foe:hudEl.querySelector(".ht.foe")};
 Object.values(HT).forEach(t=>{t.img=t.querySelector("img");t.nm=t.querySelector(".hn b");t.ty=t.querySelector(".hty");t.st=t.querySelector(".hst");t.gh=t.querySelector(".gh");t.fl=t.querySelector(".fl");t.num=t.querySelector(".hbar em");t.pp=t.querySelector(".pbar i");t.pips=t.querySelector(".pips");t.bn=t.querySelector(".bench");t.k=""});
 function hudTile(t,e,pts,show){
-  const key=e.key+"|"+e.sp.name; if(t.k!==key){t.k=key;t.img.src=PORTRAITS[e.key]||"";t.nm.textContent=e.sp.name;t.ty.innerHTML=e.sp.types.map(x=>'<u style="background:'+(HUD_TC[x]||"#888")+'">'+TYPE_FR[x]+'</u>').join("")}
+  const key=e.key+"|"+e.sp.name; if(t.k!==key){t.k=key;t.img.src=PORTRAITS[e.key]||"";t.nm.textContent=e.sp.name;t.ty.innerHTML=e.sp.types.map(x=>'<u style="background:'+(HUD_TC[x]||"#888")+';color:'+chipFg(HUD_TC[x])+';text-shadow:none">'+TYPE_FR[x]+'</u>').join("")}
   const f=clamp(e.hp/e.maxHp,0,1), c=(e!==player&&matchMode!=="ffa")?(f>.2?"#e0403a":"#ff7a5a"):f>.5?"#5fd35f":f>.2?"#f0c030":"#e84040";
   t.fl.style.width=(f*100).toFixed(1)+"%"; t.fl.style.background=c; t.gh.style.width=(f*100).toFixed(1)+"%";
   t.classList.toggle("low",f<=.2&&e.ko<=0); t.classList.toggle("ko",e.ko>0);
@@ -2883,7 +2886,7 @@ function buildEquip(){
   const k=pick, sp=SPECIES[k], dk=draftOf(k);
   const stt=STAT_ROWS.map(([l,s])=>{const o=sp.official&&sp.official[s]!==undefined&&sp.official[s]!==sp.base[s]; // jauge jaune = stat ajustée pour l'équilibrage
     return '<div class="dsr'+(o?' adj':'')+'"'+(o?' title="Ajusté pour l\'équilibrage (officiel : '+sp.official[s]+')"':'')+'><span>'+l+'</span><u><s style="width:'+Math.round(sp.base[s]/190*100)+'%"></s></u><em>'+sp.base[s]+(o?'*':'')+'</em></div>'}).join("")+(sp.official?'<small class="adjnote">* ajusté pour l\'équilibrage</small>':'');
-  const tys=sp.types.map(t=>'<i style="background:'+TYPE_COL[t]+'">'+TYPE_FR[t]+'</i>').join("");
+  const tys=sp.types.map(t=>'<i style="background:'+TYPE_COL[t]+';color:'+chipFg(TYPE_COL[t])+'">'+TYPE_FR[t]+'</i>').join("");
   equipEl.innerHTML='<div class="dhead"><img alt="" src="'+PORTRAITS[k]+'"><div><h3>'+sp.name+'</h3><div class="ty">'+tys+'</div></div></div><div class="dstats">'+stt+'</div><div class="eqh"><span>Sorts <em>'+dk.length+' / 4</em></span><button type="button" id="eqDef">Réinitialiser</button></div><div class="eqg"></div><p class="eqi" id="eqInfo">Sélectionne 4 sorts. Les plus puissants ont un temps de recharge plus long.</p>';
   const grid=equipEl.querySelector(".eqg"), info=equipEl.querySelector("#eqInfo");
   sp.pool.forEach(id=>{
@@ -2905,7 +2908,7 @@ function buildMenu(){
   cardsEl.innerHTML="";
   Object.keys(SPECIES).filter(k=>SPECIES[k].playable).forEach(k=>{
     const sp=SPECIES[k], b=document.createElement("button"); b.type="button"; b.className="ace"; b.dataset.key=k;
-    const types=sp.types.map(t=>'<i style="background:'+TYPE_COL[t]+'">'+TYPE_FR[t]+'</i>').join("");
+    const types=sp.types.map(t=>'<i style="background:'+TYPE_COL[t]+';color:'+chipFg(TYPE_COL[t])+'">'+TYPE_FR[t]+'</i>').join("");
     const stats=STAT_ROWS.map(([l,s])=>'<div class="sr"><span>'+l+'</span><u><s style="width:'+Math.round(sp.base[s]/190*100)+'%"></s></u><em>'+sp.base[s]+'</em></div>').join("");
     const spells="";
     b.innerHTML='<span class="tn"></span><img alt="" src="'+PORTRAITS[k]+'"><h3>'+sp.name+'</h3><div class="ty">'+types+'</div><div class="st">'+stats+'</div><ul>'+spells+'</ul>';
@@ -5392,7 +5395,7 @@ const tryKit=()=>{const ok=saveKit(); if(!ok)say(teamMsg()); return ok};
 // rappel permanent du nombre d'Aces attendu dans le salon 1v1
 {const h=document.createElement("div"); h.id="netHint"; h.style.cssText="margin:0 0 8px;font:600 13px 'Pixelify Sans',var(--display);color:#9fb4ff";
  const onl=document.getElementById("onl"), row=document.getElementById("netRow"); if(onl)onl.insertBefore(h,row||null);
- setInterval(()=>{const n=picks.length, L=LANG==="en"; h.style.color=n===3?"#7fe0a0":"#ffd24a";
+ setInterval(()=>{const n=picks.length, L=LANG==="en"; h.hidden=!menuRoot.classList.contains("tab-online"); h.style.color=n===3?"#7fe0a0":"#ffd24a"; // visible seulement dans l'onglet En ligne
   if(row&&row.previousElementSibling!==h&&row.parentNode===onl)onl.insertBefore(h,row); // juste au-dessus du salon 1v1, sous le cadre mêlée
   if(n===3&&st&&/^(Choisis 3|Pick 3)/.test(st.textContent))say("");
   h.textContent=L?"1v1 room: 3 Aces needed (selected: "+n+"/3)":"Salon 1v1 : 3 Aces demandés (sélectionnés : "+n+"/3)"},400)}
@@ -5960,6 +5963,7 @@ NET.toLobby=function(){ if(!NET.ffa)return _toLobby&&_toLobby.apply(this,argumen
 // l'hôte annonce la fin aux invités
 setTimeout(()=>{const _sr=showResult; showResult=function(){ if(NET.ffa&&NET.host&&!endShown)sendAll({t:"fend",out:FFA.out.map(e=>entities.indexOf(e)),w:FFA.w}); return _sr.apply(this,arguments) }},0);
 setInterval(()=>{ if(M.role&&!M.started){ box.hidden=false } },500);
+let _ffaLang=LANG; setInterval(()=>{ if(LANG!==_ffaLang){_ffaLang=LANG; render()} },500); // le cadre mêlée suit la langue choisie
 // rappel des 2 Aces joués (mis à jour sans reconstruire le cadre : le code saisi reste)
 setInterval(()=>{const el=document.getElementById("ffaTeam"); if(!el)return; const L=LANG==="en", t=picks.slice(0,2).map(k=>(SPECIES[k]&&SPECIES[k].name)||k);
   el.style.color=t.length===2?"#7fe0a0":"#ffd24a";

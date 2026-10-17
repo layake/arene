@@ -345,7 +345,7 @@ const tryKit=()=>{const ok=saveKit(); if(!ok)say(teamMsg()); return ok};
 // rappel permanent du nombre d'Aces attendu dans le salon 1v1
 {const h=document.createElement("div"); h.id="netHint"; h.style.cssText="margin:0 0 8px;font:600 13px 'Pixelify Sans',var(--display);color:#9fb4ff";
  const onl=document.getElementById("onl"), row=document.getElementById("netRow"); if(onl)onl.insertBefore(h,row||null);
- setInterval(()=>{const n=picks.length, L=LANG==="en"; h.style.color=n===3?"#7fe0a0":"#ffd24a";
+ setInterval(()=>{const n=picks.length, L=LANG==="en"; h.hidden=!menuRoot.classList.contains("tab-online"); h.style.color=n===3?"#7fe0a0":"#ffd24a"; // visible seulement dans l'onglet En ligne
   if(row&&row.previousElementSibling!==h&&row.parentNode===onl)onl.insertBefore(h,row); // juste au-dessus du salon 1v1, sous le cadre mêlée
   if(n===3&&st&&/^(Choisis 3|Pick 3)/.test(st.textContent))say("");
   h.textContent=L?"1v1 room: 3 Aces needed (selected: "+n+"/3)":"Salon 1v1 : 3 Aces demandés (sélectionnés : "+n+"/3)"},400)}

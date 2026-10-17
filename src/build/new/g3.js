@@ -65,6 +65,8 @@ function setSlot(btn,cd,max,active,cost){
 }
 
 /* ===== HUD de combat ===== */
+// texte lisible sur une pastille de type : sombre sur fond clair, blanc sur fond foncé (contraste WCAG)
+const chipFg=h=>{const m=/#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i.exec(h||"");if(!m)return"#fff";const l=[1,2,3].map(i=>{const v=parseInt(m[i],16)/255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)}),L=.2126*l[0]+.7152*l[1]+.0722*l[2];return L>.3?"#10152a":"#fff"};
 const HUD_TC={normal:"#a8a878",fire:"#f08030",water:"#6890f0",electric:"#f8d030",grass:"#78c850",ice:"#98d8d8",fighting:"#c03028",poison:"#a040a0",ground:"#e0c068",flying:"#a890f0",psychic:"#f85888",bug:"#a8b820",rock:"#b8a038",ghost:"#705898",dragon:"#7038f8",dark:"#705848",steel:"#b8b8d0",fairy:"#ee99ac"};
 const hudEl=document.createElement("div"); hudEl.id="fhud";
 hudEl.innerHTML=["me","foe"].map(s=>'<div class="ht '+s+'"><div class="hp-pt"><img alt=""></div><div class="hb"><div class="hn"><b></b><span class="hty"></span><span class="hst"></span></div><div class="hbar"><i class="gh"></i><i class="fl"></i><em></em></div><div class="pbar"><i></i></div><div class="pips"></div><div class="bench"></div></div></div>').join("");
@@ -72,7 +74,7 @@ document.getElementById("stage").appendChild(hudEl);
 const HT={me:hudEl.querySelector(".ht.me"),foe:hudEl.querySelector(".ht.foe")};
 Object.values(HT).forEach(t=>{t.img=t.querySelector("img");t.nm=t.querySelector(".hn b");t.ty=t.querySelector(".hty");t.st=t.querySelector(".hst");t.gh=t.querySelector(".gh");t.fl=t.querySelector(".fl");t.num=t.querySelector(".hbar em");t.pp=t.querySelector(".pbar i");t.pips=t.querySelector(".pips");t.bn=t.querySelector(".bench");t.k=""});
 function hudTile(t,e,pts,show){
-  const key=e.key+"|"+e.sp.name; if(t.k!==key){t.k=key;t.img.src=PORTRAITS[e.key]||"";t.nm.textContent=e.sp.name;t.ty.innerHTML=e.sp.types.map(x=>'<u style="background:'+(HUD_TC[x]||"#888")+'">'+TYPE_FR[x]+'</u>').join("")}
+  const key=e.key+"|"+e.sp.name; if(t.k!==key){t.k=key;t.img.src=PORTRAITS[e.key]||"";t.nm.textContent=e.sp.name;t.ty.innerHTML=e.sp.types.map(x=>'<u style="background:'+(HUD_TC[x]||"#888")+';color:'+chipFg(HUD_TC[x])+';text-shadow:none">'+TYPE_FR[x]+'</u>').join("")}
   const f=clamp(e.hp/e.maxHp,0,1), c=(e!==player&&matchMode!=="ffa")?(f>.2?"#e0403a":"#ff7a5a"):f>.5?"#5fd35f":f>.2?"#f0c030":"#e84040";
   t.fl.style.width=(f*100).toFixed(1)+"%"; t.fl.style.background=c; t.gh.style.width=(f*100).toFixed(1)+"%";
   t.classList.toggle("low",f<=.2&&e.ko<=0); t.classList.toggle("ko",e.ko>0);
@@ -199,7 +201,7 @@ function buildEquip(){
   const k=pick, sp=SPECIES[k], dk=draftOf(k);
   const stt=STAT_ROWS.map(([l,s])=>{const o=sp.official&&sp.official[s]!==undefined&&sp.official[s]!==sp.base[s]; // jauge jaune = stat ajustée pour l'équilibrage
     return '<div class="dsr'+(o?' adj':'')+'"'+(o?' title="Ajusté pour l\'équilibrage (officiel : '+sp.official[s]+')"':'')+'><span>'+l+'</span><u><s style="width:'+Math.round(sp.base[s]/190*100)+'%"></s></u><em>'+sp.base[s]+(o?'*':'')+'</em></div>'}).join("")+(sp.official?'<small class="adjnote">* ajusté pour l\'équilibrage</small>':'');
-  const tys=sp.types.map(t=>'<i style="background:'+TYPE_COL[t]+'">'+TYPE_FR[t]+'</i>').join("");
+  const tys=sp.types.map(t=>'<i style="background:'+TYPE_COL[t]+';color:'+chipFg(TYPE_COL[t])+'">'+TYPE_FR[t]+'</i>').join("");
   equipEl.innerHTML='<div class="dhead"><img alt="" src="'+PORTRAITS[k]+'"><div><h3>'+sp.name+'</h3><div class="ty">'+tys+'</div></div></div><div class="dstats">'+stt+'</div><div class="eqh"><span>Sorts <em>'+dk.length+' / 4</em></span><button type="button" id="eqDef">Réinitialiser</button></div><div class="eqg"></div><p class="eqi" id="eqInfo">Sélectionne 4 sorts. Les plus puissants ont un temps de recharge plus long.</p>';
   const grid=equipEl.querySelector(".eqg"), info=equipEl.querySelector("#eqInfo");
   sp.pool.forEach(id=>{
@@ -221,7 +223,7 @@ function buildMenu(){
   cardsEl.innerHTML="";
   Object.keys(SPECIES).filter(k=>SPECIES[k].playable).forEach(k=>{
     const sp=SPECIES[k], b=document.createElement("button"); b.type="button"; b.className="ace"; b.dataset.key=k;
-    const types=sp.types.map(t=>'<i style="background:'+TYPE_COL[t]+'">'+TYPE_FR[t]+'</i>').join("");
+    const types=sp.types.map(t=>'<i style="background:'+TYPE_COL[t]+';color:'+chipFg(TYPE_COL[t])+'">'+TYPE_FR[t]+'</i>').join("");
     const stats=STAT_ROWS.map(([l,s])=>'<div class="sr"><span>'+l+'</span><u><s style="width:'+Math.round(sp.base[s]/190*100)+'%"></s></u><em>'+sp.base[s]+'</em></div>').join("");
     const spells="";
     b.innerHTML='<span class="tn"></span><img alt="" src="'+PORTRAITS[k]+'"><h3>'+sp.name+'</h3><div class="ty">'+types+'</div><div class="st">'+stats+'</div><ul>'+spells+'</ul>';

@@ -197,6 +197,7 @@ NET.toLobby=function(){ if(!NET.ffa)return _toLobby&&_toLobby.apply(this,argumen
 // l'hôte annonce la fin aux invités
 setTimeout(()=>{const _sr=showResult; showResult=function(){ if(NET.ffa&&NET.host&&!endShown)sendAll({t:"fend",out:FFA.out.map(e=>entities.indexOf(e)),w:FFA.w}); return _sr.apply(this,arguments) }},0);
 setInterval(()=>{ if(M.role&&!M.started){ box.hidden=false } },500);
+let _ffaLang=LANG; setInterval(()=>{ if(LANG!==_ffaLang){_ffaLang=LANG; render()} },500); // le cadre mêlée suit la langue choisie
 // rappel des 2 Aces joués (mis à jour sans reconstruire le cadre : le code saisi reste)
 setInterval(()=>{const el=document.getElementById("ffaTeam"); if(!el)return; const L=LANG==="en", t=picks.slice(0,2).map(k=>(SPECIES[k]&&SPECIES[k].name)||k);
   el.style.color=t.length===2?"#7fe0a0":"#ffd24a";

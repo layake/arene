@@ -54,7 +54,7 @@ function musicFileLoad(tr,then){
 setInterval(()=>{ if(MFILE.src&&!MFILE.fading&&typeof endShown!=="undefined"&&endShown){MFILE.fading=true; musicFileStop(MUSIC_FADE); MFILE.fading=false} },250);
 // coupure de la musique, séparée du curseur de volume (et des bruitages)
 {const el=document.getElementById("vMusic"); if(el&&el.parentNode){
-  const lab=document.createElement("label"); lab.className="mmute"; lab.style.cssText="display:flex;gap:8px;align-items:center;margin:2px 0 6px;font-size:13px";
+  const lab=document.createElement("label"); lab.className="mmute"; lab.style.cssText="display:flex!important;gap:8px;align-items:center;justify-content:flex-start!important;justify-self:start;grid-column:1/-1;text-align:left;margin:2px 0 6px;font-size:13px";
   lab.innerHTML='<input type="checkbox" id="vMusicMute"> <span>Couper la musique</span>';
   el.parentNode.insertBefore(lab,el.nextSibling);
   const cb=lab.querySelector("input"); cb.checked=!!SND.muteMusic;

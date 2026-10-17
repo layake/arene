@@ -112,7 +112,7 @@
 #fhud .hn{display:flex;gap:5px;align-items:center;white-space:nowrap;overflow:hidden}
 #fhud .foe .hn{flex-direction:row-reverse}
 #fhud .hn b{font-size:13px;letter-spacing:.3px;overflow:hidden;text-overflow:ellipsis}
-#fhud .hty u{text-decoration:none;font-size:9px;padding:1px 4px;border-radius:3px;margin:0 1px;color:#fff;text-shadow:0 1px 0 #0008}
+#fhud .hty u{text-decoration:none;font-size:10px;padding:1px 4px;border-radius:3px;margin:0 1px;color:#fff;text-shadow:0 1px 0 #0008}
 #fhud .hst{font-size:11px}
 #fhud .hbar{position:relative;height:14px;background:#10121c;border:2px solid #000;border-radius:3px;overflow:hidden}
 #fhud .hbar i{position:absolute;left:0;top:0;bottom:0;width:100%}
@@ -340,9 +340,10 @@ body.paused #roundban{visibility:hidden!important}
 .mbox .ace{padding:5px 4px 6px}
 .mbox .ace img{width:48px;height:48px}
 .mbox .ace h3{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mbox .ace .ty i{font-size:9px;padding:0 3px}
+.mbox .ace .ty i{font-size:10px;padding:0 3px}
 @media(max-width:1000px){.mbox #cards{grid-template-columns:repeat(5,minmax(0,1fr))}}
 .dsr.adj s{background:#ffd23c!important}.dsr.adj em{color:#ffd23c}.adjnote{display:block;color:#ffd23c;font-size:10px;margin-top:2px;opacity:.85}
 /* titre du menu : ne touche pas les boutons Accueil / Paramètres / langue en fenêtre étroite */
 @media(max-width:1000px){.mbox h2{padding:0 175px;font-size:21px}}
 @media(max-width:720px){.mbox h2{padding:36px 0 0;font-size:20px}}
+#teamLine small{font-size:11px}
