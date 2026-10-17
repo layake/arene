@@ -73,8 +73,10 @@ const BUFF={
   idef:{dur:8,def:1.7,col:"#d8d8f0",pal:["#a8a8c8","#d8d8f0","#ffffff","#606080","#8090d0"],label:"Défense +"}
 };
 const bfOf=(e,k,s)=>e.bf&&e.bf[k]&&BUFF[k][s]?BUFF[k][s]:1;
+const NEWBF=new Set(); // buffs/débuffs ajoutés après coup : multiplicateurs lus par bfN (voir aces_g_logic.js)
+const bfN=(e,s)=>{let m=1; if(e&&e.bf)for(const k of NEWBF)if(e.bf[k]&&BUFF[k][s])m*=BUFF[k][s]; return m};
 function calcDamage(att,def,spell){
-  const sp=spell.cat!=="phys", A=(sp?att.sp.stats.spa*bfOf(att,"calm","spa")*bfOf(att,"nplot","spa"):att.sp.stats.atk*bfOf(att,"sdance","atk")*bfOf(att,"ddance","atk")), D=(sp?def.sp.stats.spd*bfOf(def,"calm","spd")*bfOf(def,"iwall","spd"):def.sp.stats.def*bfOf(def,"idef","def")*bfOf(def,"iwall","def"));
+  const sp=spell.cat!=="phys", A=(sp?att.sp.stats.spa*bfOf(att,"calm","spa")*bfOf(att,"nplot","spa")*bfN(att,"spa"):att.sp.stats.atk*bfOf(att,"sdance","atk")*bfOf(att,"ddance","atk")*bfN(att,"atk")), D=(sp?def.sp.stats.spd*bfOf(def,"calm","spd")*bfOf(def,"iwall","spd")*bfN(def,"spd"):def.sp.stats.def*bfOf(def,"idef","def")*bfOf(def,"iwall","def")*bfN(def,"def"));
   const stab=att.sp.types.includes(spell.type)?MULT.stab:1;
   return Math.max(1,Math.round(spell.power*Math.pow(A/D,DMG_EXP)*stab*typeMult(spell.type,def.sp.types)*rand(.94,1.06)));
 }

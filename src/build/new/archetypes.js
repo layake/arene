@@ -115,7 +115,7 @@ function startTether(e,d){
 }
 function updateTethers(dt){
   fighters.forEach(e=>{const S=e.tth; if(!S)return; const d=S.d, t=S.tgt;
-    if(!alive(e)||e.stun>0||e.tunnel||S.t>=S.dur){e.tth=null;return}
+    if(!alive(e)||e.sleep||e.tunnel||S.t>=S.dur){e.tth=null;return} // un coup reçu (étourdissement, recul) ne rompt pas le lien : seule la distance (leash) le rompt
     S.t+=dt;
     if(!t){S.len=Math.min(d.reach*.7,S.len+d.reach*dt*4); return}
     if(!alive(t)||t.tunnel||Math.hypot(t.x-e.x,(t.y-e.y)*1.1)>d.leash){e.tth=null;pops.push({x:e.x,y:e.y-e.sp.body-30,t:0,txt:"Lien rompu"});return}

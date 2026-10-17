@@ -148,6 +148,7 @@ ZONE2.gz=(z,i,dt)=>{
         if(C.style==="snow")spark(px+rand(-20,20),py-rand(30,60),rand(-40,-15),rand(90,140),rand(.4,.6),Math.random()<.5?"#ffffff":ICEC[2],0,Math.random()<.3?3:2);
         else if(C.style==="sand")spark(px-20,py-rand(0,10),rand(120,190),rand(-12,12),rand(.3,.5),["#d1a35c","#e8d8a0","#8a6030"][Math.floor(rand(0,3))],0,2);
         else if(C.style==="whirl"){const ang=Math.atan2(py-z.y,(px-z.x)),sp2=70;spark(px,py,-Math.sin(ang)*sp2,Math.cos(ang)*sp2*.5-rand(0,25),rand(.4,.7),Math.random()<.5?WATERC[2]:"#ffffff",0,2)}
+        else if(C.style==="rain")spark(px+rand(-4,4),py-rand(40,70),rand(-8,-3),rand(170,230),rand(.22,.34),WATERC[1+Math.floor(rand(0,2))],0,2);
         else if(C.style==="psyfield")spark(px,py,rand(-6,6),-rand(30,80),rand(.5,.9),PSYC[1+Math.floor(rand(0,3))],-20,2);
         else spark(px,py,rand(-8,8),-rand(20,60),rand(.5,.9),GRASSC[1+Math.floor(rand(0,3))],-10,2)}
       if(C.style==="leech"&&inside&&Math.random()<dt*14){const sx=t.x+rand(-6,6),sy=t.y-t.sp.body*.6,dx=z.o.x-sx,dy=(z.o.y-z.o.sp.body*.6)-sy,d=Math.hypot(dx,dy)||1;spark(sx,sy,dx/d*120,dy/d*120,Math.min(.6,d/120),GRASSC[2+Math.floor(rand(0,2))],0,2)}

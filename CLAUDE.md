@@ -57,7 +57,7 @@ cp carchacrok_new.html ../../index.html && rm -f s_new.js carchacrok_new.html
 | Fichier | Rôle |
 |---|---|
 | `base.js`, `a.js` | constantes monde (`WORLD` 450x275), types et table d'efficacité, stats, sorts (`SPL`), espèces (`SPECIES`) |
-| `aces_a..f.js`, `aces_f_logic.js`, `alts.js` | données et logique des Pokémon et sorts (`aces_f.js` : sprites générés, très gros, ne pas lire en entier) |
+| `aces_a..g.js`, `aces_f_logic.js`, `aces_g_logic.js`, `alts.js` | données et logique des Pokémon et sorts (`aces_f.js` et `aces_g.js` : sprites générés, très gros, ne pas lire en entier ; `aces_g_logic.js` : Luxray, Cizayox, Lokhlass, Nidoking, Leuphorie et leurs 20 sorts) |
 | `moves.js`, `archetypes.js`, `streams.js` | archétypes de sorts : `defMelee`, `defStream`, `defRay`, `defWave`, `defTether`, `defBurst` ; registres `FX_DRAW`, `FX_UPDATERS` |
 | `c.js` | entités (`makeFighter`, `e.bot` = IA), `resetRound`, `foesOf/foeOf` (multi-cibles) ; l'IA des bots se trouve en cherchant `e.bot` et `botEquip` (`aces_c.js`, `f.js`, `team.js`) |
 | `d.js` | dégâts (`applyDamage`, `strike`), `knockOut`, `spendPP`, collisions |
@@ -86,11 +86,12 @@ Concepts clés :
 - Entités de mêlée : indicateurs `out` (éliminé), `gone` (sorti de l'arène), `col`, `pname`, `slotId`. État global `FFA={n,out,endT,w,round,need,nextT,t,...}`.
 - Réseau : l'hôte simule, les invités envoient leurs ordres (`mv`, `cast`, `sh`, `hold`) et reçoivent des snapshots. Tout nouvel état de jeu synchronisé doit être ajouté au snapshot (`netffa.js` : champs `fw`, `fn`, `fr`, `ft`, `out`).
 - Les incohérences de version entre joueurs sont bloquées par `GV` : recharger les deux avec Ctrl+F5 après une mise à jour.
+- Buffs et débuffs ajoutés après coup : déclarer dans `BUFF` et dans `NEWBF` (`a.js`), champs `atk/spa/def/spd/spe` lus par `bfN` (dégâts et vitesse). `bfGive(cible,clé)` l'applique.
 - Stockage local : `aceKeys`, `aceUi` (taille interface 70-150), `aceLock`, `aceName`, `aceKits`, `aceTeam`, `aceRk`, `aceBest`, `aceBo`, `aceMode`, `aceKey`, `aceDiff`, `aceFoe`, `aceArena`, `castMode`.
 - Ajouter une capacité : suivre `docs/AJOUTER_UNE_CAPACITE.md` (fiche de contrôle en 6 étapes : fidélité au vrai jeu, archétype, visuel, son, ressenti, test).
 
 ## 5. État actuel (version v1.77, 17/10/2026)
-Fait et testé : une vingtaine de Pokémon jouables, duel 1v1 et entraînement, marathon, équipes de 3 avec échange, en ligne 1v1 (PeerJS), classé (Cloudflare + Elo), mêlée 3-4 joueurs hors ligne et en ligne avec manches BO1/3/5, pseudos, taunt, HUD dédié, spectateur, ring, Paramètres et rebind des touches, curseur virtuel, passes d'équilibrage 1 à 3, retours sonores d'action impossible, onglet Classé, disclaimer/crédits/licence dans `README.md` et `LICENSE`.
+Fait et testé : 25 Pokémon jouables, duel 1v1 et entraînement, marathon, équipes de 3 avec échange, en ligne 1v1 (PeerJS), classé (Cloudflare + Elo), mêlée 3-4 joueurs hors ligne et en ligne avec manches BO1/3/5, pseudos, taunt, HUD dédié, spectateur, ring, Paramètres et rebind des touches, curseur virtuel, passes d'équilibrage 1 à 3, retours sonores d'action impossible, onglet Classé, disclaimer/crédits/licence dans `README.md` et `LICENSE`.
 
 Jamais testé avec de vrais joueurs distants : classé et mêlée en ligne (seulement en local avec plusieurs navigateurs).
 

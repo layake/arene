@@ -261,7 +261,7 @@ function updateMove(e,dt){
     }else{
       e.dir=dirFromVector(dx,dy);
       e.run=true; // courir est la seule façon de se déplacer
-      const step=Math.min(SPEED*e.sp.spd*RUN_MULT*(e.slow>0?TRAP.slow:1)*bfOf(e,"ddance","spe")*bfOf(e,"bboost","spe")*dt,d);
+      const step=Math.min(SPEED*e.sp.spd*RUN_MULT*(e.slow>0?TRAP.slow:1)*bfOf(e,"ddance","spe")*bfOf(e,"bboost","spe")*bfN(e,"spe")*dt,d);
       e.x=clampX(e.x+dx/d*step); e.y=clampY(e.y+dy/d*step);
       e.stepD=(e.stepD||0)+step; if(e.stepD>=20){e.stepD-=20;sfxStep(e)}
       setAnim(e,"walk"); return;

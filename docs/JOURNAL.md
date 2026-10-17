@@ -52,3 +52,13 @@ Ce fichier garde le contexte qui ne tient pas dans `CLAUDE.md` : chronologie, ra
 - Mode évolutif : 3 manches, une par niveau d'évolution du Pokémon.
 - Objets équipables (baies, objets adaptés à l'espèce).
 - Elo ou classement pour la mêlée (non demandé, juste noté comme absent).
+
+## 17/10/2026 : 5 nouveaux Pokémon, 20 capacités, correctifs
+- Luxray (assassin), Cizayox (duelliste), Lokhlass (artilleur), Nidoking (bruiser), Leuphorie (soutien) : `aces_g.js` (sprites générés depuis le clone local de SpriteCollab, pas de téléchargement) et `aces_g_logic.js` (capacités, IA `botAce7`, espèces).
+- Écarts volontaires : Leuphorie Attaque 55 (officielle 10, jauge jaune). Écho = Echoed Voice (le palier monte à chaque tir réussi). Vœu soigne 40 % après 3 s. Danse Pluie = champ qui ralentit et soigne le lanceur. Pisto-Poing et Torgnoles frappent 3 fois (90 ms).
+- Swap automatique après KO : 1,5 s d'invulnérabilité (`SWAP.prot`, clignote) pour éviter l'enchaînement au respawn.
+- Mêlée en ligne : le décompte entre manches démarre en même temps chez l'hôte et les invités (les invités le lançaient 2,6 s trop tôt).
+- Liens (Vampibaiser, Giga-Sangsue) : un coup reçu (étourdissement, recul) ne les rompt plus, seule la distance les rompt (`leash`, Vampibaiser 125).
+- Paramètres : taille de l'interface 70 à 150 % (`aceUi`, zoom CSS sur la barre de sorts, les HUD, la mêlée et le menu).
+- Salons en ligne : nombre d'Aces attendu affiché (3 en 1v1, 2 en mêlée) et message clair si l'équipe ne convient pas. Versus : 1 à 3 Aces.
+- `tests/tools/sim_balance.py` : simulation bot contre bot rapide (boucle sans rendu), `ffa_revanche.py` et `duel_revanche.py` : parties d'affilée en salon.

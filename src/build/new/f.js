@@ -80,7 +80,7 @@ function botDecide(e,t,d){
   // défense et bonus
   if(threat&&d<80&&ok("mburst")&&rnd(.5))return go("mburst");
   if(threat&&d<100&&ok("tele")&&rnd(.45)){const ux=(e.x-t.x)/d, uy=(e.y-t.y)/d; e.aimPt={wx:e.x+ux*TELE.range,wy:e.y+uy*TELE.range*.8}; cast(e,"tele"); return}
-  if(botAce(e,t,d,threat,go,ok,rnd)||botAce2(e,t,d,threat,go,ok,rnd)||botAce3(e,t,d,threat,go,ok,rnd)||(typeof botAce5!=="undefined"&&botAce5(e,t,d,threat,go,ok,rnd))||(typeof botAce4!=="undefined"&&botAce4(e,t,d,threat,go,ok,rnd))||(typeof botAce6!=="undefined"&&botAce6(e,t,d,threat,go,ok,rnd)))return;
+  if(botAce(e,t,d,threat,go,ok,rnd)||botAce2(e,t,d,threat,go,ok,rnd)||botAce3(e,t,d,threat,go,ok,rnd)||(typeof botAce5!=="undefined"&&botAce5(e,t,d,threat,go,ok,rnd))||(typeof botAce4!=="undefined"&&botAce4(e,t,d,threat,go,ok,rnd))||(typeof botAce6!=="undefined"&&botAce6(e,t,d,threat,go,ok,rnd))||(typeof botAce7!=="undefined"&&botAce7(e,t,d,threat,go,ok,rnd)))return;
   if(ok("calm")&&!e.bf.calm&&d>70&&e.pp>=60)return go("calm");
   if(ok("nplot")&&!e.bf.nplot&&d>80&&e.pp>=60)return go("nplot");
   if(ok("idef")&&!e.bf.idef&&d<110&&e.pp>=55&&rnd(.6))return go("idef");

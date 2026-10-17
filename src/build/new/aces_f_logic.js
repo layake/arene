@@ -59,7 +59,7 @@ defMelee({id:"irontail",name:"Queue de Fer",type:"steel",power:28,cd:2.2,fx:"sla
 // ---- Mégaphone : onde sonore en éventail ; Vampibaiser : baiser qui draine et soigne ----
 defWave({id:"hypervoice",style:"fire",pal:PINK,reach:105,r0:12,cone:Math.PI*.75,dur:.45,push:42,noise:[.5,.45,1800,900,1.4],
   desc:"Onde sonore en éventail devant soi. Repousse.",en:"Fan-shaped sound wave in front of you. Knocks back."});
-defTether({id:"drainkiss",pal:["#c05aa8","#f060a8","#ffc2e0","#ffffff"],dur:1.2,tick:.2,tickPower:3,reach:72,leash:100,cone:1.3,heal:.75,
+defTether({id:"drainkiss",pal:["#c05aa8","#f060a8","#ffc2e0","#ffffff"],dur:1.2,tick:.2,tickPower:3,reach:72,leash:125,cone:1.3,heal:.75,
   desc:"Un baiser draine la cible proche pendant 1,2 s et te soigne beaucoup.",en:"A kiss drains a nearby target for 1.2 s and heals you a lot."});
 ANIM_IDS.add("hypervoice"); ANIM_IDS.add("drainkiss");
 // ---- IA ----
