@@ -253,7 +253,7 @@ function buildMenu(){
 }
 function refreshMenu(){
   cardsEl.querySelectorAll(".ace").forEach(b=>{const i=picks.indexOf(b.dataset.key); const on=i>=0&&i<teamCap(); b.setAttribute("aria-pressed",String(on)); b.classList.toggle("focus",b.dataset.key===pick&&on); b.querySelector(".tn").textContent=on?String(i+1):""});
-  teamLineEl.innerHTML=Array.from({length:pickMode==="ffa"?2:3},(_,i)=>i).map(i=>{const k=picks[i]; return k?'<div class="tslot'+(k===pick?" on":"")+'" data-i="'+i+'"><b>'+(i+1)+'</b><img alt="" src="'+PORTRAITS[k]+'"><span>'+SPECIES[k].name+'</span><u data-rm="'+i+'" title="Retirer">×</u></div>':'<div class="tslot empty"><b>'+(i+1)+'</b><span>Choisir un Ace</span></div>'}).join("")+'<small>'+(pickMode==="ffa"?'Ordre d\'entrée 1, 2 · Tab : changer d\'Ace en combat':'Ordre d\'entrée 1, 2, 3 · Tab : changer d\'Ace en combat')+'</small>';
+  teamLineEl.innerHTML=Array.from({length:teamCap()},(_,i)=>i).map(i=>{const k=picks[i]; return k?'<div class="tslot'+(k===pick?" on":"")+'" data-i="'+i+'"><b>'+(i+1)+'</b><img alt="" src="'+PORTRAITS[k]+'"><span>'+SPECIES[k].name+'</span><u data-rm="'+i+'" title="Retirer">×</u></div>':'<div class="tslot empty"><b>'+(i+1)+'</b><span>Choisir un Ace</span></div>'}).join("")+'<small>'+(pickMode==="ffa"?'Ordre d\'entrée 1, 2 · Tab : changer d\'Ace en combat':'Ordre d\'entrée 1, 2, 3 · Tab : changer d\'Ace en combat')+'</small>';
   document.querySelectorAll("#menu .modes button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===pickMode)));
   document.querySelectorAll("#menu .diffs button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.diff===diff)));
   document.querySelector("#menu .diffs").hidden=pickMode!=="duel"&&pickMode!=="ffa";
@@ -267,7 +267,7 @@ function refreshMenu(){
   goBtn.disabled=!teamReady();
   goBtn.textContent=teamReady()?"Combattre":(picks.length<teamNeed()?"Sélectionne "+teamNeed()+(teamNeed()>1?" Aces":" Ace"):"Sélectionne 4 sorts");
 }
-const teamCap=()=>pickMode==="ffa"?2:3;
+const teamCap=()=>{const c=typeof FFA_ONLINE_CAP==="function"?FFA_ONLINE_CAP():0; return c||(pickMode==="ffa"?2:3)}; // salon en ligne : 3 Aces à 2 joueurs, 2 à 3-4
 const teamNeed=()=>pickMode==="ffa"?2:1; // Versus : de 1 à 3 Aces (1v1 possible) ; en ligne et classé gardent leurs 3 Aces (saveKit)
 const teamReady=()=>picks.length>=teamNeed()&&picks.every(k=>draftOf(k).length===4);
 function openMenu(){if(typeof hideBanner==="function")hideBanner(); if(NET.on){NET.toLobby();NET.tab("online")}musicSet("menu");setPause(false);menuOpen=true;menuEl.hidden=false;refreshMenu()}

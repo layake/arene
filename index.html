@@ -458,7 +458,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Sélection d'équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>mannequin d'entraînement</small></button><button type="button" data-mode="duel" aria-pressed="false">Versus<small>contre un adversaire</small></button><button type="button" data-mode="rush" aria-pressed="false">Marathon<small>Tous les Pokémon d'affilée, au chrono</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="rounds" role="group" aria-label="Rounds"><span>Rounds</span><button type="button" data-r="1">1</button><button type="button" data-r="3" aria-pressed="true">3</button><button type="button" data-r="5">5</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
 </div>
-<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.96 · 17/10/2026</b></footer>
+<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.97 · 17/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -2942,7 +2942,7 @@ function buildMenu(){
 }
 function refreshMenu(){
   cardsEl.querySelectorAll(".ace").forEach(b=>{const i=picks.indexOf(b.dataset.key); const on=i>=0&&i<teamCap(); b.setAttribute("aria-pressed",String(on)); b.classList.toggle("focus",b.dataset.key===pick&&on); b.querySelector(".tn").textContent=on?String(i+1):""});
-  teamLineEl.innerHTML=Array.from({length:pickMode==="ffa"?2:3},(_,i)=>i).map(i=>{const k=picks[i]; return k?'<div class="tslot'+(k===pick?" on":"")+'" data-i="'+i+'"><b>'+(i+1)+'</b><img alt="" src="'+PORTRAITS[k]+'"><span>'+SPECIES[k].name+'</span><u data-rm="'+i+'" title="Retirer">×</u></div>':'<div class="tslot empty"><b>'+(i+1)+'</b><span>Choisir un Ace</span></div>'}).join("")+'<small>'+(pickMode==="ffa"?'Ordre d\'entrée 1, 2 · Tab : changer d\'Ace en combat':'Ordre d\'entrée 1, 2, 3 · Tab : changer d\'Ace en combat')+'</small>';
+  teamLineEl.innerHTML=Array.from({length:teamCap()},(_,i)=>i).map(i=>{const k=picks[i]; return k?'<div class="tslot'+(k===pick?" on":"")+'" data-i="'+i+'"><b>'+(i+1)+'</b><img alt="" src="'+PORTRAITS[k]+'"><span>'+SPECIES[k].name+'</span><u data-rm="'+i+'" title="Retirer">×</u></div>':'<div class="tslot empty"><b>'+(i+1)+'</b><span>Choisir un Ace</span></div>'}).join("")+'<small>'+(pickMode==="ffa"?'Ordre d\'entrée 1, 2 · Tab : changer d\'Ace en combat':'Ordre d\'entrée 1, 2, 3 · Tab : changer d\'Ace en combat')+'</small>';
   document.querySelectorAll("#menu .modes button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.mode===pickMode)));
   document.querySelectorAll("#menu .diffs button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.diff===diff)));
   document.querySelector("#menu .diffs").hidden=pickMode!=="duel"&&pickMode!=="ffa";
@@ -2956,7 +2956,7 @@ function refreshMenu(){
   goBtn.disabled=!teamReady();
   goBtn.textContent=teamReady()?"Combattre":(picks.length<teamNeed()?"Sélectionne "+teamNeed()+(teamNeed()>1?" Aces":" Ace"):"Sélectionne 4 sorts");
 }
-const teamCap=()=>pickMode==="ffa"?2:3;
+const teamCap=()=>{const c=typeof FFA_ONLINE_CAP==="function"?FFA_ONLINE_CAP():0; return c||(pickMode==="ffa"?2:3)}; // salon en ligne : 3 Aces à 2 joueurs, 2 à 3-4
 const teamNeed=()=>pickMode==="ffa"?2:1; // Versus : de 1 à 3 Aces (1v1 possible) ; en ligne et classé gardent leurs 3 Aces (saveKit)
 const teamReady=()=>picks.length>=teamNeed()&&picks.every(k=>draftOf(k).length===4);
 function openMenu(){if(typeof hideBanner==="function")hideBanner(); if(NET.on){NET.toLobby();NET.tab("online")}musicSet("menu");setPause(false);menuOpen=true;menuEl.hidden=false;refreshMenu()}
@@ -4927,7 +4927,7 @@ function ffaRing(){
 }
 const ringOut=(e,R)=>{const dx=(e.x-R.cx)/R.rx, dy=(e.y-R.cy)/R.ry; return dx*dx+dy*dy>1};
 function ffaRingTick(dt){
-  if(matchMode!=="ffa"||endShown||FFA.endT>0||FFA.nextT>0||menuOpen)return;
+  if(matchMode!=="ffa"||fighters.length<3||endShown||FFA.endT>0||FFA.nextT>0||menuOpen)return; // pas de ring en duel (2 joueurs)
   if((typeof introPending!=="undefined"&&introPending)||(typeof cdT!=="undefined"&&cdT>0)||(typeof vsT!=="undefined"&&vsT>0))return;
   FFA.t+=dt;
   if(!FFA.warned&&FFA.t>=RING.t0-10){FFA.warned=true; showLog(LANG==="en"?"The ring is closing in 10 s!":"Le ring se resserre dans 10 s !",2200)}
@@ -4939,7 +4939,7 @@ function ffaRingTick(dt){
   fighters.forEach(e=>{ if(e.out||e.gone||e.ko>0||!alive(e)||!ringOut(e,R))return; applyDamage(e,null,null,Math.max(1,Math.round(e.maxHp*RING.dps*.5)),{dot:true}) });
 }
 function ffaRingDraw(){
-  if(FFA.t<RING.t0-10)return;
+  if(FFA.t<RING.t0-10||fighters.length<3)return;
   const R=ffaRing(), a=FFA.t<RING.t0?.35+.25*Math.sin(performance.now()/160):.4;
   ctx.save(); ctx.globalAlpha=a; ctx.fillStyle="#c01830"; ctx.beginPath(); ctx.rect(-10,-10,WORLD.w+20,WORLD.h+20); ctx.ellipse(R.cx,R.cy,R.rx,R.ry,0,0,Math.PI*2); ctx.fill("evenodd");
   ctx.globalAlpha=.9; ctx.strokeStyle="#ff6a6a"; ctx.lineWidth=1.5; ctx.beginPath(); ctx.ellipse(R.cx,R.cy,R.rx,R.ry,0,0,Math.PI*2); ctx.stroke(); ctx.restore();
@@ -4988,7 +4988,7 @@ setTimeout(()=>{const _sr=showResult; showResult=function(){
 // ---- écran d'annonce de la mêlée : tous les joueurs côte à côte ----
 function ffaVersus(){
   if(typeof vsEl==="undefined")return;
-  vsEl.className="ffa"; vsEl.innerHTML='<div class="fvh">'+(LANG==="en"?"BRAWL":"MÊLÉE")+' · '+fighters.length+(LANG==="en"?" PLAYERS":" JOUEURS")+'</div><div class="fvr">'+fighters.map(e=>{const T=e.team?e.team.map(s=>s.key):[e.key];
+  vsEl.className="ffa"; vsEl.innerHTML='<div class="fvh">'+(fighters.length<3?"DUEL":(LANG==="en"?"BRAWL":"MÊLÉE"))+' · '+fighters.length+(LANG==="en"?" PLAYERS":" JOUEURS")+'</div><div class="fvr">'+fighters.map(e=>{const T=e.team?e.team.map(s=>s.key):[e.key];
     return '<div class="fvc'+(e===player?' me':'')+'" style="--c:'+ffaCol(e)+'"><b>'+ffaName(e).replace(/[<>&]/g,"")+'</b><img alt="" src="'+(PORTRAITS[T[0]]||"")+'"><div class="fvs">'+T.slice(1).map(k=>'<img alt="" src="'+(PORTRAITS[k]||"")+'">').join("")+'</div><span>'+T.map(k=>SPECIES[k].name).join(" · ")+'</span></div>'}).join("")+'</div>';
   vsEl.hidden=false; void vsEl.offsetWidth; vsEl.classList.add("go"); vsT=2.6;
 }
@@ -5399,7 +5399,7 @@ const tryKit=()=>{const ok=saveKit(); if(!ok)say(teamMsg()); return ok};
 // carte « Salon 1v1 » : titre, rappel du nombre d'Aces attendu, formulaire, état (même style que la carte mêlée)
 {const onl=document.getElementById("onl"), row=document.getElementById("netRow"), room=document.getElementById("netRoom"), stt=document.getElementById("netStatus");
  const css=document.createElement("style");
- css.textContent='#oneBox{margin:0 0 10px;padding:10px 12px;border:3px solid #ffe45e;background:#0b1340;font:600 14px "Pixelify Sans",var(--display);color:#cfd8ff;display:flex;flex-direction:column;gap:8px}#oneBox h3{margin:0;font-size:16px;color:#ffe45e}#oneBox #netHint{margin:0}#oneBox #netRow{margin:0}';
+ css.textContent='#oneBox{display:none!important;margin:0 0 10px;padding:10px 12px;border:3px solid #ffe45e;background:#0b1340;font:600 14px "Pixelify Sans",var(--display);color:#cfd8ff;display:flex;flex-direction:column;gap:8px}#oneBox h3{margin:0;font-size:16px;color:#ffe45e}#oneBox #netHint{margin:0}#oneBox #netRow{margin:0}';
  document.head.appendChild(css);
  const box=document.createElement("div"); box.id="oneBox";
  const h3=document.createElement("h3"), h=document.createElement("div"); h.id="netHint";
@@ -5777,30 +5777,33 @@ rkCall("/api/health",null,true).then(h=>{const v=document.getElementById("rkVer"
 /* ===== Mêlée en ligne (3 ou 4 joueurs, chacun pour soi) : un hôte fait autorité, jusqu'à 3 invités en étoile via PeerJS =====
    L'hôte simule la partie et envoie l'état 20 fois par seconde à chaque invité ; chaque invité envoie ses ordres et prédit son propre combattant. */
 (function(){
-const MAXP=4, MINP=3, SNAP_DT=.05;
+const MAXP=4, MINP=2, SNAP_DT=.05;
+// taille de l'équipe selon le nombre de joueurs du salon : 2 joueurs = duel, 3 Aces chacun ; 3 ou 4 joueurs = mêlée, 2 Aces chacun
+const reqSize=n=>n>=3?2:3;
 const GV=(((document.getElementById("ver")||{}).textContent)||"").trim().split(" ")[0]||"?";
 const SKIP=new Set(["sp","hover","lx","ly","vx","vy","x","y","tick","frame","hpShow","flash","rest","hit","key","anim","remote","tgt","tgtT"]);
 const OWN_SKIP=new Set(["moveTarget","wantShield","aimPt","run","bot","holdKey"]); // pilotés localement par le joueur (ou son bot de test)
 const PRED=new Set(["cast","rush","chan","tunnel","counter","pp","cd","comboT","lock","lockPt","shieldOn","shieldE","dir","stun"]);
-const M={peer:null,role:"",code:"",slot:0,players:[],conns:[],host:null,ready:false,started:false,seq:0,lastSeq:-1,castSeq:0,ackSeq:{},snapAcc:0,mvAcc:0,lastMv:"",lastSh:false,lastMvAt:0,castAt:0};
+const M={peer:null,role:"",code:"",n:1,slot:0,players:[],conns:[],host:null,ready:false,started:false,seq:0,lastSeq:-1,castSeq:0,ackSeq:{},snapAcc:0,mvAcc:0,lastMv:"",lastSh:false,lastMvAt:0,castAt:0};
 // ---------- interface : cadre dans l'onglet en ligne ----------
 const box=document.createElement("div"); box.id="ffaBox";
 const st=document.createElement("style");
-st.textContent='#ffaBox{margin:0 0 10px;padding:10px 12px;border:3px solid #7fe0ff;background:#0b1340;font:600 14px "Pixelify Sans",var(--display);color:#cfd8ff;display:flex;flex-direction:column;gap:8px}#ffaBox h3{margin:0;font-size:16px;color:#7fe0ff}#ffaBox .frow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}#ffaBox input{font:inherit;padding:5px 8px;background:#050a28;color:#fff;border:2px solid #7f95e8;width:90px;text-transform:uppercase}#ffaBox button{font:inherit;color:#7fe0ff;background:#1b2a8a;border:3px solid #7fe0ff;padding:5px 14px;cursor:pointer}#ffaBox button:disabled{opacity:.45;cursor:default}#ffaBox .fslots{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}#ffaBox .fslot{border:2px solid #4a68c8;padding:5px;min-height:62px;font-size:12px;text-align:center}#ffaBox .fslot.ok{border-color:#8aff8a}#ffaBox .fslot img{width:28px;height:28px;image-rendering:pixelated}#ffaBox .fcode{font-size:20px;color:#fff;letter-spacing:3px}#ffaMsg{min-height:16px;color:#9fb4ff}';
+st.textContent='#ffaBox{margin:0 0 10px;padding:10px 12px;border:3px solid #7fe0ff;background:#0b1340;font:600 14px "Pixelify Sans",var(--display);color:#cfd8ff;display:flex;flex-direction:column;gap:8px}#ffaBox h3{margin:0;font-size:16px;color:#7fe0ff}#ffaBox .frow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}#ffaBox input{font:inherit;padding:5px 8px;background:#050a28;color:#fff;border:2px solid #7f95e8;width:90px;text-transform:uppercase}#ffaBox button{font:inherit;color:#7fe0ff;background:#1b2a8a;border:3px solid #7fe0ff;padding:5px 14px;cursor:pointer}#ffaBox button:disabled{opacity:.45;cursor:default}#ffaBox .fslots{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}#ffaBox .fslot{border:2px solid #4a68c8;padding:5px;min-height:62px;font-size:12px;text-align:center}#ffaBox .fslot.ok{border-color:#8aff8a}#ffaBox .fslot img{width:28px;height:28px;image-rendering:pixelated}#ffaBox .fcode{font-size:20px;color:#fff;letter-spacing:3px}#ffaBox .frule{font-size:12px;color:#9fb4ff;font-weight:500}#ffaBox .fmode{margin-left:auto;color:#ffe45e;font-size:13px}#ffaMsg{min-height:16px;color:#9fb4ff}';
 document.head.appendChild(st);
 const onl=document.getElementById("onl"), rowEl=document.getElementById("netRow");
 if(onl)onl.appendChild(box); // après la carte du salon 1v1 (net.js)
 const say=t=>{const m=document.getElementById("ffaMsg"); if(m)m.textContent=t||""};
-const myTeam=()=>picks.slice(0,2).map(k=>({key:k,kit:draftOf(k).slice()}));
+const myTeam=()=>picks.slice(0,reqSize(M.n)).map(k=>({key:k,kit:draftOf(k).slice()}));
 const validKit=(key,kit)=>Array.isArray(kit)&&kit.length===4&&kit.every(id=>SPECIES[key]&&SPECIES[key].pool.includes(id))&&new Set(kit).size===4;
-const validTeam=t=>Array.isArray(t)&&t.length===2&&t[0].key!==t[1].key&&t.every(x=>x&&SPECIES[x.key]&&SPECIES[x.key].playable&&validKit(x.key,x.kit));
+const validTeam=(t,size)=>Array.isArray(t)&&t.length===(size||reqSize(M.n))&&new Set(t.map(x=>x&&x.key)).size===t.length&&t.every(x=>x&&SPECIES[x.key]&&SPECIES[x.key].playable&&validKit(x.key,x.kit));
 const myName=()=>playerName()||(typeof RK!=="undefined"&&RK.prof&&RK.prof.name)||((LANG==="en"?"Player ":"Joueur ")+(M.slot+1));
 function render(){
-  const L=LANG==="en"; let h='<h3>'+(L?"Free-for-all brawl · 3-4 players · 2 Aces each":"Mêlée · 3 à 4 joueurs · 2 Aces chacun")+'</h3>';
+  { const rs=reqSize(M.n); if(M.role&&M.lastReq!==undefined&&M.lastReq!==rs&&!M.fixing){ M.fixing=true; M.ready=false; setTimeout(()=>{M.fixing=false; if(M.role)sendHello()},0); say(LANG==="en"?"Team size changed: "+rs+" Aces each. Confirm with Ready.":"Taille d'équipe modifiée : "+rs+" Aces chacun. Revalide avec Prêt.") } M.lastReq=rs; }
+  const L=LANG==="en"; let h='<h3>'+(L?"Online room · 2 to 4 players":"Salon en ligne · 2 à 4 joueurs")+'</h3><div class="frule">'+(L?"2 players: duel, 3 Aces each · 3-4 players: free-for-all, 2 Aces each":"2 joueurs : duel, 3 Aces chacun · 3 à 4 joueurs : mêlée, 2 Aces chacun")+'</div>';
   if(!M.role){
-    h+='<div class="frow"><button type="button" id="ffaCreate">'+(L?"Create a brawl":"Créer une mêlée")+'</button><span>'+(L?"or":"ou")+'</span><input id="ffaCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code"><button type="button" id="ffaJoin">'+(L?"Join":"Rejoindre")+'</button></div>';
+    h+='<div class="frow"><button type="button" id="ffaCreate">'+(L?"Create a room":"Créer un salon")+'</button><span>'+(L?"or":"ou")+'</span><input id="ffaCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code"><button type="button" id="ffaJoin">'+(L?"Join":"Rejoindre")+'</button></div>';
   }else{
-    h+='<div class="frow"><span>'+(L?"Room code":"Code du salon")+'</span><b class="fcode">'+M.code+'</b></div><div class="fslots">';
+    h+='<div class="frow"><span>'+(L?"Room code":"Code du salon")+'</span><b class="fcode">'+M.code+'</b><span class="fmode">'+(M.n>=3?(L?"Free-for-all, 2 Aces each":"Mêlée, 2 Aces chacun"):(L?"Duel, 3 Aces each":"Duel, 3 Aces chacun"))+'</span></div><div class="fslots">';
     for(let i=0;i<MAXP;i++){const p=M.players[i];
       h+='<div class="fslot'+(p&&p.ready?' ok':'')+'">'+(p?('<b>'+(p.name||"?")+(i===M.slot?(L?" (you)":" (toi)"):"")+'</b><br>'+(p.team||[]).map(t=>'<img alt="" src="'+(PORTRAITS[t.key]||"")+'">').join("")+'<br>'+(p.ready?(L?"Ready":"Prêt"):(L?"Waiting":"En attente"))):(L?"Free slot":"Place libre"))+'</div>'}
     h+='</div><div class="frow"><button type="button" id="ffaReady">'+(M.ready?(L?"Cancel":"Annuler"):(L?"Ready":"Prêt"))+'</button>'+(M.role==="host"?'<button type="button" id="ffaGo"'+(canStart()?'':' disabled')+'>'+(L?"Start":"Lancer")+'</button>':'')+'<button type="button" id="ffaQuit">'+(L?"Leave":"Quitter")+'</button></div>';
@@ -5813,19 +5816,21 @@ function render(){
   if(g("ffaCreate"))g("ffaCreate").onclick=()=>{if(!teamOk())return; host()};
   if(g("ffaJoin"))g("ffaJoin").onclick=()=>{const c=(g("ffaCode").value||"").trim().toUpperCase(); if(c.length!==4)return say(L?"Enter the 4-letter code":"Saisis le code (4 lettres)"); if(!teamOk())return; join(c)};
   if(g("ffaCode"))g("ffaCode").onkeydown=e=>e.stopPropagation();
-  if(g("ffaReady"))g("ffaReady").onclick=()=>{if(!M.ready&&!teamOk())return; M.ready=!M.ready; sendHello(); render()};
+  if(g("ffaReady"))g("ffaReady").onclick=()=>{if(!M.ready&&!teamOk(true))return; M.ready=!M.ready; sendHello(); render()};
   if(g("ffaGo"))g("ffaGo").onclick=()=>hostStart();
   if(g("ffaQuit"))g("ffaQuit").onclick=()=>{leave(); say("")};
 }
-function teamOk(){ if(validTeam(myTeam()))return true; say(LANG==="en"?"Pick 2 Aces with 4 moves each in the Solo tab (you have "+picks.length+")":"Choisis 2 Aces avec 4 sorts chacun dans l'onglet Solo (tu en as "+picks.length+")"); return false }
-const canStart=()=>{const P=M.players.filter(Boolean); return P.length>=MINP&&P.every(p=>p.ready&&validTeam(p.team))};
+function teamOk(strict){ const need=strict?reqSize(M.n):2; const t=picks.slice(0,need).map(k=>({key:k,kit:draftOf(k).slice()}));
+  if(validTeam(t,need)&&t.length===need)return true;
+  say(LANG==="en"?"Pick "+(strict?need:"at least 2")+" Aces with 4 moves each in the Solo tab (you have "+picks.length+")":"Choisis "+(strict?need:"au moins 2")+" Aces avec 4 sorts chacun dans l'onglet Solo (tu en as "+picks.length+")"); return false }
+const canStart=()=>{const P=M.players.filter(Boolean); return P.length>=MINP&&P.length===M.n&&P.every(p=>p.ready&&validTeam(p.team,reqSize(M.n)))};
 // ---------- connexion ----------
 const peerOpts=()=>{const u=new URLSearchParams(location.search); return u.get("peerhost")?{host:u.get("peerhost"),port:+u.get("peerport")||9000,path:"/",secure:false}:{}};
 const rcode=()=>{let c="";for(let i=0;i<4;i++)c+="ABCDEFGHJKLMNPQRSTUVWXYZ"[Math.floor(Math.random()*24)];return c};
 function loadLib(){return new Promise((ok,ko)=>{if(window.Peer)return ok(); const s=document.createElement("script"); s.src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"; s.onload=ok; s.onerror=ko; document.head.appendChild(s)})}
 async function host(){
   try{await loadLib()}catch(_){return say("PeerJS injoignable")}
-  NET.leave(); M.role="host"; M.slot=0; M.ready=false; M.players=[{name:myName(),team:myTeam(),ready:false}]; M.conns=[];
+  NET.leave(); M.role="host"; M.slot=0; M.ready=false; M.n=1; M.players=[{name:myName(),team:myTeam(),ready:false}]; M.conns=[];
   const go=n=>{ if(n>5)return say("Courtier injoignable");
     const code=rcode(), p=new Peer("arene-m-"+code,peerOpts()); M.peer=p;
     p.on("open",()=>{M.code=code; render(); say(LANG==="en"?"Share the code with 2 or 3 friends":"Donne le code à 2 ou 3 amis")});
@@ -5837,7 +5842,7 @@ async function host(){
       const C=M.conns[slot]; if(kind==="f")C.f=c; else C.r=c;
       c.on("data",d=>{try{onHostMsg(slot,d)}catch(_){}});
       c.on("close",()=>{if(kind==="r")dropGuest(slot)});
-      if(kind==="r")c.on("open",()=>{c.send({t:"welcome",slot,code:M.code,v:GV}); broadcastLobby()});
+      if(kind==="r")c.on("open",()=>{M.n=1+M.conns.filter(Boolean).length; c.send({t:"welcome",slot,code:M.code,v:GV,n:M.n}); broadcastLobby()});
     });
   };
   go(0); render();
@@ -5857,7 +5862,7 @@ async function join(code){
 function sendHost(o,fast){const c=M.host&&(fast&&M.host.f&&M.host.f.open?M.host.f:M.host.r); if(c&&c.open)c.send(o)}
 function sendAll(o,fast){M.conns.forEach(C=>{if(!C)return; const c=fast&&C.f&&C.f.open?C.f:C.r; if(c&&c.open)c.send(o)})}
 function sendHello(){ const h={t:"hello",name:myName(),team:myTeam(),ready:M.ready,v:GV}; if(M.role==="host"){M.players[0]=Object.assign(M.players[0]||{},h); broadcastLobby()} else sendHost(h) }
-function broadcastLobby(){ if(M.role!=="host")return; sendAll({t:"lobby",players:M.players}); render() }
+function broadcastLobby(){ if(M.role!=="host")return; M.n=1+M.conns.filter(Boolean).length; sendAll({t:"lobby",players:M.players,n:M.n}); render() }
 function dropGuest(slot){
   M.conns[slot]=null; if(!M.started){M.players[slot]=null; broadcastLobby(); return}
   const e=entities[slot]; if(e&&!e.out){e.team&&e.team.forEach(s=>{s.dead=true}); e.hp=0; ffaOut(e); showLog((M.players[slot]&&M.players[slot].name||"?")+(LANG==="en"?" left":" a quitté la partie"),1600)}
@@ -5866,7 +5871,7 @@ function dropGuest(slot){
 function onHostMsg(slot,m){
   (M.seen||(M.seen={}))[slot]=performance.now();
   if(m.t==="hello"){ if(m.v!==GV){const c=M.conns[slot]; if(c&&c.r)c.r.send({t:"bye",msg:"Versions différentes (hôte "+GV+") : recharge la page (Ctrl+F5)."}); return}
-    M.players[slot]={name:String(m.name||"?").slice(0,16),team:validTeam(m.team)?m.team:[],ready:!!m.ready&&validTeam(m.team)}; broadcastLobby(); return }
+    const okT=validTeam(m.team,reqSize(M.n)); M.players[slot]={name:String(m.name||"?").slice(0,16),team:okT?m.team:[],ready:!!m.ready&&okT}; broadcastLobby(); return }
   if(!M.started)return;
   const g=entities[slot]; if(!g||g.out)return;
   if(m.t==="mv"){ if(g.ko<=0&&g.stun<=0)g.moveTarget=m.c?{x:m.x,y:m.y,chase:true}:{x:clampX(m.x),y:clampY(m.y)} }
@@ -5878,9 +5883,9 @@ function onHostMsg(slot,m){
 }
 function onGuestMsg(m){
   M.hostSeen=performance.now();
-  if(m.t==="welcome"){ M.slot=m.slot; if(m.v!==GV){say("Versions différentes (hôte "+m.v+", toi "+GV+") : recharge la page (Ctrl+F5).")} sendHello(); return }
+  if(m.t==="welcome"){ M.slot=m.slot; M.n=m.n||2; if(m.v!==GV){say("Versions différentes (hôte "+m.v+", toi "+GV+") : recharge la page (Ctrl+F5).")} sendHello(); return }
   if(m.t==="bye"){ say(m.msg); leave(); return }
-  if(m.t==="lobby"){ M.players=m.players; render(); return }
+  if(m.t==="lobby"){ M.players=m.players; M.n=m.n||M.players.filter(Boolean).length; render(); return }
   if(m.t==="fstart"){ begin(m.roster,m.arena); return }
   if(m.t==="snap"&&M.started){ applySnap(m); return }
   if(m.t==="fround"&&M.started){ FFA.w=m.w; FFA.round=m.r; ffaRoundMsg(m.win); setTimeout(()=>{if(M.started)introPending=true},2600); return } // même délai que l'hôte (FFA.nextT) : le décompte ne démarre pas tout de suite chez les invités
@@ -5974,11 +5979,14 @@ NET.toLobby=function(){ if(!NET.ffa)return _toLobby&&_toLobby.apply(this,argumen
 setTimeout(()=>{const _sr=showResult; showResult=function(){ if(NET.ffa&&NET.host&&!endShown)sendAll({t:"fend",out:FFA.out.map(e=>entities.indexOf(e)),w:FFA.w}); return _sr.apply(this,arguments) }},0);
 setInterval(()=>{ if(M.role&&!M.started){ box.hidden=false } },500);
 let _ffaLang=LANG; setInterval(()=>{ if(LANG!==_ffaLang){_ffaLang=LANG; render()} },500); // le cadre mêlée suit la langue choisie
-// rappel des 2 Aces joués (mis à jour sans reconstruire le cadre : le code saisi reste)
-setInterval(()=>{const el=document.getElementById("ffaTeam"); if(!el)return; const L=LANG==="en", t=picks.slice(0,2).map(k=>(SPECIES[k]&&SPECIES[k].name)||k);
-  el.style.color=t.length===2?"#7fe0a0":"#ffd24a";
-  const m=document.getElementById("ffaMsg"); if(m&&t.length===2&&validTeam(myTeam())&&/^(Choisis 2|Pick 2)/.test(m.textContent))m.textContent="";
-  el.textContent=(L?"Your 2 Aces: ":"Tes 2 Aces : ")+(t.length===2?t.join(" + ")+(picks.length>2?(L?" (3rd ignored)":" (le 3e est ignoré)"):""):(L?"pick 2 in the Solo tab":"choisis-en 2 dans l'onglet Solo"))},400);
+// rappel de l'équipe jouée, selon le nombre de joueurs (mis à jour sans reconstruire le cadre : le code saisi reste)
+setInterval(()=>{const el=document.getElementById("ffaTeam"); if(!el)return; const L=LANG==="en", need=reqSize(M.n), t=picks.slice(0,need).map(k=>(SPECIES[k]&&SPECIES[k].name)||k), ok=t.length===need;
+  el.style.color=ok?"#7fe0a0":"#ffd24a";
+  const m=document.getElementById("ffaMsg"); if(m&&ok&&validTeam(myTeam(),need)&&/^(Choisis|Pick|Taille|Team size)/.test(m.textContent))m.textContent="";
+  el.textContent=(L?"Your team: ":"Ton équipe : ")+(t.length?t.join(" + "):"-")+" ("+t.length+"/"+need+(M.role?(L?" Aces, locked for "+(M.n>=3?"3-4 players":"2 players"):" Aces, verrouillé pour "+(M.n>=3?"3-4 joueurs":"2 joueurs")):(L?" Aces if 2 players, 2 if 3-4":" Aces à 2 joueurs, 2 à 3-4"))+")"+(ok?"":(L?" - pick them in the Solo tab":" - choisis-les dans l'onglet Solo"));
+  // le nombre d'Aces sélectionnables change avec le salon : on rafraîchit la sélection
+  const cap=M.role?need:0; if(M.capSeen!==cap){M.capSeen=cap; if(typeof refreshMenu==="function"&&!menuEl.hidden)refreshMenu()}},400);
+window.FFA_ONLINE_CAP=()=>M.role?reqSize(M.n):0;
 render();
 NET.ffaState=M;
 })();

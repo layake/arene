@@ -42,7 +42,9 @@ cp carchacrok_new.html ../../index.html && rm -f s_new.js carchacrok_new.html
 - `node tests/server.test.mjs` : 29 tests du serveur classé.
 - `tests/tools/` : scénarios Playwright à lancer à la demande (`npm install` dans ce dossier d'abord, les captures vont dans `tests/tools/out/`) :
   - `duel_ffa_manches.py` : sélection 2 Aces, manches BO3 de mêlée, ring, anti-doublon d'élimination.
-  - `ffa_reseau.py [N]` : mêlée en ligne à N navigateurs (serveur PeerJS local lancé par le script), manches, ring, fin de partie.
+  - `salon_verrou.py` : le salon unique verrouille l'équipe à 3 Aces à 2 joueurs et à 2 Aces dès 3 joueurs (et revient à 3 quand le 3e part).
+  - `ffa_revanche.py [N]` : deux parties d'affilée dans le salon, N = 2, 3 ou 4 (remplace `duel_revanche.py`).
+  - `ffa_reseau.py [N]` : salon en ligne à N navigateurs (serveur PeerJS local lancé par le script), manches, ring, fin de partie.
   - `ffa_captures.py` : captures VS / combat / spectateur / fin en 1280 et 1920.
   - `onglet_classe.py` : onglets Solo / En ligne / Classé.
   - `classe_reseau.py` : classé de bout en bout avec 2 navigateurs (lance `server/dev.js` + serveur PeerJS local).
@@ -71,8 +73,8 @@ cp carchacrok_new.html ../../index.html && rm -f s_new.js carchacrok_new.html
 | `team.js` | équipes de Pokémon, échange (`startSwap`), `teamKO` |
 | `ffa.js` | **mêlée** : `ffaStart`, `ffaOut`, manches (`ffaRoundEnd`), ring, HUD `#ffaBar`, écran VS, spectateur, classement |
 | `taunt.js` | taunt (touche G), cercles de couleur, pseudos au-dessus des Pokémon |
-| `net.js` | **en ligne 1v1** : PeerJS, hôte autoritaire, prédiction invité, version `GV`, hooks classé |
-| `netffa.js` | **mêlée en ligne** : étoile PeerJS (hôte `arene-m-CODE`, 3 invités max), snapshots 20 Hz, `NET.ffa` |
+| `net.js` | **1v1 du classé** (le salon 1v1 casual n'existe plus, la carte `#oneBox` est masquée) : PeerJS, hôte autoritaire, prédiction invité, version `GV`, hooks classé |
+| `netffa.js` | **salon en ligne unique, 2 à 4 joueurs** (moteur de la mêlée) : étoile PeerJS (hôte `arene-m-CODE`, 3 invités max), snapshots 20 Hz, `NET.ffa`. 2 joueurs = duel avec 3 Aces chacun, 3 ou 4 = mêlée avec 2 Aces (`reqSize`, plafond de sélection via `FFA_ONLINE_CAP`/`teamCap`, ring seulement à 3+) |
 | `ranked.js` | client du classé : profil, file d'attente, onglet Classé, classement |
 | `ui2.js` | bannières, compte à rebours, écran VS, mémoire des kits, retour sonore « impossible » |
 | `rush.js` | mode marathon |

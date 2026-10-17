@@ -10,7 +10,7 @@ Méthode : `python tests/tools/audit_ui.py` capture 11 écrans (titre, sélectio
 - Cadre « Mêlée en ligne » resté en français après passage en anglais : il suit maintenant la langue.
 
 ## À corriger (par priorité)
-1. ~~Onglet En ligne : hiérarchie floue.~~ **Fait** (deux cartes titrées, même style : Salon 1v1 en jaune, Mêlée en bleu clair). Constat d'origine : Deux formulaires empilés (cadre bleu « Mêlée en ligne » puis « Créer un salon / Rejoindre » sans titre ni cadre), puis la sélection d'équipe. Proposition : deux cartes de même style, titrées « Salon 1v1 (2 joueurs, 3 Aces) » et « Mêlée (3-4 joueurs, 2 Aces) », avec l'équipe attendue dans chaque carte.
+1. ~~Onglet En ligne : hiérarchie floue.~~ **Fait** : un seul salon en ligne, 2 à 4 joueurs (voir JOURNAL). Constat d'origine : Deux formulaires empilés (cadre bleu « Mêlée en ligne » puis « Créer un salon / Rejoindre » sans titre ni cadre), puis la sélection d'équipe. Proposition : deux cartes de même style, titrées « Salon 1v1 (2 joueurs, 3 Aces) » et « Mêlée (3-4 joueurs, 2 Aces) », avec l'équipe attendue dans chaque carte.
 2. ~~Écran titre : pied de page~~ **Fait** (bandeau sombre, 12 px, contraste net). Constat d'origine : (mentions légales) minuscule et à faible contraste, posé sur la ligne de sprites. Proposition : bandeau sombre translucide sous les sprites, texte à 12 px minimum.
 3. **Combat en mêlée : superposition** des pseudos et des textes flottants quand plusieurs Pokémon se touchent (déjà atténué pour les pseudos et les chiffres, pas pour les décors de sorts). À surveiller avec 4 joueurs.
 4. **Textes minuscules restants** (10 px) : pastilles de type dans les panneaux de vie. Lisibles sur grand écran, justes à 800x500.

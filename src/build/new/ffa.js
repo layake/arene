@@ -61,7 +61,7 @@ function ffaRing(){
 }
 const ringOut=(e,R)=>{const dx=(e.x-R.cx)/R.rx, dy=(e.y-R.cy)/R.ry; return dx*dx+dy*dy>1};
 function ffaRingTick(dt){
-  if(matchMode!=="ffa"||endShown||FFA.endT>0||FFA.nextT>0||menuOpen)return;
+  if(matchMode!=="ffa"||fighters.length<3||endShown||FFA.endT>0||FFA.nextT>0||menuOpen)return; // pas de ring en duel (2 joueurs)
   if((typeof introPending!=="undefined"&&introPending)||(typeof cdT!=="undefined"&&cdT>0)||(typeof vsT!=="undefined"&&vsT>0))return;
   FFA.t+=dt;
   if(!FFA.warned&&FFA.t>=RING.t0-10){FFA.warned=true; showLog(LANG==="en"?"The ring is closing in 10 s!":"Le ring se resserre dans 10 s !",2200)}
@@ -73,7 +73,7 @@ function ffaRingTick(dt){
   fighters.forEach(e=>{ if(e.out||e.gone||e.ko>0||!alive(e)||!ringOut(e,R))return; applyDamage(e,null,null,Math.max(1,Math.round(e.maxHp*RING.dps*.5)),{dot:true}) });
 }
 function ffaRingDraw(){
-  if(FFA.t<RING.t0-10)return;
+  if(FFA.t<RING.t0-10||fighters.length<3)return;
   const R=ffaRing(), a=FFA.t<RING.t0?.35+.25*Math.sin(performance.now()/160):.4;
   ctx.save(); ctx.globalAlpha=a; ctx.fillStyle="#c01830"; ctx.beginPath(); ctx.rect(-10,-10,WORLD.w+20,WORLD.h+20); ctx.ellipse(R.cx,R.cy,R.rx,R.ry,0,0,Math.PI*2); ctx.fill("evenodd");
   ctx.globalAlpha=.9; ctx.strokeStyle="#ff6a6a"; ctx.lineWidth=1.5; ctx.beginPath(); ctx.ellipse(R.cx,R.cy,R.rx,R.ry,0,0,Math.PI*2); ctx.stroke(); ctx.restore();
@@ -122,7 +122,7 @@ setTimeout(()=>{const _sr=showResult; showResult=function(){
 // ---- écran d'annonce de la mêlée : tous les joueurs côte à côte ----
 function ffaVersus(){
   if(typeof vsEl==="undefined")return;
-  vsEl.className="ffa"; vsEl.innerHTML='<div class="fvh">'+(LANG==="en"?"BRAWL":"MÊLÉE")+' · '+fighters.length+(LANG==="en"?" PLAYERS":" JOUEURS")+'</div><div class="fvr">'+fighters.map(e=>{const T=e.team?e.team.map(s=>s.key):[e.key];
+  vsEl.className="ffa"; vsEl.innerHTML='<div class="fvh">'+(fighters.length<3?"DUEL":(LANG==="en"?"BRAWL":"MÊLÉE"))+' · '+fighters.length+(LANG==="en"?" PLAYERS":" JOUEURS")+'</div><div class="fvr">'+fighters.map(e=>{const T=e.team?e.team.map(s=>s.key):[e.key];
     return '<div class="fvc'+(e===player?' me':'')+'" style="--c:'+ffaCol(e)+'"><b>'+ffaName(e).replace(/[<>&]/g,"")+'</b><img alt="" src="'+(PORTRAITS[T[0]]||"")+'"><div class="fvs">'+T.slice(1).map(k=>'<img alt="" src="'+(PORTRAITS[k]||"")+'">').join("")+'</div><span>'+T.map(k=>SPECIES[k].name).join(" · ")+'</span></div>'}).join("")+'</div>';
   vsEl.hidden=false; void vsEl.offsetWidth; vsEl.classList.add("go"); vsT=2.6;
 }

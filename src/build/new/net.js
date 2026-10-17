@@ -345,7 +345,7 @@ const tryKit=()=>{const ok=saveKit(); if(!ok)say(teamMsg()); return ok};
 // carte « Salon 1v1 » : titre, rappel du nombre d'Aces attendu, formulaire, état (même style que la carte mêlée)
 {const onl=document.getElementById("onl"), row=document.getElementById("netRow"), room=document.getElementById("netRoom"), stt=document.getElementById("netStatus");
  const css=document.createElement("style");
- css.textContent='#oneBox{margin:0 0 10px;padding:10px 12px;border:3px solid #ffe45e;background:#0b1340;font:600 14px "Pixelify Sans",var(--display);color:#cfd8ff;display:flex;flex-direction:column;gap:8px}#oneBox h3{margin:0;font-size:16px;color:#ffe45e}#oneBox #netHint{margin:0}#oneBox #netRow{margin:0}';
+ css.textContent='#oneBox{display:none!important;margin:0 0 10px;padding:10px 12px;border:3px solid #ffe45e;background:#0b1340;font:600 14px "Pixelify Sans",var(--display);color:#cfd8ff;display:flex;flex-direction:column;gap:8px}#oneBox h3{margin:0;font-size:16px;color:#ffe45e}#oneBox #netHint{margin:0}#oneBox #netRow{margin:0}';
  document.head.appendChild(css);
  const box=document.createElement("div"); box.id="oneBox";
  const h3=document.createElement("h3"), h=document.createElement("div"); h.id="netHint";

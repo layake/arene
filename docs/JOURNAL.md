@@ -62,3 +62,8 @@ Ce fichier garde le contexte qui ne tient pas dans `CLAUDE.md` : chronologie, ra
 - Paramètres : taille de l'interface 70 à 150 % (`aceUi`, zoom CSS sur la barre de sorts, les HUD, la mêlée et le menu).
 - Salons en ligne : nombre d'Aces attendu affiché (3 en 1v1, 2 en mêlée) et message clair si l'équipe ne convient pas. Versus : 1 à 3 Aces.
 - `tests/tools/sim_balance.py` : simulation bot contre bot rapide (boucle sans rendu), `ffa_revanche.py` et `duel_revanche.py` : parties d'affilée en salon.
+
+## 17/10/2026 (soir) : un seul salon en ligne
+- Demande : un seul écran en ligne pour le 1v1 et la mêlée. Le salon est maintenant unique (moteur de la mêlée, `netffa.js`) : à 2 joueurs, duel, 3 Aces chacun ; à 3 ou 4 joueurs, mêlée, 2 Aces chacun. Le choix d'équipe se verrouille en conséquence (2 premiers Aces gardés, les autres grisés mais conservés, le 3e redevient utilisable si on repasse à 2 joueurs). Toute équipe déjà validée est remise à « pas prêt » quand le nombre de joueurs change.
+- Le 1v1 casual passe donc par le moteur de la mêlée (manches BO, pas de ring à 2 joueurs, annonce « DUEL »). Le moteur 1v1 de `net.js` ne sert plus que pour le classé.
+- À vérifier avec de vrais joueurs : le duel à 2 joueurs sur le moteur de la mêlée (testé en local avec 2, 3 et 4 navigateurs).

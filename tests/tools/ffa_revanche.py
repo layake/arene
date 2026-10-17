@@ -7,7 +7,7 @@ procs=[subprocess.Popen(["node",ROOT+"/node_modules/peer/dist/bin/peerjs.js","--
 time.sleep(2)
 lib=open(ROOT+"/node_modules/peerjs/dist/peerjs.min.js").read()
 URL="file://"+REPO+"/index.html?peerhost=127.0.0.1&peerport=9000"
-TEAMS=[['garchomp','lucario'],['mewtwo','pikachu'],['sylveon','tyranitar'],['charizard','gengar']]
+TEAMS=[['garchomp','lucario','gengar'],['mewtwo','pikachu','sylveon'],['sylveon','tyranitar','charizard'],['charizard','gengar','lucario']]
 N=int(__import__('sys').argv[1]) if len(__import__('sys').argv)>1 else 3
 try:
  with sync_playwright() as p:

@@ -24,7 +24,7 @@ with sync_playwright() as p:
     ids=pg.evaluate("()=>Object.keys(SPECIES).filter(k=>SPECIES[k].playable).map(k=>[k,SPECIES[k].pool||SPECIES[k].kit])")
     noeff=[]
     for sp,pool in ids:
-        pg.evaluate(START,[[sp,'garchomp','gengar'],None]); pg.wait_for_timeout(2700)
+        pg.evaluate(START,[[sp,'garchomp','gengar'],None]); pg.wait_for_function("()=>!introPending&&cdT<=0&&vsT<=0",timeout=15000); pg.wait_for_timeout(150)
         for mv in pool:
             n0=len(errs); got=False
             for attempt in range(3):
@@ -38,7 +38,7 @@ with sync_playwright() as p:
     check("toutes les capacités se lancent sans erreur",not errs,errs[:2])
     check("toutes les capacités ont un effet observable",not noeff,noeff)
     # 3. jets : maintenir, immobile, relâcher coupe
-    pg.evaluate(START,[['empoleon','garchomp','gengar'],None]); pg.wait_for_timeout(2700)
+    pg.evaluate(START,[['empoleon','garchomp','gengar'],None]); pg.wait_for_function("()=>!introPending&&cdT<=0&&vsT<=0",timeout=15000); pg.wait_for_timeout(150)
     pg.evaluate(FREEZE); pg.evaluate("()=>{const e=entities[0];e.kit=['hydrocanon'].concat(e.kit.slice(1))}")
     pg.evaluate("()=>{keys.clear();aiming=null;paused=false;player.bot=null;player.lock=0;pressSpell(0)}") # appel direct
     try: pg.wait_for_function("()=>!!entities[0].strm",timeout=3000) # le jet part à l'image d'impact de l'animation
