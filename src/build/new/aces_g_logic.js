@@ -15,7 +15,7 @@ Object.assign(SPL,{
   xscis:{name:"Plaie-Croix",type:"bug",cat:"phys",power:24,cost:0,cd:1.8,ground:false,melee:true},
   bpunch:{name:"Pisto-Poing",type:"steel",cat:"phys",power:10,cost:0,cd:1.3,ground:false,melee:true},
   furycut:{name:"Taillade",type:"bug",cat:"phys",power:13,cost:0,cd:.9,ground:false,melee:true},
-  agility:{name:"Hâte",type:"psychic",cat:"status",power:0,cost:0,cd:13,ground:true,buff:"bboost"},
+  agility:{name:"Hâte",type:"psychic",cat:"status",power:0,cost:0,cd:13,ground:true,self:true,buff:"bboost"},
   aurbeam:{name:"Onde Boréale",type:"ice",cat:"spec",power:19,cost:0,cd:4.8,ground:false},
   echo:{name:"Écho",type:"normal",cat:"spec",power:9,cost:0,cd:1.5,ground:false},
   waterfall:{name:"Cascade",type:"water",cat:"phys",power:26,cost:0,cd:6,ground:true},
@@ -26,7 +26,7 @@ Object.assign(SPL,{
   acid:{name:"Acide",type:"poison",cat:"spec",power:13,cost:0,cd:4.2,ground:false},
   eggbomb:{name:"Bomb'Œuf",type:"normal",cat:"phys",power:34,cost:0,cd:6.5,ground:false},
   dslap:{name:"Torgnoles",type:"normal",cat:"phys",power:9,cost:0,cd:1.3,ground:false,melee:true},
-  wish:{name:"Vœu",type:"normal",cat:"status",power:0,cost:0,cd:15,ground:true},
+  wish:{name:"Vœu",type:"normal",cat:"status",power:0,cost:0,cd:15,ground:true,self:true},
   charm:{name:"Charme",type:"fairy",cat:"spec",power:3,cost:0,cd:7,ground:false}
 });
 Object.values(SPL).forEach(s=>{if(s.pp0===undefined)s.pp0=0});

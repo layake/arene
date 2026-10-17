@@ -16,6 +16,7 @@ with sync_playwright() as p:
     # 1. données : chaque capacité a description, traduction (si FR!=EN), son et un utilisateur
     d=pg.evaluate("""()=>{const skip=['swap','flash','tackle'],ids=Object.keys(SPL).filter(i=>!i.startsWith('~')&&!skip.includes(i));
       return {nosfx:ids.filter(i=>!SFX_MAP[i]),nodesc:ids.filter(i=>!DESC[i]),noen:Object.keys(DESC).filter(i=>!EN[DESC[i]]),
+      nopreview:ids.filter(i=>!PREV[i]&&!SPL[i].self&&!STREAM_DEFS.some(d=>d.id===i)),
       unused:ids.filter(i=>!Object.values(SPECIES).some(s=>(s.pool||s.kit||[]).includes(i))),
       kit:Object.keys(SPECIES).filter(k=>SPECIES[k].playable&&(SPECIES[k].kit.length!==4||SPECIES[k].kit.some(i=>!SPL[i])))}}""")
     for k,v in d.items(): check("données "+k,not v,v)

@@ -322,7 +322,7 @@ function draw(){
     for(let i=0;i<6;i++){const a=spin+i*Math.PI/3;ctx.fillRect(Math.round(cx+Math.cos(a)*(rx-3)),Math.round(cy+Math.sin(a)*(ry-2)),2,2)}
   });
   if(aiming){
-    if(player.stun>0||player.tunnel||player.ko>0)aiming=null;
+    if(player.stun>0||player.tunnel||player.ko>0||!PREV[aiming])aiming=null; // sans aperçu de visée : on annule au lieu de planter le rendu
     else{
       const P=PREV[aiming], v=aimVec(player,true)||[FACE[player.dir][0],FACE[player.dir][1],1], ready=cdOf(player,aiming)<=0&&player.pp>=SPL[aiming].cost;
       const col=ready?"rgba(255,255,255,.8)":"rgba(255,110,90,.75)", faint=ready?"rgba(255,255,255,.35)":"rgba(255,110,90,.35)", fill=ready?"rgba(176,200,255,.16)":"rgba(255,110,90,.14)";
