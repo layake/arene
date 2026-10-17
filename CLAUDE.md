@@ -78,6 +78,7 @@ cp carchacrok_new.html ../../index.html && rm -f s_new.js carchacrok_new.html
 | `rush.js` | mode marathon |
 | `settings.js`, `lock.js`, `i18n.js` | Paramètres (touches, son, langue, pseudo), curseur virtuel (pointer lock), traductions |
 | `snd.js`, `snd_map.js`, `snd_fix.js`, `snd_data*.js` | audio, correspondance sorts/sons PMD (`docs/SONS.md`) |
+| `music.js` | musique par fichier : table `MUSIC_TRACKS` (contexte -> fichier dans `music/`), fondus, case « Couper la musique » (`docs/MUSIQUE.md`). Aucune piste livrée pour l'instant |
 | `balance.js` | passe d'équilibrage (stats, puissances, recharges par Pokémon `sp.cdMod`) |
 | `menu.css` | styles du menu |
 

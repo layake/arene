@@ -453,7 +453,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Sélection d'équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>mannequin d'entraînement</small></button><button type="button" data-mode="duel" aria-pressed="false">Versus<small>contre un adversaire</small></button><button type="button" data-mode="rush" aria-pressed="false">Marathon<small>Tous les Pokémon d'affilée, au chrono</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="rounds" role="group" aria-label="Rounds"><span>Rounds</span><button type="button" data-r="1">1</button><button type="button" data-r="3" aria-pressed="true">3</button><button type="button" data-r="5">5</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
 </div>
-<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.91 · 17/10/2026</b></footer>
+<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.92 · 17/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -746,6 +746,7 @@ const SFX_MAP={ // cast = départ du sort, hit = impact (sinon son selon l'effic
 const SFX_UI={click:306,go:307,shield:355,block:344,sbreak:336,ko:416,sleep:772,buff:362,win:212};
 const SND={ctx:null,gain:null,bus:{},vol:{master:.8,fight:.8,ui:.8,music:.5},buf:{},ready:false,idmap:null};
 try{const v=JSON.parse(localStorage.getItem("sndVol")||"null");if(v)Object.assign(SND.vol,v)}catch(e){}
+try{SND.muteMusic=localStorage.getItem("sndMuteMusic")==="1"}catch(e){}
 function sndInit(){
   if(SND.ctx)return; const AC=window.AudioContext||window.webkitAudioContext; if(!AC||typeof SND_B64==="undefined")return;
   SND.ctx=new AC(); SND.gain=SND.ctx.createGain(); const cmp=SND.ctx.createDynamicsCompressor(); cmp.threshold.value=-14; cmp.ratio.value=5; cmp.attack.value=.003; cmp.release.value=.18; const mk=SND.ctx.createGain(); mk.gain.value=1.7; SND.gain.connect(cmp); cmp.connect(mk); mk.connect(SND.ctx.destination);
@@ -756,7 +757,7 @@ function sndInit(){
     SND.ctx.decodeAudioData(u.buffer,b=>{SND.buf[id]=b},()=>{});
   });
 }
-function sndApply(){ if(!SND.ctx)return; SND.gain.gain.value=SND.vol.master; SND.bus.fight.gain.value=SND.vol.fight; SND.bus.ui.gain.value=SND.vol.ui; SND.bus.music.gain.value=SND.vol.music*(SND.duck?.3:1) }
+function sndApply(){ if(!SND.ctx)return; SND.gain.gain.value=SND.vol.master; SND.bus.fight.gain.value=SND.vol.fight; SND.bus.ui.gain.value=SND.vol.ui; SND.bus.music.gain.value=SND.vol.music*(SND.duck?.3:1)*(SND.muteMusic?0:1) }
 function sndSave(){ try{localStorage.setItem("sndVol",JSON.stringify(SND.vol))}catch(e){} }
 function sfx(id,bus,vol,rate,x){
   if(!SND.ctx||!id)return; const b=SND.buf[id]; if(!b)return;
@@ -869,6 +870,68 @@ function musicSet(mode){
   if(!MUS.timer)MUS.timer=setInterval(musTick,40);
 }
 function musicDuck(v){ SND.duck=v; sndApply() }
+
+// ===== Musique par fichier : un contexte = une piste qui boucle (voir docs/MUSIQUE.md) =====
+// Ajouter une piste : déposer le fichier dans music/ (à côté de index.html) et ajouter UNE ligne ci-dessous.
+// Clés : "battle" (tous les combats), "menu", ou "battle:<id d'arène>" pour une arène précise (ex. "battle:glace").
+// Sans ligne pour un contexte, l'écran garde son comportement actuel (chiptune synthétisé). Aucune musique dynamique, rien n'est synchronisé en réseau.
+const MUSIC_TRACKS={
+  // battle:"music/combat_arene.ogg",
+};
+const MUSIC_FADE=1; // secondes de fondu à l'entrée et à la sortie
+const MFILE={key:null,src:null,gain:null,buf:{},bad:{},want:null,fading:false};
+function musicTrackFor(mode){
+  const a=typeof ARENA_PICK!=="undefined"?ARENA_PICK:"", ks=[mode+":"+a,mode];
+  for(const k of ks)if(MUSIC_TRACKS[k])return {key:k,url:MUSIC_TRACKS[k]};
+  return null;
+}
+function musicFileStop(fade){
+  const s=MFILE.src, g=MFILE.gain; MFILE.src=null; MFILE.gain=null; MFILE.key=null; MFILE.want=null; MFILE.fading=false;
+  if(!s)return; const t=SND.ctx.currentTime, f=Math.max(.02,fade||0);
+  try{g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(g.gain.value,t); g.gain.linearRampToValueAtTime(0,t+f); s.stop(t+f+.05)}catch(_){}
+}
+function musicFileStart(tr){
+  const b=MFILE.buf[tr.url]; if(!b||!SND.ctx)return;
+  musicFileStop(.3);
+  if(SND.ctx.state==="suspended")SND.ctx.resume();
+  const c=SND.ctx, src=c.createBufferSource(), g=c.createGain(), t=c.currentTime;
+  src.buffer=b; src.loop=true; g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(1,t+MUSIC_FADE);
+  src.connect(g); g.connect(SND.bus.music); src.start(t);
+  MFILE.src=src; MFILE.gain=g; MFILE.key=tr.url; MFILE.want=tr.url; MFILE.fading=false;
+  MUS.mode=null; // le chiptune se tait (musTick sort tout de suite)
+}
+function musicFileLoad(tr,then){
+  if(MFILE.buf[tr.url]){then();return}
+  if(MFILE.loading&&MFILE.loading[tr.url])return;
+  (MFILE.loading=MFILE.loading||{})[tr.url]=true;
+  fetch(tr.url).then(r=>{if(!r.ok)throw new Error(r.status);return r.arrayBuffer()})
+    .then(ab=>new Promise((ok,ko)=>SND.ctx.decodeAudioData(ab,ok,ko)))
+    .then(buf=>{MFILE.buf[tr.url]=buf; delete MFILE.loading[tr.url]; then()})
+    .catch(()=>{MFILE.bad[tr.url]=true; delete MFILE.loading[tr.url]}); // fichier absent ou illisible (ex. file://) : le chiptune reste
+}
+{const _musicSet=musicSet;
+  musicSet=function(mode){
+    if(!SND.ctx)return;
+    const tr=musicTrackFor(mode);
+    if(tr&&!MFILE.bad[tr.url]){
+      if(MFILE.key===tr.url&&MFILE.src)return; // déjà en cours
+      if(MFILE.buf[tr.url]){musicFileStart(tr);return}
+      MFILE.want=tr.url; _musicSet(mode); // en attendant le chargement, le chiptune joue
+      musicFileLoad(tr,()=>{if(MFILE.want===tr.url)musicFileStart(tr)}); // want est remis à zéro si le contexte a changé entre-temps
+      return;
+    }
+    musicFileStop(MUSIC_FADE); _musicSet(mode);
+  };}
+// écran de résultat : fondu de sortie, la musique du menu reprend au retour au menu
+setInterval(()=>{ if(MFILE.src&&!MFILE.fading&&typeof endShown!=="undefined"&&endShown){MFILE.fading=true; musicFileStop(MUSIC_FADE); MFILE.fading=false} },250);
+// coupure de la musique, séparée du curseur de volume (et des bruitages)
+{const el=document.getElementById("vMusic"); if(el&&el.parentNode){
+  const lab=document.createElement("label"); lab.className="mmute"; lab.style.cssText="display:flex;gap:8px;align-items:center;margin:2px 0 6px;font-size:13px";
+  lab.innerHTML='<input type="checkbox" id="vMusicMute"> <span>Couper la musique</span>';
+  el.parentNode.insertBefore(lab,el.nextSibling);
+  const cb=lab.querySelector("input"); cb.checked=!!SND.muteMusic;
+  cb.addEventListener("change",()=>{SND.muteMusic=cb.checked; try{localStorage.setItem("sndMuteMusic",cb.checked?"1":"0")}catch(_){} sndInit(); sndApply()});
+}}
 
 Object.values(SPECIES).forEach(sp=>Object.values(sp.sheets).forEach(s=>{s.img=new Image();s.img.src=s.src}));
 const tmp=document.createElement("canvas"); tmp.width=96; tmp.height=96; const tctx=tmp.getContext("2d");
