@@ -453,7 +453,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Sélection d'équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>mannequin d'entraînement</small></button><button type="button" data-mode="duel" aria-pressed="false">Versus<small>contre un adversaire</small></button><button type="button" data-mode="rush" aria-pressed="false">Marathon<small>Tous les Pokémon d'affilée, au chrono</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="rounds" role="group" aria-label="Rounds"><span>Rounds</span><button type="button" data-r="1">1</button><button type="button" data-r="3" aria-pressed="true">3</button><button type="button" data-r="5">5</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
 </div>
-<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.85 · 17/10/2026</b></footer>
+<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.86 · 17/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -4912,7 +4912,7 @@ function peerGone(){
 function maybeStart(){ if(role==="host"&&myReady&&oppReady&&oppHello&&!NET.started)beginHost() }
 btnR.addEventListener("click",()=>{
   if(!inLobby||NET.started)return;
-  if(!myReady&&!saveKit())return;
+  if(!myReady&&!tryKit())return;
   if(!myReady&&!oppVerOk&&peerHere){say(verMsg());return}
   myReady=!myReady; myHello=mineHello();
   relay({t:"ready",on:myReady,team:myHello.team,v:GV,name:playerName()});
@@ -5070,10 +5070,19 @@ function connect(onOpen){
 const teamPicks=()=>picks.map(k=>({key:k,kit:draftOf(k).slice()}));
 function mineHello(){const t=teamPicks(); return {key:t[0].key,kit:t[0].kit,team:t}}
 function saveKit(){if(picks.length!==3||!picks.every(k=>draftOf(k).length===4))return false; picks.forEach(k=>{KITS[k]=draftOf(k).slice()}); try{localStorage.setItem("aceKits",JSON.stringify(KITS));localStorage.setItem("aceTeam",JSON.stringify(picks));localStorage.setItem("aceKey",pick)}catch(_){} return true}
-btnC.addEventListener("click",()=>{ if(!saveKit())return; role="host"; myHello=mineHello(); connectAny(true) });
+const teamMsg=()=>LANG==="en"?"Pick 3 Aces with 4 moves each in the Solo tab (you have "+picks.length+")":"Choisis 3 Aces avec 4 sorts chacun dans l'onglet Solo (tu en as "+picks.length+")";
+const tryKit=()=>{const ok=saveKit(); if(!ok)say(teamMsg()); return ok};
+// rappel permanent du nombre d'Aces attendu dans le salon 1v1
+{const h=document.createElement("div"); h.id="netHint"; h.style.cssText="margin:0 0 8px;font:600 13px 'Pixelify Sans',var(--display);color:#9fb4ff";
+ const onl=document.getElementById("onl"), row=document.getElementById("netRow"); if(onl)onl.insertBefore(h,row||null);
+ setInterval(()=>{const n=picks.length, L=LANG==="en"; h.style.color=n===3?"#7fe0a0":"#ffd24a";
+  if(row&&row.previousElementSibling!==h&&row.parentNode===onl)onl.insertBefore(h,row); // juste au-dessus du salon 1v1, sous le cadre mêlée
+  if(n===3&&st&&/^(Choisis 3|Pick 3)/.test(st.textContent))say("");
+  h.textContent=L?"1v1 room: 3 Aces needed (selected: "+n+"/3)":"Salon 1v1 : 3 Aces demandés (sélectionnés : "+n+"/3)"},400)}
+btnC.addEventListener("click",()=>{ if(!tryKit())return; role="host"; myHello=mineHello(); connectAny(true) });
 btnJ.addEventListener("click",()=>{
   const c=(codeIn.value||"").trim().toUpperCase(); if(c.length!==4){say("Saisis le code du salon (4 lettres)");return}
-  if(!saveKit())return; role="guest"; connectAny(false,c);
+  if(!tryKit())return; role="guest"; connectAny(false,c);
 });
 // Combat classé : la liaison passe toujours par PeerJS avec le code donné par le serveur de classement.
 NET.saveKit=saveKit;
@@ -5466,6 +5475,7 @@ function render(){
       h+='<div class="fslot'+(p&&p.ready?' ok':'')+'">'+(p?('<b>'+(p.name||"?")+(i===M.slot?(L?" (you)":" (toi)"):"")+'</b><br>'+(p.team||[]).map(t=>'<img alt="" src="'+(PORTRAITS[t.key]||"")+'">').join("")+'<br>'+(p.ready?(L?"Ready":"Prêt"):(L?"Waiting":"En attente"))):(L?"Free slot":"Place libre"))+'</div>'}
     h+='</div><div class="frow"><button type="button" id="ffaReady">'+(M.ready?(L?"Cancel":"Annuler"):(L?"Ready":"Prêt"))+'</button>'+(M.role==="host"?'<button type="button" id="ffaGo"'+(canStart()?'':' disabled')+'>'+(L?"Start":"Lancer")+'</button>':'')+'<button type="button" id="ffaQuit">'+(L?"Leave":"Quitter")+'</button></div>';
   }
+  h+='<div class="fteam" id="ffaTeam"></div>';
   h+='<div id="ffaMsg"></div>';
   const keep=(document.getElementById("ffaMsg")||{}).textContent;
   box.innerHTML=h; if(keep)say(keep);
@@ -5477,7 +5487,7 @@ function render(){
   if(g("ffaGo"))g("ffaGo").onclick=()=>hostStart();
   if(g("ffaQuit"))g("ffaQuit").onclick=()=>{leave(); say("")};
 }
-function teamOk(){ if(validTeam(myTeam()))return true; say(LANG==="en"?"Pick 2 Aces with 4 moves each (Solo tab)":"Choisis 2 Aces avec 4 sorts chacun (onglet Solo)"); return false }
+function teamOk(){ if(validTeam(myTeam()))return true; say(LANG==="en"?"Pick 2 Aces with 4 moves each in the Solo tab (you have "+picks.length+")":"Choisis 2 Aces avec 4 sorts chacun dans l'onglet Solo (tu en as "+picks.length+")"); return false }
 const canStart=()=>{const P=M.players.filter(Boolean); return P.length>=MINP&&P.every(p=>p.ready&&validTeam(p.team))};
 // ---------- connexion ----------
 const peerOpts=()=>{const u=new URLSearchParams(location.search); return u.get("peerhost")?{host:u.get("peerhost"),port:+u.get("peerport")||9000,path:"/",secure:false}:{}};
@@ -5633,6 +5643,11 @@ NET.toLobby=function(){ if(!NET.ffa)return _toLobby&&_toLobby.apply(this,argumen
 // l'hôte annonce la fin aux invités
 setTimeout(()=>{const _sr=showResult; showResult=function(){ if(NET.ffa&&NET.host&&!endShown)sendAll({t:"fend",out:FFA.out.map(e=>entities.indexOf(e)),w:FFA.w}); return _sr.apply(this,arguments) }},0);
 setInterval(()=>{ if(M.role&&!M.started){ box.hidden=false } },500);
+// rappel des 2 Aces joués (mis à jour sans reconstruire le cadre : le code saisi reste)
+setInterval(()=>{const el=document.getElementById("ffaTeam"); if(!el)return; const L=LANG==="en", t=picks.slice(0,2).map(k=>(SPECIES[k]&&SPECIES[k].name)||k);
+  el.style.color=t.length===2?"#7fe0a0":"#ffd24a";
+  const m=document.getElementById("ffaMsg"); if(m&&t.length===2&&validTeam(myTeam())&&/^(Choisis 2|Pick 2)/.test(m.textContent))m.textContent="";
+  el.textContent=(L?"Your 2 Aces: ":"Tes 2 Aces : ")+(t.length===2?t.join(" + ")+(picks.length>2?(L?" (3rd ignored)":" (le 3e est ignoré)"):""):(L?"pick 2 in the Solo tab":"choisis-en 2 dans l'onglet Solo"))},400);
 render();
 NET.ffaState=M;
 })();

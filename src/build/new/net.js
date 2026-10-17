@@ -182,7 +182,7 @@ function peerGone(){
 function maybeStart(){ if(role==="host"&&myReady&&oppReady&&oppHello&&!NET.started)beginHost() }
 btnR.addEventListener("click",()=>{
   if(!inLobby||NET.started)return;
-  if(!myReady&&!saveKit())return;
+  if(!myReady&&!tryKit())return;
   if(!myReady&&!oppVerOk&&peerHere){say(verMsg());return}
   myReady=!myReady; myHello=mineHello();
   relay({t:"ready",on:myReady,team:myHello.team,v:GV,name:playerName()});
@@ -340,10 +340,19 @@ function connect(onOpen){
 const teamPicks=()=>picks.map(k=>({key:k,kit:draftOf(k).slice()}));
 function mineHello(){const t=teamPicks(); return {key:t[0].key,kit:t[0].kit,team:t}}
 function saveKit(){if(picks.length!==3||!picks.every(k=>draftOf(k).length===4))return false; picks.forEach(k=>{KITS[k]=draftOf(k).slice()}); try{localStorage.setItem("aceKits",JSON.stringify(KITS));localStorage.setItem("aceTeam",JSON.stringify(picks));localStorage.setItem("aceKey",pick)}catch(_){} return true}
-btnC.addEventListener("click",()=>{ if(!saveKit())return; role="host"; myHello=mineHello(); connectAny(true) });
+const teamMsg=()=>LANG==="en"?"Pick 3 Aces with 4 moves each in the Solo tab (you have "+picks.length+")":"Choisis 3 Aces avec 4 sorts chacun dans l'onglet Solo (tu en as "+picks.length+")";
+const tryKit=()=>{const ok=saveKit(); if(!ok)say(teamMsg()); return ok};
+// rappel permanent du nombre d'Aces attendu dans le salon 1v1
+{const h=document.createElement("div"); h.id="netHint"; h.style.cssText="margin:0 0 8px;font:600 13px 'Pixelify Sans',var(--display);color:#9fb4ff";
+ const onl=document.getElementById("onl"), row=document.getElementById("netRow"); if(onl)onl.insertBefore(h,row||null);
+ setInterval(()=>{const n=picks.length, L=LANG==="en"; h.style.color=n===3?"#7fe0a0":"#ffd24a";
+  if(row&&row.previousElementSibling!==h&&row.parentNode===onl)onl.insertBefore(h,row); // juste au-dessus du salon 1v1, sous le cadre mêlée
+  if(n===3&&st&&/^(Choisis 3|Pick 3)/.test(st.textContent))say("");
+  h.textContent=L?"1v1 room: 3 Aces needed (selected: "+n+"/3)":"Salon 1v1 : 3 Aces demandés (sélectionnés : "+n+"/3)"},400)}
+btnC.addEventListener("click",()=>{ if(!tryKit())return; role="host"; myHello=mineHello(); connectAny(true) });
 btnJ.addEventListener("click",()=>{
   const c=(codeIn.value||"").trim().toUpperCase(); if(c.length!==4){say("Saisis le code du salon (4 lettres)");return}
-  if(!saveKit())return; role="guest"; connectAny(false,c);
+  if(!tryKit())return; role="guest"; connectAny(false,c);
 });
 // Combat classé : la liaison passe toujours par PeerJS avec le code donné par le serveur de classement.
 NET.saveKit=saveKit;

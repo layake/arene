@@ -29,6 +29,7 @@ function render(){
       h+='<div class="fslot'+(p&&p.ready?' ok':'')+'">'+(p?('<b>'+(p.name||"?")+(i===M.slot?(L?" (you)":" (toi)"):"")+'</b><br>'+(p.team||[]).map(t=>'<img alt="" src="'+(PORTRAITS[t.key]||"")+'">').join("")+'<br>'+(p.ready?(L?"Ready":"Prêt"):(L?"Waiting":"En attente"))):(L?"Free slot":"Place libre"))+'</div>'}
     h+='</div><div class="frow"><button type="button" id="ffaReady">'+(M.ready?(L?"Cancel":"Annuler"):(L?"Ready":"Prêt"))+'</button>'+(M.role==="host"?'<button type="button" id="ffaGo"'+(canStart()?'':' disabled')+'>'+(L?"Start":"Lancer")+'</button>':'')+'<button type="button" id="ffaQuit">'+(L?"Leave":"Quitter")+'</button></div>';
   }
+  h+='<div class="fteam" id="ffaTeam"></div>';
   h+='<div id="ffaMsg"></div>';
   const keep=(document.getElementById("ffaMsg")||{}).textContent;
   box.innerHTML=h; if(keep)say(keep);
@@ -40,7 +41,7 @@ function render(){
   if(g("ffaGo"))g("ffaGo").onclick=()=>hostStart();
   if(g("ffaQuit"))g("ffaQuit").onclick=()=>{leave(); say("")};
 }
-function teamOk(){ if(validTeam(myTeam()))return true; say(LANG==="en"?"Pick 2 Aces with 4 moves each (Solo tab)":"Choisis 2 Aces avec 4 sorts chacun (onglet Solo)"); return false }
+function teamOk(){ if(validTeam(myTeam()))return true; say(LANG==="en"?"Pick 2 Aces with 4 moves each in the Solo tab (you have "+picks.length+")":"Choisis 2 Aces avec 4 sorts chacun dans l'onglet Solo (tu en as "+picks.length+")"); return false }
 const canStart=()=>{const P=M.players.filter(Boolean); return P.length>=MINP&&P.every(p=>p.ready&&validTeam(p.team))};
 // ---------- connexion ----------
 const peerOpts=()=>{const u=new URLSearchParams(location.search); return u.get("peerhost")?{host:u.get("peerhost"),port:+u.get("peerport")||9000,path:"/",secure:false}:{}};
@@ -196,6 +197,11 @@ NET.toLobby=function(){ if(!NET.ffa)return _toLobby&&_toLobby.apply(this,argumen
 // l'hôte annonce la fin aux invités
 setTimeout(()=>{const _sr=showResult; showResult=function(){ if(NET.ffa&&NET.host&&!endShown)sendAll({t:"fend",out:FFA.out.map(e=>entities.indexOf(e)),w:FFA.w}); return _sr.apply(this,arguments) }},0);
 setInterval(()=>{ if(M.role&&!M.started){ box.hidden=false } },500);
+// rappel des 2 Aces joués (mis à jour sans reconstruire le cadre : le code saisi reste)
+setInterval(()=>{const el=document.getElementById("ffaTeam"); if(!el)return; const L=LANG==="en", t=picks.slice(0,2).map(k=>(SPECIES[k]&&SPECIES[k].name)||k);
+  el.style.color=t.length===2?"#7fe0a0":"#ffd24a";
+  const m=document.getElementById("ffaMsg"); if(m&&t.length===2&&validTeam(myTeam())&&/^(Choisis 2|Pick 2)/.test(m.textContent))m.textContent="";
+  el.textContent=(L?"Your 2 Aces: ":"Tes 2 Aces : ")+(t.length===2?t.join(" + ")+(picks.length>2?(L?" (3rd ignored)":" (le 3e est ignoré)"):""):(L?"pick 2 in the Solo tab":"choisis-en 2 dans l'onglet Solo"))},400);
 render();
 NET.ffaState=M;
 })();
