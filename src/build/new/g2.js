@@ -230,6 +230,7 @@ function drawEntity(e){
   if(!s.img.complete)return;
   if(e.rush&&e.rush.cfg&&e.rush.cfg.ghost)ctx.globalAlpha=.4+.1*Math.sin(performance.now()/40);
   else if(e.sleep&&Math.floor(performance.now()/500)%2)ctx.globalAlpha=.85;
+  else if(e.entryProt&&e.inv>0&&Math.floor(performance.now()/90)%2)ctx.globalAlpha=.45; // clignote tant que protégé à l'entrée
   if(e.hover){
     tctx.clearRect(0,0,96,96); tctx.globalCompositeOperation="source-over";
     tctx.drawImage(s.img,e.frame*s.w,e.dir*s.h,s.w,s.h,0,0,s.w,s.h);

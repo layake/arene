@@ -1,5 +1,5 @@
 /* ===== Equipes de 3 Aces : swap (Tab) avec animation Pokeball, KO = suivant entre, victoire a 3 KO ===== */
-const SWAP={t:.5,cd:1.5};
+const SWAP={t:.5,cd:1.5,prot:1.5}; // prot : invulnérabilité de l'Ace qui entre après un KO (évite l'enchaînement)
 function initTeam(e,keys,kits){
   e.team=keys.map((k,i)=>({key:k,kit:(kits&&kits[i]||kitOf(k)).slice(),hp:SPECIES[k].maxHp,maxHp:SPECIES[k].maxHp,dead:false,cd:{}}));
   e.ti=0; e.swapC=null; e.swapCd=0;
@@ -15,7 +15,7 @@ function loadSlot(e,i,save){
   if(save!==false){old.hp=Math.max(0,e.hp); old.kit=e.kit.slice(); old.cd=e.cd}
   const s=e.team[i]; e.ti=i; e.sp=SPECIES[s.key]; e.key=s.key; e.kit=s.kit.slice(); e.maxHp=s.maxHp; e.hp=s.hp; e.cd=s.cd; e.cd.flash=Math.max(e.cd.flash||0,fcd);
   e.bf={}; e.rush=null; e.chan=null; e.tunnel=null; e.counter=null; e.stun=0; e.slow=0; e.burn=0; e.psn=0; e.sleep=false; e.inv=0; e.flashC=null; e.cast=null; e.kb=null; e.comboT=0; e.hit=false; e.shieldOn=false; e.shieldBroken=false; e.shieldE=100;
-  e.hpShow=0; e.flash=0; e.moveTarget=null; e.altA=null; setAnim(e,"idle"); e.frame=0; e.tick=0;
+  e.hpShow=0; e.flash=0; e.entryProt=false; e.moveTarget=null; e.altA=null; setAnim(e,"idle"); e.frame=0; e.tick=0;
   if(e.bot&&typeof botEquip==="function"){botEquip(e,foeOf(e)); s.kit=e.kit.slice()}
   if(e===player&&typeof applyKit==="function")applyKit();
 }
@@ -32,7 +32,7 @@ function teamKO(t){ // renvoie true s'il reste un coequipier
 }
 function teamEnter(e){ // apres un KO : le suivant arrive tout de suite
   const j=nextAlive(e,e.ti); if(j<0)return false;
-  loadSlot(e,j,false); e.ko=0; e.swapC={t:SWAP.t/2,to:-1}; e.lock=SWAP.t/2+.02; e.swapCd=SWAP.cd;
+  loadSlot(e,j,false); e.ko=0; e.swapC={t:SWAP.t/2,to:-1}; e.lock=SWAP.t/2+.02; e.swapCd=SWAP.cd; e.inv=SWAP.prot; e.entryProt=true;
   ballFx(e); logFor(e,e.sp.name+" entre en jeu !",1100);
   return true;
 }
