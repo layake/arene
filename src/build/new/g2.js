@@ -393,12 +393,19 @@ function draw(){
   ctx.globalAlpha=1;
   // chiffres de dégâts : texte d'interface dessiné en espace écran
   ctx.setTransform(1,0,0,1,0,0); ctx.textAlign="center"; ctx.font="700 "+Math.round(PX*5)+"px 'Pixelify Sans','Chakra Petch',monospace"; ctx.lineWidth=Math.round(PX*1.2); ctx.lineJoin="round";
+  const popBoxes=[];
   pops.forEach(q=>{
-    const sx=(q.x-cam.x)*PX, sy=(q.y-q.t*16-cam.y)*PX; ctx.globalAlpha=clamp(1.6-q.t*1.6,0,1);
+    const sx=(q.x-cam.x)*PX; let sy=(q.y-q.t*16-cam.y)*PX; ctx.globalAlpha=clamp(1.6-q.t*1.6,0,1);
+    sy=labelSlot(popBoxes,sx,sy,ctx.measureText(q.txt).width,PX*5);
     ctx.strokeStyle="#1a1405"; ctx.strokeText(q.txt,sx,sy); ctx.fillStyle=q.col||"#ffd24a"; ctx.fillText(q.txt,sx,sy);
   });
   ctx.globalAlpha=1;
   if(typeof drawTags==="function")drawTags();
+}
+// remonte un texte tant qu'il en recouvre un autre déjà placé (boxes : rectangles déjà occupés)
+function labelSlot(boxes,x,y,w,h){
+  for(let i=0;i<8&&boxes.some(b=>Math.abs(b.x-x)<(b.w+w)/2&&Math.abs(b.y-y)<(b.h+h)/2);i++)y-=h;
+  boxes.push({x,y,w,h}); return y;
 }
 function resize(){
   const r=stage.getBoundingClientRect(), d=window.devicePixelRatio||1;

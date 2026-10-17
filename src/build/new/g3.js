@@ -266,7 +266,7 @@ function refreshMenu(){
   goBtn.textContent=teamReady()?"Combattre":(picks.length<teamNeed()?"Sélectionne "+teamNeed()+(teamNeed()>1?" Aces":" Ace"):"Sélectionne 4 sorts");
 }
 const teamCap=()=>pickMode==="ffa"?2:3;
-const teamNeed=()=>pickMode==="duel"?3:pickMode==="ffa"?2:1;
+const teamNeed=()=>pickMode==="ffa"?2:1; // Versus : de 1 à 3 Aces (1v1 possible) ; en ligne et classé gardent leurs 3 Aces (saveKit)
 const teamReady=()=>picks.length>=teamNeed()&&picks.every(k=>draftOf(k).length===4);
 function openMenu(){if(typeof hideBanner==="function")hideBanner(); if(NET.on){NET.toLobby();NET.tab("online")}musicSet("menu");setPause(false);menuOpen=true;menuEl.hidden=false;refreshMenu()}
 goBtn.addEventListener("click",()=>{

@@ -28,9 +28,10 @@ function drawRings(){
 function drawTags(){
   const show=matchMode==="ffa"||NET.on; if(!show)return;
   ctx.save(); ctx.textAlign="center"; ctx.font="700 "+Math.max(11,Math.round(PX*3.2))+"px 'Pixelify Sans',monospace"; ctx.lineWidth=Math.max(3,Math.round(PX*.9)); ctx.lineJoin="round";
+  const boxes=[], lh=Math.max(11,Math.round(PX*3.2));
   fighters.forEach(e=>{ if(e.gone||e.out||e.tunnel)return;
     const name=matchMode==="ffa"&&typeof ffaName==="function"?ffaName(e):(e===player?(playerName()||(LANG==="en"?"You":"Toi")):(e.pname||"")); if(!name)return;
-    const sx=(e.x-cam.x)*PX, sy=(e.y-e.sp.body*2-16-cam.y)*PX;
+    const sx=(e.x-cam.x)*PX, sy=labelSlot(boxes,(e.x-cam.x)*PX,(e.y-e.sp.body*2-16-cam.y)*PX,ctx.measureText(name).width,lh*1.2);
     ctx.strokeStyle="#0b0d18"; ctx.strokeText(name,sx,sy); ctx.fillStyle=e.col||(e===player?"#7fe0ff":"#ff8a8a"); ctx.fillText(name,sx,sy) });
   ctx.restore();
 }

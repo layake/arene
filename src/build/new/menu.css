@@ -343,3 +343,6 @@ body.paused #roundban{visibility:hidden!important}
 .mbox .ace .ty i{font-size:9px;padding:0 3px}
 @media(max-width:1000px){.mbox #cards{grid-template-columns:repeat(5,minmax(0,1fr))}}
 .dsr.adj s{background:#ffd23c!important}.dsr.adj em{color:#ffd23c}.adjnote{display:block;color:#ffd23c;font-size:10px;margin-top:2px;opacity:.85}
+/* titre du menu : ne touche pas les boutons Accueil / Paramètres / langue en fenêtre étroite */
+@media(max-width:1000px){.mbox h2{padding:0 175px;font-size:21px}}
+@media(max-width:720px){.mbox h2{padding:36px 0 0;font-size:20px}}

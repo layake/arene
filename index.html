@@ -426,6 +426,9 @@ body.paused #roundban{visibility:hidden!important}
 .mbox .ace .ty i{font-size:9px;padding:0 3px}
 @media(max-width:1000px){.mbox #cards{grid-template-columns:repeat(5,minmax(0,1fr))}}
 .dsr.adj s{background:#ffd23c!important}.dsr.adj em{color:#ffd23c}.adjnote{display:block;color:#ffd23c;font-size:10px;margin-top:2px;opacity:.85}
+/* titre du menu : ne touche pas les boutons Accueil / Paramètres / langue en fenêtre étroite */
+@media(max-width:1000px){.mbox h2{padding:0 175px;font-size:21px}}
+@media(max-width:720px){.mbox h2{padding:36px 0 0;font-size:20px}}
 footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </style>
 
@@ -450,7 +453,7 @@ footer{color:var(--muted);font-size:.72rem;line-height:1.4}
 </div>
 <div id="menu" role="dialog" aria-label="Choix de l'Ace"><div class="mbox"><h2>Sélection d'équipe</h2><div class="tabs" role="group" aria-label="Mode"><button type="button" data-tab="solo" aria-pressed="true">Solo</button><button type="button" data-tab="online" aria-pressed="false">En ligne</button></div><div id="onl" class="online" role="group" aria-label="En ligne"><div id="netRow"><button id="netCreate" type="button">Créer un salon</button><span>ou</span><input id="netCode" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false" aria-label="Code du salon"><button id="netJoin" type="button">Rejoindre</button></div><div id="netRoom" hidden><div class="lbcode">Salon <b id="netRoomCode"></b><button id="netCopy" type="button">Copier</button></div><div class="lbduo"><div class="lbslot" id="slotMe"></div><div class="lbvs">VS</div><div class="lbslot" id="slotOpp"></div></div><div class="lbbtns"><button id="netReady" type="button">Prêt</button><button id="netQuit" type="button">Quitter le salon</button></div></div><div id="netStatus" aria-live="polite"></div></div><div id="cards"></div><div id="equip"></div><div class="bar"><div class="modes" role="group" aria-label="Mode de jeu"><button type="button" data-mode="train" aria-pressed="true">Entraînement<small>mannequin d'entraînement</small></button><button type="button" data-mode="duel" aria-pressed="false">Versus<small>contre un adversaire</small></button><button type="button" data-mode="rush" aria-pressed="false">Marathon<small>Tous les Pokémon d'affilée, au chrono</small></button></div><div class="diffs" role="group" aria-label="Difficulté"><button type="button" data-diff="easy">Facile</button><button type="button" data-diff="normal" aria-pressed="true">Normal</button><button type="button" data-diff="hard">Difficile</button></div><div class="rounds" role="group" aria-label="Rounds"><span>Rounds</span><button type="button" data-r="1">1</button><button type="button" data-r="3" aria-pressed="true">3</button><button type="button" data-r="5">5</button></div><div class="foes" role="group" aria-label="Adversaire"><span>Adversaire</span><div id="foeBtns"></div></div><button id="go" type="button">Combattre</button></div></div></div>
 </div>
-<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.77 · 17/10/2026</b></footer>
+<footer>Jeu de fans non officiel et non commercial, sans lien avec Nintendo, Game Freak, Creatures ni The Pokémon Company. Pokémon et ses personnages © Nintendo / Creatures / Game Freak. Sprites : PMDCollab SpriteCollab (CC BY-NC 4.0), originaux Chunsoft. Effets sonores : Pokémon Donjon Mystère © Chunsoft / The Pokémon Company ; musique générée par le code. <b id="ver">v1.84 · 17/10/2026</b></footer>
 
 <script>
 const G_SHEETS={
@@ -2592,12 +2595,19 @@ function draw(){
   ctx.globalAlpha=1;
   // chiffres de dégâts : texte d'interface dessiné en espace écran
   ctx.setTransform(1,0,0,1,0,0); ctx.textAlign="center"; ctx.font="700 "+Math.round(PX*5)+"px 'Pixelify Sans','Chakra Petch',monospace"; ctx.lineWidth=Math.round(PX*1.2); ctx.lineJoin="round";
+  const popBoxes=[];
   pops.forEach(q=>{
-    const sx=(q.x-cam.x)*PX, sy=(q.y-q.t*16-cam.y)*PX; ctx.globalAlpha=clamp(1.6-q.t*1.6,0,1);
+    const sx=(q.x-cam.x)*PX; let sy=(q.y-q.t*16-cam.y)*PX; ctx.globalAlpha=clamp(1.6-q.t*1.6,0,1);
+    sy=labelSlot(popBoxes,sx,sy,ctx.measureText(q.txt).width,PX*5);
     ctx.strokeStyle="#1a1405"; ctx.strokeText(q.txt,sx,sy); ctx.fillStyle=q.col||"#ffd24a"; ctx.fillText(q.txt,sx,sy);
   });
   ctx.globalAlpha=1;
   if(typeof drawTags==="function")drawTags();
+}
+// remonte un texte tant qu'il en recouvre un autre déjà placé (boxes : rectangles déjà occupés)
+function labelSlot(boxes,x,y,w,h){
+  for(let i=0;i<8&&boxes.some(b=>Math.abs(b.x-x)<(b.w+w)/2&&Math.abs(b.y-y)<(b.h+h)/2);i++)y-=h;
+  boxes.push({x,y,w,h}); return y;
 }
 function resize(){
   const r=stage.getBoundingClientRect(), d=window.devicePixelRatio||1;
@@ -2873,7 +2883,7 @@ function refreshMenu(){
   goBtn.textContent=teamReady()?"Combattre":(picks.length<teamNeed()?"Sélectionne "+teamNeed()+(teamNeed()>1?" Aces":" Ace"):"Sélectionne 4 sorts");
 }
 const teamCap=()=>pickMode==="ffa"?2:3;
-const teamNeed=()=>pickMode==="duel"?3:pickMode==="ffa"?2:1;
+const teamNeed=()=>pickMode==="ffa"?2:1; // Versus : de 1 à 3 Aces (1v1 possible) ; en ligne et classé gardent leurs 3 Aces (saveKit)
 const teamReady=()=>picks.length>=teamNeed()&&picks.every(k=>draftOf(k).length===4);
 function openMenu(){if(typeof hideBanner==="function")hideBanner(); if(NET.on){NET.toLobby();NET.tab("online")}musicSet("menu");setPause(false);menuOpen=true;menuEl.hidden=false;refreshMenu()}
 goBtn.addEventListener("click",()=>{
@@ -4708,9 +4718,10 @@ function drawRings(){
 function drawTags(){
   const show=matchMode==="ffa"||NET.on; if(!show)return;
   ctx.save(); ctx.textAlign="center"; ctx.font="700 "+Math.max(11,Math.round(PX*3.2))+"px 'Pixelify Sans',monospace"; ctx.lineWidth=Math.max(3,Math.round(PX*.9)); ctx.lineJoin="round";
+  const boxes=[], lh=Math.max(11,Math.round(PX*3.2));
   fighters.forEach(e=>{ if(e.gone||e.out||e.tunnel)return;
     const name=matchMode==="ffa"&&typeof ffaName==="function"?ffaName(e):(e===player?(playerName()||(LANG==="en"?"You":"Toi")):(e.pname||"")); if(!name)return;
-    const sx=(e.x-cam.x)*PX, sy=(e.y-e.sp.body*2-16-cam.y)*PX;
+    const sx=(e.x-cam.x)*PX, sy=labelSlot(boxes,(e.x-cam.x)*PX,(e.y-e.sp.body*2-16-cam.y)*PX,ctx.measureText(name).width,lh*1.2);
     ctx.strokeStyle="#0b0d18"; ctx.strokeText(name,sx,sy); ctx.fillStyle=e.col||(e===player?"#7fe0ff":"#ff8a8a"); ctx.fillText(name,sx,sy) });
   ctx.restore();
 }
